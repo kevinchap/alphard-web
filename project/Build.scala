@@ -1,5 +1,6 @@
 import com.byteground.sbt._
 import com.typesafe.sbt.jse._
+import com.typesafe.sbt.less._
 import com.typesafe.sbt.less.SbtLess.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
@@ -10,8 +11,8 @@ import sbt._
 object Build extends Build {
 
   val lessSettings: Seq[Setting[_]] = Seq(
-    includeFilter in(Assets, LessKeys.less) := "*.less",
-    excludeFilter in(Assets, LessKeys.less) := "_*.less"
+    includeFilter in LessKeys.less := "*.less",
+    excludeFilter in LessKeys.less := "_*.less"
     //pipelineStages += htmlMinifier
   )
 
