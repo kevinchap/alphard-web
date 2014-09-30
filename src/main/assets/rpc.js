@@ -1,4 +1,3 @@
-// jshint ignore: start
 (function (global, _exports) {
   'use strict';
 
@@ -7,715 +6,788 @@
 
     var
     baseURL    = global.location ? global.location.href : "",
-    ToBoolean  = Boolean,
-    ToString   = String,
     isArray    = Array.isArray,
+    toBoolean  = Boolean,
+    toString   = String,
+    toAsyncFn  = async,
     aslice     = Array.prototype.slice;
 
-    type.module("rpc", function (rpc) {
+    var rpc;
+    (function (rpc) {
 
       /**
        * @param {String} name
        * @return {Function}
        */
       function envelope(name) {
-        var fn = envelope[_key(name)];
-        return fn ? async(fn) : _throwError(name + " is not a valid envelope");
+        var fn = envelope[toString(name).toUpperCase()];
+        return fn ? toAsyncFn(fn) : _throwError(name + " is not a valid envelope");
       }
+      rpc.envelope = envelope;
 
       /**
        * @param {String} name
        * @return {Function}
        */
       function transport(name) {
-        var fn = transport[_key(name)];
-        return fn ? async(fn) : _throwError(name + " is not a valid transport");
+        var fn = transport[toString(name).toUpperCase()];
+        return fn ? toAsyncFn(fn) : _throwError(name + " is not a valid transport");
       }
-
-      function _key(s) {
-        return ToString(s).toUpperCase();
-      }
-
-      return {
-        envelope: envelope,
-        transport: transport
-      };
-    });
-
-    /**
-     * Service class
-     */
-    type("rpc.Service", [], function (Service) {
+      rpc.transport = transport;
 
       /**
-       * @constructor
-       * @param {Object} smd
-       * @param {Object=} options -> see #config()
+       * Request class
        */
-      function __new__(smd, options) {
-        var
-        self   = this,
-        smdObj;
+      var Request = (function () {
+        var nextId = 1;
 
-
-        //configuration
-        self.config(options);
-
-        //build methods
-        if (smd) {
-          smdObj = /*self.__smd__ =*/ new rpc.SMD(smd);
-          smdObj.forEach(function (serviceSMD) {
-            if (serviceSMD.hasOwnProperty("parameters")) {
-              var
-              name   = serviceSMD.name,
-              method = new rpc.ServiceMethod(self, serviceSMD);
-              method.displayName = name;
-              self[name] = method;
-            }
-          });
+        function Request(smd, parameters) {
+          this.smd = smd;
+          this.parameters = parameters;
+          this.id = nextId++;
         }
-      }
+
+        /**
+         * @return {string}
+         */
+        Request.prototype.inspect = function inspect() {
+          return (this.constructor.displayName || this.constructor.name) +
+            '#' + this.id +
+            '(`' + toString(this) + '`)';
+        };
+
+        /**
+         * @return {string}
+         */
+        Request.prototype.toString = function toString() {
+          return this.smd.name + "(" + String(this.parameters).slice(1, -1) + ")";
+        };
+
+        return Request;
+      }());
+      rpc.Request = Request;
 
       /**
-       * Configure the service
-       *
-       * @param {Object=} data
-       *  - debug: true|false
-       * @return this
+       * Service Parameters class
        */
-      function config(data) {
-        var p;
-        if (data) {
-          for (p in data) {
-            if (p in this) {
-              this[p] = data[p];
-            }
+      var Parameters = (function () {
+
+        /**
+         * @constructor
+         * @param {Object} descriptors
+         * @param {Array|Object} arrayOrObject
+         */
+        function Parameters(descriptors, arrayOrObject) {
+          var
+          data = this.__data__ = {},
+          descriptorc = descriptors.length,
+          byName  = data.byName  = {},
+          byIndex = data.byIndex = new Array(descriptorc),
+          descriptor, l, name;
+
+          for (var i = 0; i < descriptorc; ++i) {
+            descriptor = descriptors[i];
+            name = toString(descriptor.name);
+            byIndex[i] = byName[name] = {
+              "name": name,
+              "type": descriptor.type || "any",
+              "optional": toBoolean(descriptor.optional),
+              "default": descriptor["default"],
+              "index": i
+            };
+          }
+
+          data.schema = new JSONSchema({
+            "type": "object",
+            "properties": byName
+          });
+
+          //if specified then import data
+          if (arrayOrObject) {
+            this.update(arrayOrObject);
           }
         }
-        return this;
-      }
 
-      /**
-       *
-       * @return {Service}
-       */
-      function concat(var_args) {
-        var
-        self   = this,
-        proto  = Service.prototype,
-        result = new Service(),
-        prop, service, i, l;
+        Parameters.prototype.__hidden__ = { "password": true };
 
-        //mix configuration & methods
-        for (prop in self) {
-          result[prop] = bind(self[prop]);
-        }
+        /**
+         * @return {String}
+         */
+        Parameters.prototype.inspect = function inspect() {
+          return (this.constructor.displayName || this.constructor.name) + '(' +
+            _str(this) +
+          ')';
+        };
 
-        //mix services methods
-        for (i = 0, l = arguments.length; i < l; ++i) {
-          service = arguments[i];
-          if (service) {
-            for (prop in service) {
-              if (!(prop in proto)) {
-                result[prop] = bind(service[prop]);
+        /**
+         * @return {Array}
+         */
+        Parameters.prototype.keys = function keys() {
+          return Object.keys(this.__data__.byName);
+        };
+
+        /**
+         * @param {number|string} indexOrName
+         * @return {*}
+         */
+        Parameters.prototype.get = function get(indexOrName) {
+          return _isNumber(indexOrName) ?
+            _getByIndex(this, indexOrName) :
+            _getByName(this, indexOrName);
+        };
+
+        /**
+         * @param {number|string} indexOrName
+         * @param {*} value
+         */
+        Parameters.prototype.set = function set(indexOrName, value) {
+          if (_isNumber(indexOrName)) {
+            _setByIndex(this, indexOrName, value);
+          } else {
+            _setByName(this, indexOrName, value);
+          }
+          return this;
+        };
+
+        /**
+         * @param {Object} arrayOrObject
+         * @return {rpc.Parameter} this
+         */
+        Parameters.prototype.update = function update(arrayOrObject) {
+          var self = this;
+          if (arrayOrObject) {
+            var arr = _toArray(arrayOrObject);
+            if (arr) {
+              this.isArray = true;
+              for (var i = 0, l = arr.length; i < l; ++i) {
+                _setByIndex(self, i, arr[i]);
+              }
+            } else {
+              this.isObject = true;
+              for (var key in arrayOrObject) {
+                if (arrayOrObject.hasOwnProperty(key)) {
+                  _setByName(self, key, arrayOrObject[key]);
+                }
               }
             }
+            _validate(self);
           }
+          return self;
+        };
 
-        }
+        /**
+         * @return {Array}
+         */
+        Parameters.prototype.toArray = function toArray() {
+          var self   = this;
+          var length = _size(self);
+          var result = [];
+          var buf    = [];
+          var desc, value;
 
-        function bind(val) {
-          return val && val.smd ? val.bind(result) : val;
-        }
-        return result;
-      }
-
-      /**
-       * @param {String} name
-       * @return {Function}
-       */
-      function envelope(name) {
-        return rpc.envelope(name);
-      }
-
-      /**
-       * @param {String} name
-       * @return {Function}
-       */
-      function transport(name) {
-        return rpc.transport(name);
-      }
-
-      function _forward(self, eventName) {
-        return function () {
-          var result;
-          if (self[eventName]) {
-            result = self[eventName].apply(self, arguments);
+          for (var i = 0; i < length; i++) {
+            desc = _descriptorByIndex(self, i);
+            value = _getByDescriptor(self, desc);
+            buf.push(value);
+            if (!desc.optional) {
+              result = result.concat(buf);
+              buf.length = 0;
+            }
           }
           return result;
         };
-      }
 
-      return {
-        debug: false,
+        /**
+         * @return {Object}
+         */
+        Parameters.prototype.toObject = function toObject() {
+          var self = this;
+          var l = _size(self), i, value, desc;
+          var result = {};
+          for (i = 0; i < l; ++i) {
+            desc = _descriptorByIndex(self, i);
+            value = _getByDescriptor(self, desc);
 
-        onRequestInit: null,
-        onRequestTransport: null,
-        onRequestLoad: null,
-        onRequestError: null,
-        onReturn: null,
+            if (
+              value !== undefined &&
+              (!desc.optional || value !== desc["default"])
+            ) {
+              result[desc.name] = value;
+            }
+          }
+          return result;
+        };
 
-        //__smd__: null,
-        __new__: __new__,
-        config: config,
-        concat: concat,
-        envelope: envelope,
-        transport: transport
-      };
-    });
+        /**
+         * @return {Array|Object}
+         */
+        Parameters.prototype.toJSON = function toJSON() {
+          return this.isArray ? this.toArray() : this.toObject();
+        };
 
-    type("rpc.ServiceMethod", [], function (ServiceMethod) {
+        /**
+         * @return {String}
+         */
+        Parameters.prototype.toString = function toString() {
+          return '[' + _str(this) + ']';
+        };
 
-      /**
-       * @constructor
-       * @param {rpc.Service} service
-       * @param {rpc.SMD} smd
-       */
-      function __new__(service, smd) {
-
-        function serviceMethod(/*[...]*/) {
-          return serviceMethod.apply(this, arguments);
+        //util
+        function _descriptorByIndex(self, index) {
+          return self.__data__.byIndex[index] || _throwError(index + " is not a valid argument index");
         }
-        serviceMethod.smd = smd;
-        serviceMethod.service = service;
-        serviceMethod.debug = this.debug;
 
-        serviceMethod.apply = this.apply;
-        serviceMethod.bind = this.bind;
-        serviceMethod.clone = this.clone;
-        serviceMethod.envelope = this.envelope;
-        serviceMethod.transport = this.transport;
-        serviceMethod.toRepresentation = this.toRepresentation;
-        serviceMethod.toString = this.toString;
-        serviceMethod.__apply__ = this.__apply__;
+        function _descriptorByName(self, name) {
+          return self.__data__.byName[name] || _throwError(name + " is not a valid argument name");
+        }
 
-        return serviceMethod;
-      }
+        function _getByDescriptor(self, desc) {
+          var value = self[desc.name];
+          return value === undefined ? desc["default"] : value;
+        }
 
-      /**
-       * @param {Object=} thisp
-       * @param {Object|Array} args
-       */
-      function apply(thisp, args) {
-        return this.__apply__(new rpc.Parameters(this.smd.parameters || [], args));
-      }
+        function _getByIndex(self, index) {
+          return _getByDescriptor(self, _descriptorByIndex(self, index));
+        }
 
-      /**
-       * @param {Object=} thisp
-       * @return {rpc.ServiceMethod}
-       */
-      function bind(thisp) {
-        var result = clone.call(this);
-        result.service = thisp;
-        return result;
-      }
+        function _getByName(self, name) {
+          return _getByDescriptor(self, _descriptorByName(self, name));
+        }
 
-      /**
-       * @param {Object=} thisp
-       * @return {rpc.ServiceMethod}
-       */
-      function clone() {
-        var result = new ServiceMethod(this.service, this.smd);
-        return result;
-      }
+        function _setByDescriptor(self, desc, value) {
+          self[desc.name] = value;
+        }
 
-      /**
-       * @param {String} name
-       * @return {Function}
-       */
-      function envelope(name) {
-        return (this.service || rpc).envelope(name);
-      }
+        function _setByIndex(self, index, value) {
+          _setByDescriptor(self, _descriptorByIndex(self, index), value);
+        }
 
-      /**
-       * @param {String} name
-       * @return {Function}
-       */
-      function transport(name) {
-        return (this.service || rpc).transport(name);
-      }
+        function _setByName(self, name, value) {
+          _setByDescriptor(self, _descriptorByName(self, name), value);
+        }
 
-      /**
-       * Dump string representation
-       *
-       * @return {String}
-       */
-      function toRepresentation() {
-        return _str(this, '...');
-      }
+        function _size(self) {
+          return self.__data__.byIndex.length;
+        }
 
-      /**
-       * String representation
-       *
-       * @return {String}
-       */
-      function toString() {
-        return _str(this);
-      }
+        function _validate(self) {
+          self.__data__.schema.validate(self, {"throws": true});
+        }
 
-      function __apply__(parameters) {
-        var
-        self     = this,
-        smd      = self.smd,
-        service  = self.service,
-        isDebug  = (self.debug || service.debug),
-        request  = new rpc.Request(smd, parameters),
-        debug    = isDebug ? _consoleDebug : _void,
-        debugErr = isDebug ? _consoleError : _void,
-        promise;
+        function _str(self) {
+          var
+          hidden = self.__hidden__ || {},
+          s = "",
+          l = _size(self), i, value, desc, name,
+          result = {};
+          for (i = 0; i < l; ++i) {
+            desc = _descriptorByIndex(self, i);
+            value = _getByDescriptor(self, desc);
+            name = desc.name;
 
-
-        debug(ToString(request) + ' envelope=' + smd.envelope + ' transport=' + smd.transport);
-        promise = async
-          .call(function () {
-            //1. envelope
-            request = _delegate(self, 'onRequestInit', request) || request;
-            return self
-              .envelope(smd.envelope)
-              .call(request, request);
-          })
-          .then(function (transportRequest) {
-            //2. transport
-            transportRequest = _delegate(self, 'onRequestTransport', request, transportRequest) || transportRequest;
-
-            return self
-              .transport(smd.transport)
-              .call(request, transportRequest)
-              .then(transportRequest.onload, transportRequest.onerror);
-          })
-          .then(
-            function (result) { return _delegate(self, 'onRequestLoad', request, result) || result; },
-            function (error) { return _delegate(self, 'onRequestError', request, error) || _throw(error); }
-          )
-          ["finally"](function (val, isFailure) {
-            //3. log
-            if (!isFailure) {
-              debug(ToString(request) + ' -> ', val);
+            if (i !== 0) {
+              s += ',';
+            }
+            s += name + '=';
+            if (hidden[name]) {
+              s += _mask(toString(value).length);
             } else {
-              debugErr(ToString(request) + ' -> ', ToString(val));
+              s += (value && value.inspect ? value.inspect() : value);
             }
-          });
-
-        return _delegate(self, 'onReturn', request, promise) || promise;
-      }
-
-      function _delegate(self, methodName) {
-        var service = self.service, method, result;
-        var args = aslice.call(2, arguments);
-        if (self[methodName]) {
-          result = self[methodName].apply(this, args);
-        } else if (service[methodName]) {
-          result = service[methodName].apply(this, args);
-        }
-        return result;
-      }
-
-      function _str(self, opt_body) {
-        var
-        smd        = self.smd,
-        parameters = smd.parameters,
-        returns    = smd.returns,
-        s = "", i, l, parameter, parameterStr;
-        s += 'function (';
-        for (i = 0, l = parameters.length; i < l; ++i) {
-          parameter = parameters[i];
-          s += i !== 0 ? ", " : "";
-          parameterStr = _strType(parameter);
-          if (parameterStr.length > 0) {
-            s += "/*" + parameterStr + "*/ ";
           }
-          s += (parameter.name || "$" + i);
-        }
-        s += ") {";
-        if (opt_body) {
-          s += opt_body;
-        } else {
-          s += "/* -> " + _strType({
-            type: "Promise",
-            items: returns
-          }) + "*/";
-          s += "\n  return request(arguments);\n";
-        }
-        s += "}";
-        return s;
-      }
-
-      function _strType(parameter) {
-        if (typeof parameter === 'string') {
-          return parameter;
+          return s;
         }
 
-        var
-        type  = parameter.type,
-        items = parameter.items,
-        s     = "";
-
-        type = !type ? [ 'any' ] : isArray(type) ? type : [ type ];
-
-        if (type.indexOf("any") < 0) {
-          s = type.filter(function (t) { return t !== 'null'; }).join("|");
-
-          if (!!items) {
-            s += "<";
-            s += _strType(items);
-            s += ">";
+        function _mask(length) {
+          var s = "", i;
+          for (i = 0; i < length; ++i) {
+            s += "*";
           }
-          if (parameter.optional || type.indexOf("null") >= 0) {
-            s += "?";
+          return s;
+        }
+
+        function _isNumber(o) {
+          return typeof o === 'number';
+        }
+
+        function _toArray(o) {
+          return (
+            Array.isArray(o) ? o :
+            'toArray' in o ? o.toArray() :
+            null
+          );
+        }
+
+        return Parameters;
+      }());
+      rpc.Parameters = Parameters;
+
+
+      var ServiceMethod = (function () {
+
+        /**
+         * @constructor
+         * @param {rpc.Service} service
+         * @param {rpc.SMD} smd
+         */
+        function ServiceMethod(service, smd) {
+          function serviceMethod(/*[...]*/) {
+            return (
+              /* jshint validthis:true */
+              serviceMethod.apply(this, arguments)
+              /* jshint validthis:false */
+            );
           }
-        }
-        return s;
-      }
+          serviceMethod.smd = smd;
+          serviceMethod.service = service;
+          serviceMethod.debug = this.debug;
 
-      return {
-        debug: false,
+          serviceMethod.apply = this.apply;
+          serviceMethod.bind = this.bind;
+          serviceMethod.clone = this.clone;
+          serviceMethod.envelope = this.envelope;
+          serviceMethod.inspect = this.inspect;
+          serviceMethod.transport = this.transport;
+          serviceMethod.toString = this.toString;
+          serviceMethod.__apply__ = this.__apply__;
 
-        __new__: __new__,
-        __apply__: __apply__,
-        apply: apply,
-        bind: bind,
-        clone: clone,
-        envelope: envelope,
-        transport: transport,
-
-        onRequestInit: null,
-        onRequestTransport: null,
-        onRequestLoad: null,
-        onRequestError: null,
-        onReturn: null,
-
-        toRepresentation: toRepresentation,
-        toString: toString
-      };
-    });
-
-
-    /**
-     * Service Request class
-     */
-    type("rpc.Request", [], function (Request) {
-      var nextId = 1, $name = type.getName;
-
-      /**
-       * @constructor
-       * @param {rpc.SMD} smd
-       * @param {rpc.Parameters} parameters
-       */
-      function __new__(smd, parameters) {
-        this.smd = smd;
-        this.parameters = parameters;
-        this.id = nextId++;
-      }
-
-      /**
-       * @return {string}
-       */
-      function toRepresentation() {
-        return $name(this.constructor) +
-          '#' + this.id +
-          '(`' + ToString(this) + '`)';
-      }
-
-      /**
-       * @return {string}
-       */
-      function toString() {
-        return this.smd.name + "(" + ToString(this.parameters).slice(1, -1) + ")";
-      }
-
-      return {
-        smd: null,
-        parameters: null,
-        id: null,
-
-        __new__: __new__,
-        toRepresentation: toRepresentation,
-        toString: toString
-      };
-    });
-
-
-    /**
-     * Service Parameters class
-     */
-    type("rpc.Parameters", [], function (Parameters) {
-      var
-      $instanceOf    = type.instanceOf,
-      $inspect       = std.inspect,
-      ParametersData = type.$private(Parameters),
-      $get = ParametersData.get,
-      $set = ParametersData.set;
-
-      /**
-       * @constructor
-       * @param {Object} descriptors
-       * @param {Array|Object} arrayOrObject
-       */
-      function __new__(descriptors, arrayOrObject) {
-
-        var
-        data    = {},
-        descriptorc = descriptors.length,
-        byName  = data.byName  = {},
-        byIndex = data.byIndex = new Array(descriptorc),
-        descriptor, i, l, name;
-
-        $set(this, data);
-
-        for (i = 0; i < descriptorc; ++i) {
-          descriptor = descriptors[i];
-          name = ToString(descriptor.name);
-          byIndex[i] = byName[name] = {
-            "name": name,
-            "type": descriptor.type || "any",
-            "optional": ToBoolean(descriptor.optional),
-            "default": descriptor["default"],
-            "index": i
-          };
+          return serviceMethod;
         }
 
-        data.schema = new JSONSchema({
-          "type": "object",
-          "properties": byName
-        });
+        ServiceMethod.prototype.debug = false;
+        ServiceMethod.prototype.onRequestInit = null;
+        ServiceMethod.prototype.onRequestTransport = null;
+        ServiceMethod.prototype.onRequestLoad = null;
+        ServiceMethod.prototype.onRequestError = null;
+        ServiceMethod.prototype.onReturn = null;
 
-        //if specified then import data
-        if (arrayOrObject) {
-          update.call(this, arrayOrObject);
+        /**
+         * @param {Object=} thisp
+         * @param {Object|Array} args
+         */
+        ServiceMethod.prototype.apply = function apply(thisp, args) {
+          return this.__apply__(new rpc.Parameters(this.smd.parameters || [], args));
+        };
+
+        /**
+         * @param {Object=} thisp
+         * @return {rpc.ServiceMethod}
+         */
+        ServiceMethod.prototype.bind = function bind(thisp) {
+          var result = this.clone();
+          result.service = thisp;
+          return result;
+        };
+
+        /**
+         * @param {Object=} thisp
+         * @return {rpc.ServiceMethod}
+         */
+        ServiceMethod.prototype.clone = function clone() {
+          return new ServiceMethod(this.service, this.smd);
+        };
+
+        /**
+         * Dump string representation
+         *
+         * @return {String}
+         */
+        ServiceMethod.prototype.inspect = function inspect() {
+          return _str(this, '...');
+        };
+
+        /**
+         * @param {String} name
+         * @return {Function}
+         */
+        ServiceMethod.prototype.envelope = function envelope(name) {
+          return (this.service || rpc).envelope(name);
+        };
+
+        /**
+         * @param {String} name
+         * @return {Function}
+         */
+        ServiceMethod.prototype.transport = function transport(name) {
+          return (this.service || rpc).transport(name);
+        };
+
+        /**
+         * String representation
+         *
+         * @return {String}
+         */
+        ServiceMethod.prototype.toString = function toString() {
+          return _str(this);
+        };
+
+        ServiceMethod.prototype.__apply__ = function __apply__(parameters) {
+          var
+          self     = this,
+          smd      = self.smd,
+          service  = self.service,
+          isDebug  = (self.debug || service.debug),
+          request  = new rpc.Request(smd, parameters),
+          debug    = isDebug ? _consoleDebug : _void,
+          debugErr = isDebug ? _consoleError : _void,
+          promise;
+
+          debug(toString(request) + ' envelope=' + smd.envelope + ' transport=' + smd.transport);
+          promise = async
+            .call(function () {
+              //1. envelope
+              request = _delegate(self, 'onRequestInit', request) || request;
+              return self
+                .envelope(smd.envelope)
+                .call(request, request);
+            })
+            .then(function (transportRequest) {
+              //2. transport
+              transportRequest = _delegate(self, 'onRequestTransport', request, transportRequest) || transportRequest;
+
+              return self
+                .transport(smd.transport)
+                .call(request, transportRequest)
+                .then(transportRequest.onload, transportRequest.onerror);
+            })
+            .then(
+              function (result) {
+                return _delegate(self, 'onRequestLoad', request, result) || result;
+              },
+              function (error) {
+                return _delegate(self, 'onRequestError', request, error) || _throw(error);
+              }
+            )
+            ["finally"](function (val, isFailure) {
+              //3. log
+              if (!isFailure) {
+                debug(toString(request) + ' -> ', val);
+              } else {
+                debugErr(toString(request) + ' -> ', toString(val));
+              }
+            });
+
+          return _delegate(self, 'onReturn', request, promise) || promise;
+        };
+
+        //util
+
+        function _delegate(self, methodName) {
+          var service = self.service, method, result;
+          var args = aslice.call(2, arguments);
+          if (self[methodName]) {
+            result = self[methodName].apply(self, args);
+          } else if (service[methodName]) {
+            result = service[methodName].apply(service, args);
+          }
+          return result;
         }
-      }
 
-      /**
-       * @return {Array}
-       */
-      function keys() {
-        return Object.keys($get(this).byName);
-      }
-
-      /**
-       * @param {number|string} indexOrName
-       * @return {*}
-       */
-      function get(indexOrName) {
-        return $instanceOf(indexOrName, Number) ?
-          _getByIndex(this, indexOrName) :
-          _getByName(this, indexOrName);
-      }
-
-      /**
-       * @param {number|string} indexOrName
-       * @param {*} value
-       */
-      function set(indexOrName, value) {
-        if ($instanceOf(indexOrName, Number)) {
-          _setByIndex(this, indexOrName, value);
-        } else {
-          _setByName(this, indexOrName, value);
-        }
-        return this;
-      }
-
-      /**
-       * @param {Object} arrayOrObject
-       * @return {rpc.Parameter} this
-       */
-      function update(arrayOrObject) {
-        var self = this, i, l;
-        if (arrayOrObject) {
-          if (_isArrayLike(arrayOrObject)) {
-            this.isArray = true;
-            for (i = 0, l = arrayOrObject.length; i < l; ++i) {
-              _setByIndex(self, i, arrayOrObject[i]);
+        function _str(self, opt_body) {
+          var
+          smd        = self.smd,
+          parameters = smd.parameters,
+          returns    = smd.returns,
+          s = "", i, l, parameter, parameterStr;
+          s += 'function (';
+          for (i = 0, l = parameters.length; i < l; ++i) {
+            parameter = parameters[i];
+            s += i !== 0 ? ", " : "";
+            parameterStr = _strType(parameter);
+            if (parameterStr.length > 0) {
+              s += "/*" + parameterStr + "*/ ";
             }
+            s += (parameter.name || "$" + i);
+          }
+          s += ") {";
+          if (opt_body) {
+            s += opt_body;
           } else {
-            this.isObject = true;
-            for (i in arrayOrObject) {
-              if (arrayOrObject.hasOwnProperty(i)) {
-                _setByName(self, i, arrayOrObject[i]);
+            s += "/* -> " + _strType({
+              type: "Promise",
+              items: returns
+            }) + "*/";
+            s += "\n  return request(arguments);\n";
+          }
+          s += "}";
+          return s;
+        }
+
+        function _strType(parameter) {
+          if (typeof parameter === 'string') {
+            return parameter;
+          }
+
+          var
+          type  = parameter.type,
+          items = parameter.items,
+          s     = "";
+
+          type = !type ? [ 'any' ] : isArray(type) ? type : [ type ];
+
+          if (type.indexOf("any") < 0) {
+            s = type.filter(function (t) { return t !== 'null'; }).join("|");
+
+            if (!!items) {
+              s += "<";
+              s += _strType(items);
+              s += ">";
+            }
+            if (parameter.optional || type.indexOf("null") >= 0) {
+              s += "?";
+            }
+          }
+          return s;
+        }
+
+
+        return ServiceMethod;
+      }());
+      rpc.ServiceMethod = ServiceMethod;
+
+      var Service = (function () {
+
+        /**
+         * @constructor
+         * @param {Object} smd
+         * @param {Object=} options -> see #config()
+         */
+        function Service(smd, options) {
+          var
+          self   = this,
+          smdObj;
+
+          //configuration
+          self.config(options);
+
+          //build methods
+          if (smd) {
+            smdObj = /*self.__smd__ =*/ new rpc.SMD(smd);
+            smdObj.forEach(function (serviceSMD) {
+              if (serviceSMD.hasOwnProperty("parameters")) {
+                var
+                name   = serviceSMD.name,
+                method = new rpc.ServiceMethod(self, serviceSMD);
+                method.displayName = name;
+                self[name] = method;
+              }
+            });
+          }
+        }
+
+        Service.prototype.debug = false;
+        Service.prototype.onRequestInit = null;
+        Service.prototype.onRequestTransport = null;
+        Service.prototype.onRequestLoad = null;
+        Service.prototype.onRequestError = null;
+        Service.prototype.onReturn = null;
+
+        /**
+         * Configure the service
+         *
+         * @param {Object=} data
+         *  - debug: true|false
+         * @return this
+         */
+        Service.prototype.config = function config(data) {
+          var p;
+          if (data) {
+            for (p in data) {
+              if (p in this) {
+                this[p] = data[p];
               }
             }
           }
-          _validate(self);
-        }
-        return self;
-      }
+          return this;
+        };
 
-      /**
-       * @return {Array}
-       */
-      function toArray() {
-        var
-        self   = this,
-        length = _size(self),
-        result = [], buf = [],
-        desc, value;
+        /**
+         *
+         * @return {Service}
+         */
+        Service.prototype.concat = function concat(var_args) {
+          var
+          self   = this,
+          proto  = Service.prototype,
+          result = new Service(),
+          prop, service, i, l;
 
-        for (var i = 0; i < length; i++) {
-          desc = _descriptorByIndex(self, i);
-          value = _getByDescriptor(self, desc);
-          buf.push(value);
-          if (!desc.optional) {
-            result = result.concat(buf);
-            buf.length = 0;
+          //mix configuration & methods
+          for (prop in self) {
+            result[prop] = bind(self[prop]);
           }
-        }
-        return result;
-      }
 
-      /**
-       * @return {Object}
-       */
-      function toObject() {
-        var
-        self = this,
-        l = _size(self), i, value, desc,
-        result = {};
-        for (i = 0; i < l; ++i) {
-          desc = _descriptorByIndex(self, i);
-          value = _getByDescriptor(self, desc);
+          //mix services methods
+          for (i = 0, l = arguments.length; i < l; ++i) {
+            service = arguments[i];
+            if (service) {
+              for (prop in service) {
+                if (!(prop in proto)) {
+                  result[prop] = bind(service[prop]);
+                }
+              }
+            }
 
-          if (
-            value !== undefined &&
-            (!desc.optional || value !== desc["default"])
-          ) {
-            result[desc.name] = value;
           }
-        }
-        return result;
-      }
 
-      /**
-       * @return {Array|Object}
-       */
-      function toJSON() {
-        return this.isArray ? this.toArray() : this.toObject();
-      }
-
-      /**
-       * @return {String}
-       */
-      function toRepresentation() {
-        return type.getName(this.constructor) + '(' + _str(this) + ')';
-      }
-
-      /**
-       * @return {String}
-       */
-      function toString() {
-        return '[' + _str(this) + ']';
-      }
-
-      //util
-      function _descriptorByIndex(self, index) {
-        return $get(self).byIndex[index] || _throwError(index + " is not a valid argument index");
-      }
-
-      function _descriptorByName(self, name) {
-        return $get(self).byName[name] || _throwError(name + " is not a valid argument name");
-      }
-
-      function _getByDescriptor(self, desc) {
-        var value = self[desc.name];
-        return value === undefined ? desc["default"] : value;
-      }
-
-      function _getByIndex(self, index) {
-        return _getByDescriptor(self, _descriptorByIndex(self, index));
-      }
-
-      function _getByName(self, name) {
-        return _getByDescriptor(self, _descriptorByName(self, name));
-      }
-
-      function _setByDescriptor(self, desc, value) {
-        self[desc.name] = value;
-      }
-
-      function _setByIndex(self, index, value) {
-        _setByDescriptor(self, _descriptorByIndex(self, index), value);
-      }
-
-      function _setByName(self, name, value) {
-        _setByDescriptor(self, _descriptorByName(self, name), value);
-      }
-
-      function _size(self) {
-        return $get(self).byIndex.length;
-      }
-
-      function _validate(self) {
-        $get(self).schema.validate(self, {"throws": true});
-      }
-
-      function _str(self) {
-        var
-        hidden = self.__hidden__ || {},
-        s = "",
-        l = _size(self), i, value, desc, name,
-        result = {};
-        for (i = 0; i < l; ++i) {
-          desc = _descriptorByIndex(self, i);
-          value = _getByDescriptor(self, desc);
-          name = desc.name;
-
-          if (i !== 0) {
-            s += ',';
+          function bind(val) {
+            return val && val.smd ? val.bind(result) : val;
           }
-          s += name + '=';
-          if (hidden[name]) {
-            s += _mask(ToString(value).length);
-          } else {
-            s += $inspect(value);
+          return result;
+        };
+
+        /**
+         * @param {String} name
+         * @return {Function}
+         */
+        Service.prototype.envelope = function envelope(name) {
+          return rpc.envelope(name);
+        };
+
+        /**
+         * @param {String} name
+         * @return {Function}
+         */
+        Service.prototype.transport = function transport(name) {
+          return rpc.transport(name);
+        };
+
+        function _forward(self, eventName) {
+          return function () {
+            var result;
+            if (self[eventName]) {
+              result = self[eventName].apply(self, arguments);
+            }
+            return result;
+          };
+        }
+
+        return Service;
+      }());
+      rpc.Service = Service;
+
+      /**
+       * Service SMD class
+       */
+      var SMD = (function () {
+        var SMD_DEFAULT = {
+          name: "",
+          envelope: "URL",
+          transport: "POST",
+          contentType: "application/json",
+          target: baseURL,
+          jsonpCallbackParameter: "callback",
+          parametersType: 'auto'// this is a custom parameter (= not in spec)
+          /*parameters: []*/
+        };
+        var SMD_SCHEMA = {
+          "type": "object",
+          "properties": {
+            "envelope": { "type": "string", "optional": true },
+            "transport": { "type": "string", "optional": true },
+            "contentType": { "type": "string", "optional": true },
+            "target": { "type": "string", "optional": true },
+            "jsonpCallbackParameter": { "type": "string", "optional": true },
+            "services": { "type": "object", "optional": true },
+            "parametersType": { "type": "string", "optional": true, "enum" : ["object", "array", "auto"] },
+            "parameters": {
+              "type": "array",
+              "optional": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "required": true, "optional": false },
+                  "type": { "type": "any"/*[ "string", "array", "object" ]*/, "optional": true, "default": 'any' },
+                  "optional": { "type": "boolean", "optional": true, "default": false }
+                }
+              }
+            }
           }
+        };
+
+        function SMD(data) {
+          data = data || {};
+          this.services = data.services || {};
+          _serviceInherits(this, data);
+          _serviceInherits(this, SMD_DEFAULT);
+          _serviceSMD(this, 0);
+
+          //default values
+          this.SMDVersion = this.SMDVersion;
+          //root.id = root.id;
+          this.description = this.description;
         }
-        return s;
-      }
 
-      function _mask(length) {
-        var s = "", i;
-        for (i = 0; i < length; ++i) {
-          s += "*";
+        SMD.prototype.SMDVersion = "2.0";
+        SMD.prototype.description = "";
+
+        SMD.prototype.forEach = function forEach(fn, thisp) {
+          function callback(root, thisp) {
+            fn.call(thisp, root);
+            var services = root.services, serviceName;
+            if (services) {
+              for (serviceName in services) {
+                if (services.hasOwnProperty(serviceName)) {
+                  callback(services[serviceName], thisp);
+                }
+              }
+            }
+            return root;
+          }
+
+          callback(this, thisp);
+        };
+
+        function _serviceInherits(service, parent) {
+          service.envelope = service.envelope || parent.envelope;
+          service.transport = service.transport || parent.transport;
+          service.contentType = service.contentType || parent.contentType;
+          service.target = service.target || parent.target;
+          service.jsonpCallbackParameter = service.jsonpCallbackParameter || parent.jsonpCallbackParameter;
+
+          if (service.parameters || parent.parameters) {
+            service.parameters = (parent.parameters || []).concat(service.parameters || []);
+          }
+          service.parametersType = service.parametersType || parent.parametersType;
+          return service;
         }
-        return s;
-      }
 
-      function _isArrayLike(o) {
-        return $instanceOf(o, Array) || (typeof o === 'object' && typeof o.length === 'number');
-      }
+        function _serviceSMD(root, d) {
+          var services = root.services, service, serviceName;
 
-      return {
-        isArray: false,
-        isObject: false,
+          if (d >= 10) return;
+          if (services) {
+            for (serviceName in services) {
+              if (services.hasOwnProperty(serviceName)) {
+                service = services[serviceName];
+                JSONSchema.validate(SMD_SCHEMA, service, { "throws": true });
 
-        __new__: __new__,
-        __hidden__: { "password": true },
-        get: get,
-        set: set,
-        keys: keys,
-        toArray: toArray,
-        toObject: toObject,
-        toJSON: toJSON,
-        toRepresentation: toRepresentation,
-        toString: toString
-      };
-    });
+                service.name = service.name || (root.name ? root.name + "." + serviceName : serviceName);
+                _serviceSMD(_serviceInherits(service, root), d + 1);
+              }
+            }
+          }
+          return root;
+        }
+
+        return SMD;
+      }());
+      rpc.SMD = SMD;
+
+
+
+
+    }(rpc || (rpc = {})));
+    global.rpc = rpc;//export
+
 
 
     ///////////////////////ENVELOPE///////////////////////////
     (function (envelope) {
+      /*jshint sub:true*/
 
       //====================URL ENVELOPE=====================
-      envelope["URL"] = async(function (request) {
+      envelope["URL"] = toAsyncFn(function (request) {
         var smd = request.smd;
 
         return {
@@ -728,7 +800,7 @@
       });
 
       //=====================JSON ENVELOPE======================
-      envelope["JSON"] = async(function (request) {
+      envelope["JSON"] = toAsyncFn(function (request) {
 
         var
         smd        = request.smd,
@@ -748,7 +820,7 @@
       });
 
       //====================JSONRPC ENVELOPE=====================
-      envelope["JSON-RPC-2.0"] = async(function (request) {
+      envelope["JSON-RPC-2.0"] = toAsyncFn(function (request) {
 
         return new async.Promise(function (resolve, reject) {
           _require([ 'JSONRPC' ], function (JSONRPC) {
@@ -766,11 +838,11 @@
 
               contentType: "application/json", //smd.contentType,
               contentJSON: jsonRequest.toJSON(),
-              contentString: ToString(jsonRequest),
+              contentString: toString(jsonRequest),
 
               onload: function (jsonData) {
                 jsonData = JSONRPC.parseResponse(jsonData);
-console.warn(jsonData);
+
                 if (jsonData.error) {
                   throw jsonData.error;
                 }
@@ -789,21 +861,23 @@ console.warn(jsonData);
         switch (mode) {
           case "object": return p.toObject();
           case "array": return p.toArray();
-          default: return p.isArray ? p.toArray() : p.toObject()
+          default: return p.isArray ? p.toArray() : p.toObject();
         }
       }
 
-
+      /*jshint sub:false*/
       return envelope;
     }(rpc.envelope));
 
     ///////////////////////TRANSPORT///////////////////////////
     (function (transport) {
+      /*jshint sub:true*/
+
       function _http(data) {
         return new async.Promise(function (resolve, reject) {
           var
           self    = this,
-          method  = ToString(data.method || 'GET').toUpperCase(),
+          method  = toString(data.method || 'GET').toUpperCase(),
           url     = data.url,
           withCredentials = ('withCredentials' in global.XMLHttpRequest.prototype),
           Request = withCredentials ? global.XMLHttpRequest :
@@ -834,7 +908,7 @@ console.warn(jsonData);
       }
 
       //====================JSONP TRANSPORT=====================
-      transport["JSONP"] = async(function (r) {
+      transport["JSONP"] = toAsyncFn(function (r) {
         return new async.Promise(function (resolve, reject) {
           _require(["JSONPRequest"], function (JSONPRequest) {
             var
@@ -853,7 +927,7 @@ console.warn(jsonData);
       });
 
       //====================GET TRANSPORT=====================
-      transport["GET"] = async(function (r) {
+      transport["GET"] = toAsyncFn(function (r) {
         var url = _queryJoin(r.target, r.contentString);
 
         return _http({
@@ -866,7 +940,7 @@ console.warn(jsonData);
       });
 
       //====================POST TRANSPORT=====================
-      transport["POST"] = async(function (r) {
+      transport["POST"] = toAsyncFn(function (r) {
         return _http({
           method: "POST",
           url: r.target,
@@ -877,128 +951,19 @@ console.warn(jsonData);
         });
       });
       return transport;
+
+      /*jshint sub:false*/
     }(rpc.transport));
 
-
-    /**
-     * Service SMD class
-     */
-    type("rpc.SMD", [], function (SMD) {
-      var
-      smdDefault = {
-        name: "",
-        envelope: "URL",
-        transport: "POST",
-        contentType: "application/json",
-        target: baseURL,
-        jsonpCallbackParameter: "callback",
-        parametersType: 'auto'// this is a custom parameter (= not in spec)
-        /*parameters: []*/
-      },
-      smdSchema = {
-        "type": "object",
-        "properties": {
-          "envelope": { "type": "string", "optional": true },
-          "transport": { "type": "string", "optional": true },
-          "contentType": { "type": "string", "optional": true },
-          "target": { "type": "string", "optional": true },
-          "jsonpCallbackParameter": { "type": "string", "optional": true },
-          "services": { "type": "object", "optional": true },
-          "parametersType": { "type": "string", "optional": true, "enum" : ["object", "array", "auto"] },
-          "parameters": {
-            "type": "array",
-            "optional": true,
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string", "required": true, "optional": false },
-                "type": { "type": "any"/*[ "string", "array", "object" ]*/, "optional": true, "default": 'any' },
-                "optional": { "type": "boolean", "optional": true, "default": false }
-              }
-            }
-          }
-        }
-      };
-
-
-      function __new__(data) {
-
-        data = data || {};
-        this.services = data.services || {};
-        _serviceInherits(this, data);
-        _serviceInherits(this, smdDefault);
-        _serviceSMD(this, 0);
-
-        //default values
-        this.SMDVersion = this.SMDVersion;
-        //root.id = root.id;
-        this.description = this.description;
-      }
-
-      function forEach(fn, thisp) {
-        function callback(root, thisp) {
-          fn.call(thisp, root);
-          var services = root.services, serviceName;
-          if (services) {
-            for (serviceName in services) {
-              if (services.hasOwnProperty(serviceName)) {
-                callback(services[serviceName], thisp);
-              }
-            }
-          }
-          return root;
-        }
-
-        callback(this, thisp);
-      }
-
-      function _serviceInherits(service, parent) {
-        service.envelope = service.envelope || parent.envelope;
-        service.transport = service.transport || parent.transport;
-        service.contentType = service.contentType || parent.contentType;
-        service.target = service.target || parent.target;
-        service.jsonpCallbackParameter = service.jsonpCallbackParameter || parent.jsonpCallbackParameter;
-
-        if (service.parameters || parent.parameters) {
-          service.parameters = (parent.parameters || []).concat(service.parameters || []);
-        }
-        service.parametersType = service.parametersType || parent.parametersType;
-        return service;
-      }
-
-      function _serviceSMD(root, d) {
-        var services = root.services, service, serviceName;
-
-        if (d >= 10) return;
-        if (services) {
-          for (serviceName in services) {
-            if (services.hasOwnProperty(serviceName)) {
-              service = services[serviceName];
-              JSONSchema.validate(smdSchema, service, { "throws": true });
-
-              service.name = service.name || (root.name ? root.name + "." + serviceName : serviceName);
-              _serviceSMD(_serviceInherits(service, root), d + 1);
-            }
-          }
-        }
-        return root;
-      }
-
-      return {
-        SMDVersion: "2.0",
-        description: "",
-
-        __new__: __new__,
-        forEach: forEach
-      };
-    });
 
     //util
     function _require(names, fn) {
       if (global.require) {
         global.require(names, fn);
       } else {
-        fn.apply(null, names.map(type.require));
+        fn.apply(null, names.map(function (name) {
+          return name || _throwError(name + ' is required');
+        }));
       }
     }
 
@@ -1027,7 +992,8 @@ console.warn(jsonData);
     }
 
     function _throwError(message, opt_class) {
-      throw new (opt_class || Error)(message);
+      var Constructor = opt_class || Error;
+      throw new Constructor(message);
     }
 
     function _void() {
@@ -1058,30 +1024,13 @@ console.warn(jsonData);
   }
 
   if (global.define) {
-       global.define("rpc", [ "type", "async", "JSONSchema" ], provider);
-     } else {
-       provider(
-         type,
-         type.require('async'),
-         type.require('JSONSchema')
-       );
-     }
-
-
-/*
-  //export angular
-  if (typeof angular !== 'undefined') {
-    angular
-    .module("ngRpc", [])
-    .factory(
-      "$rpc",
-      [function () {
-        return function $rpc(smd) {
-          return new rpc.Service(smd);
-        }
-      }]
-    )
+    global.define("rpc", [ "type", "async", "JSONSchema" ], provider);
+  } else {
+    provider(
+      type,
+      global.async || _throwError('async is required'),
+      global.JSONSchema || _throwError('JSONSchema is required')
+    );
   }
-*/
 
 }(this, typeof exports !== 'undefined' ? exports : this));

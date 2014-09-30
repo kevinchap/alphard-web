@@ -39,7 +39,7 @@ define(['rpc', 'json'], function (rpc, json) {
         jsonContent.target = jsonContent.target || opt_target || _cleanExt(url);
 
         try {
-          var jsonRPC = rpc.Service(jsonContent);
+          var jsonRPC = new rpc.Service(jsonContent);
           if (opt_callback) {
             opt_callback(jsonRPC);
           }
