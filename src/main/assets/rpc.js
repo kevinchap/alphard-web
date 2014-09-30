@@ -314,6 +314,7 @@
           return (
             Array.isArray(o) ? o :
             o && o.toArray ? o.toArray() :
+            typeof o.length === 'number' && !!o.callee ? aslice.call(o) :
             null
           );
         }
@@ -334,7 +335,7 @@
           function serviceMethod(/*[...]*/) {
             return (
               /* jshint validthis:true */
-              serviceMethod.apply(this, arguments)
+              serviceMethod.apply(this, aslice.call(arguments))
               /* jshint validthis:false */
             );
           }
