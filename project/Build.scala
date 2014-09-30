@@ -38,6 +38,7 @@ object Build extends Build {
           Seq(
             libraryDependencies ++= Seq(
               //"org.webjars" % "requirejs" % "2.1.10"//example
+              "org.webjars" % "bootstrap" % "3.2.0"
             )
           ) ++
           inConfig(Assets)(lessSettings) ++
