@@ -6,11 +6,12 @@
  *  require(['smd!mymodule'], function (rpcService) { ... });
  *
  */
-(function (global, _exports, undefined) {
+define(['rpc', 'json'], function (rpc, json) {
   'use strict';
 
 
-  function requirejs_smd(rpc, json) {
+  var smd;
+  (function (smd) {
     var cache = {};
 
     /**
@@ -20,6 +21,7 @@
     function normalize(module) {
       return String(module);
     }
+    smd.normalize = normalize;
 
     /**
      * @param {string} url
@@ -56,17 +58,19 @@
         json.get(url, onLoad, opt_errback);
       }
     }
+    smd.get = get;
 
     function load(name, req, onLoad, config) {
       var url = require.toUrl(normalize(name));
       var target = _extractTarget(url);
       get(
-        url, 
-        target, 
-        onLoad, 
+        url,
+        target,
+        onLoad,
         onLoad.error
       );
     }
+    smd.load = load;
 
     function _extractTarget(url) {
       var pos;
@@ -82,18 +86,7 @@
       return s.replace(/(\/|\.)smd$/, "");
     }
 
-    return {
-      normalize: normalize,
-      get: get,
-      load: load
-    };
-  }
+  }(smd || (smd = {})));
 
-  //exports
-  function K(e) { return e; }
-  define('requirejs-smd/index', [ 'rpc', 'json' ], requirejs_smd);
-  define('smd', [ 'requirejs-smd/index' ], K);
-  define([ 'requirejs-smd/index' ], K);
-
-
-}(this, typeof exports !== 'undefined' ? exports : this));
+  return smd;
+});
