@@ -8,12 +8,12 @@
  *  req.onerror = function (e) { ... };
  *  req.open('//api.com/mymethod', 'jsonp');//url, parameterName (default is 'callback')
  *  req.send();
- *  
+ *
  */
-(function (global, _exports, undefined) {
+(function (global, _exports) {
   'use strict';
 
-    
+
   //UTIL
   var __obj, __def, __sym, $$create, $$hasInstance, $$iterator, $$toStringTag, __instanceOf, __extends, __proto, __name, __stack;
   (function (g) {
@@ -34,9 +34,9 @@
       }
     };
     __stack = g.__stack || Error.captureStackTrace || function (o) { o.stack = (new Error()).stack; };
-    __name = g.__name || function (c, n) { 
-      var cp = c.prototype, s = __sym(n + 'Data'); 
-      c.displayName = n; 
+    __name = g.__name || function (c, n) {
+      var cp = c.prototype, s = __sym(n + 'Data');
+      c.displayName = n;
       cp[$$toStringTag] = n;
       if (__instanceOf(cp, Error)) { cp.name = n; }
       return function (o) {
@@ -54,13 +54,13 @@
 
   /**
    * JSONPError class
-   * 
+   *
    */
   var JSONPError = (function (_super) {
     /* jshint latedef:false */
     __extends(JSONPError, _super);
     __name(JSONPError, 'JSONPError');
-  
+
     /**
      * @constructor
      * @param {*} value
@@ -71,7 +71,7 @@
         _super.call(this);
         this.message = message;
 
-        
+
         __stack(this, this.constructor);
       } else {
         result = __obj(ctor.prototype);
@@ -79,7 +79,7 @@
       }
       return result;
     }
-  
+
     __proto(JSONPError.prototype);
     /* jshint latedef:true */
     return JSONPError;
@@ -89,8 +89,8 @@
 
   /**
    * JSONPRequest class
-   * 
-   *  
+   *
+   *
    */
   var JSONPRequest = (function (_super) {
     __extends(JSONPRequest, _super);
@@ -103,7 +103,7 @@
     doc    = global.document,
     encode = encodeURIComponent,
     head   = doc && doc.getElementsByTagName("head")[0];
-  
+
     /**
      * @constructor
      */
@@ -126,7 +126,7 @@
     JSONPRequest.prototype.onload = null;
 
     JSONPRequest.prototype.onerror = null;
-  
+
     /**
      * Configure the request to be sent to `url`.
      * The `opt_parameterName` will be added to the request `opt_parameterName={uniqueId}`
@@ -178,10 +178,10 @@
       };
 
       //3. launch loading (script creation etc)
-      script = _createNode(url, 
+      script = _createNode(url,
         function () {
           _removeNode(script);
-        }, 
+        },
         function () {
           if (callbacks[attrName]) {
             delete callbacks[attrName];
@@ -204,7 +204,7 @@
     };
 
     function _createNode(url, onload, onerror) {
-      var 
+      var
       done = false,
       script = doc.createElement('script');
 
@@ -213,9 +213,9 @@
 
       script.onload = script.onreadystatechange = function () {
         var readyState = this.readyState;
-        if (!done && 
-          (!readyState || 
-          readyState === "loaded" || 
+        if (!done &&
+          (!readyState ||
+          readyState === "loaded" ||
           readyState === "complete")
         ) {
           done = true;
@@ -261,5 +261,5 @@
     //done
   }
 
-      
+
 }(this, typeof exports !== 'undefined' ? exports : this));

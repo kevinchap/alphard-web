@@ -1,15 +1,16 @@
 // jshint ignore: start
-(function (global, _exports, undefined) {
+(function (global, _exports) {
   'use strict';
 
-      
+
   function provider(type, async, JSONSchema) {
 
-    var 
+    var
     baseURL    = global.location ? global.location.href : "",
     ToBoolean  = Boolean,
     ToString   = String,
-    isArray    = Array.isArray;
+    isArray    = Array.isArray,
+    aslice     = Array.prototype.slice;
 
     type.module("rpc", function (rpc) {
 
@@ -52,8 +53,8 @@
        * @param {Object=} options -> see #config()
        */
       function __new__(smd, options) {
-        var 
-        self   = this, 
+        var
+        self   = this,
         smdObj;
 
 
@@ -65,7 +66,7 @@
           smdObj = /*self.__smd__ =*/ new rpc.SMD(smd);
           smdObj.forEach(function (serviceSMD) {
             if (serviceSMD.hasOwnProperty("parameters")) {
-              var 
+              var
               name   = serviceSMD.name,
               method = new rpc.ServiceMethod(self, serviceSMD);
               method.displayName = name;
@@ -95,11 +96,11 @@
       }
 
       /**
-       * 
+       *
        * @return {Service}
        */
       function concat(var_args) {
-        var 
+        var
         self   = this,
         proto  = Service.prototype,
         result = new Service(),
@@ -120,7 +121,7 @@
               }
             }
           }
-          
+
         }
 
         function bind(val) {
@@ -184,7 +185,7 @@
 
         function serviceMethod(/*[...]*/) {
           return serviceMethod.apply(this, arguments);
-        } 
+        }
         serviceMethod.smd = smd;
         serviceMethod.service = service;
         serviceMethod.debug = this.debug;
@@ -263,17 +264,17 @@
       }
 
       function __apply__(parameters) {
-        var 
+        var
         self     = this,
         smd      = self.smd,
         service  = self.service,
         isDebug  = (self.debug || service.debug),
         request  = new rpc.Request(smd, parameters),
         debug    = isDebug ? _consoleDebug : _void,
-        debugErr = isDebug ? _consoleError : _void, 
+        debugErr = isDebug ? _consoleError : _void,
         promise;
-        
-       
+
+
         debug(ToString(request) + ' envelope=' + smd.envelope + ' transport=' + smd.transport);
         promise = async
           .call(function () {
@@ -293,8 +294,8 @@
               .then(transportRequest.onload, transportRequest.onerror);
           })
           .then(
-            function (result) { return _delegate(self, 'onRequestLoad', request, result) || result; }, 
-            function (error) { return _delegate(self, 'onRequestError', request, error) || error; }
+            function (result) { return _delegate(self, 'onRequestLoad', request, result) || result; },
+            function (error) { return _delegate(self, 'onRequestError', request, error) || _throw(error); }
           )
           ["finally"](function (val, isFailure) {
             //3. log
@@ -308,18 +309,19 @@
         return _delegate(self, 'onReturn', request, promise) || promise;
       }
 
-      function _delegate(self, methodName, $1, $2) {
+      function _delegate(self, methodName) {
         var service = self.service, method, result;
+        var args = aslice.call(2, arguments);
         if (self[methodName]) {
-          result = self[methodName]($1, $2);
+          result = self[methodName].apply(this, args);
         } else if (service[methodName]) {
-          result = service[methodName]($1, $2);
+          result = service[methodName].apply(this, args);
         }
         return result;
       }
 
       function _str(self, opt_body) {
-        var 
+        var
         smd        = self.smd,
         parameters = smd.parameters,
         returns    = smd.returns,
@@ -339,7 +341,7 @@
           s += opt_body;
         } else {
           s += "/* -> " + _strType({
-            type: "Promise", 
+            type: "Promise",
             items: returns
           }) + "*/";
           s += "\n  return request(arguments);\n";
@@ -353,9 +355,9 @@
           return parameter;
         }
 
-        var 
-        type  = parameter.type, 
-        items = parameter.items, 
+        var
+        type  = parameter.type,
+        items = parameter.items,
         s     = "";
 
         type = !type ? [ 'any' ] : isArray(type) ? type : [ type ];
@@ -396,14 +398,14 @@
         toString: toString
       };
     });
-    
+
 
     /**
      * Service Request class
      */
     type("rpc.Request", [], function (Request) {
       var nextId = 1, $name = type.getName;
-    
+
       /**
        * @constructor
        * @param {rpc.SMD} smd
@@ -419,7 +421,7 @@
        * @return {string}
        */
       function toRepresentation() {
-        return $name(this.constructor) + 
+        return $name(this.constructor) +
           '#' + this.id +
           '(`' + ToString(this) + '`)';
       }
@@ -435,7 +437,7 @@
         smd: null,
         parameters: null,
         id: null,
-        
+
         __new__: __new__,
         toRepresentation: toRepresentation,
         toString: toString
@@ -447,7 +449,7 @@
      * Service Parameters class
      */
     type("rpc.Parameters", [], function (Parameters) {
-      var 
+      var
       $instanceOf    = type.instanceOf,
       $inspect       = std.inspect,
       ParametersData = type.$private(Parameters),
@@ -460,8 +462,8 @@
        * @param {Array|Object} arrayOrObject
        */
       function __new__(descriptors, arrayOrObject) {
-        
-        var 
+
+        var
         data    = {},
         descriptorc = descriptors.length,
         byName  = data.byName  = {},
@@ -481,7 +483,7 @@
             "index": i
           };
         }
-        
+
         data.schema = new JSONSchema({
           "type": "object",
           "properties": byName
@@ -552,7 +554,7 @@
        * @return {Array}
        */
       function toArray() {
-        var 
+        var
         self   = this,
         length = _size(self),
         result = [], buf = [],
@@ -574,7 +576,7 @@
        * @return {Object}
        */
       function toObject() {
-        var 
+        var
         self = this,
         l = _size(self), i, value, desc,
         result = {};
@@ -588,7 +590,7 @@
           ) {
             result[desc.name] = value;
           }
-        } 
+        }
         return result;
       }
 
@@ -656,9 +658,9 @@
       }
 
       function _str(self) {
-        var 
+        var
         hidden = self.__hidden__ || {},
-        s = "", 
+        s = "",
         l = _size(self), i, value, desc, name,
         result = {};
         for (i = 0; i < l; ++i) {
@@ -683,7 +685,7 @@
         var s = "", i;
         for (i = 0; i < length; ++i) {
           s += "*";
-        } 
+        }
         return s;
       }
 
@@ -711,7 +713,7 @@
 
     ///////////////////////ENVELOPE///////////////////////////
     (function (envelope) {
-      
+
       //====================URL ENVELOPE=====================
       envelope["URL"] = async(function (request) {
         var smd = request.smd;
@@ -719,56 +721,56 @@
         return {
           jsonpCallbackParameter: smd.jsonpCallbackParameter,
           target: smd.target,
-          
+
           contentType: smd.contentType,
           contentString: _queryString(request.parameters.toObject())
         };
       });
-      
+
       //=====================JSON ENVELOPE======================
       envelope["JSON"] = async(function (request) {
 
-        var 
+        var
         smd        = request.smd,
         jsonObject = _parametersToJSON(request.parameters, smd.parametersType);
 
         return async.resolve({
           jsonpCallbackParameter: smd.jsonpCallbackParameter,
           target: smd.target,
-          
+
           contentType: "application/json",//smd.contentType,
           contentJSON: jsonObject,
           contentString: JSON.stringify(jsonObject),
-          
+
           onload: JSON.parse,
           onerror: null
         });
       });
-      
+
       //====================JSONRPC ENVELOPE=====================
       envelope["JSON-RPC-2.0"] = async(function (request) {
 
         return new async.Promise(function (resolve, reject) {
           _require([ 'JSONRPC' ], function (JSONRPC) {
-            var 
+            var
             smd         = request.smd,
             jsonRequest = new JSONRPC.Request(
-              smd.name, 
-              _parametersToJSON(request.parameters, smd.parametersType), 
+              smd.name,
+              _parametersToJSON(request.parameters, smd.parametersType),
               request.id
             );
 
             resolve({
               jsonpCallbackParameter: smd.jsonpCallbackParameter,
               target: smd.target,
-              
+
               contentType: "application/json", //smd.contentType,
               contentJSON: jsonRequest.toJSON(),
               contentString: ToString(jsonRequest),
-              
+
               onload: function (jsonData) {
                 jsonData = JSONRPC.parseResponse(jsonData);
-
+console.warn(jsonData);
                 if (jsonData.error) {
                   throw jsonData.error;
                 }
@@ -790,23 +792,23 @@
           default: return p.isArray ? p.toArray() : p.toObject()
         }
       }
-      
+
 
       return envelope;
     }(rpc.envelope));
-    
+
     ///////////////////////TRANSPORT///////////////////////////
     (function (transport) {
       function _http(data) {
         return new async.Promise(function (resolve, reject) {
-          var 
+          var
           self    = this,
           method  = ToString(data.method || 'GET').toUpperCase(),
           url     = data.url,
           withCredentials = ('withCredentials' in global.XMLHttpRequest.prototype),
           Request = withCredentials ? global.XMLHttpRequest :
             global.XDomainRequest || global.XMLHttpRequest,
-          xhr     = new Request(), 
+          xhr     = new Request(),
           headers = data.headers || {}, key;
 
 
@@ -830,15 +832,15 @@
           xhr.send(data.data);
         });
       }
-      
+
       //====================JSONP TRANSPORT=====================
       transport["JSONP"] = async(function (r) {
         return new async.Promise(function (resolve, reject) {
           _require(["JSONPRequest"], function (JSONPRequest) {
-            var 
+            var
             request = new JSONPRequest(),
             url     = _queryJoin(
-              r.target, 
+              r.target,
               r.contentJSON ? { data: r.contentString } : r.contentString
             );
 
@@ -849,11 +851,11 @@
           });
         });
       });
-      
+
       //====================GET TRANSPORT=====================
       transport["GET"] = async(function (r) {
         var url = _queryJoin(r.target, r.contentString);
-        
+
         return _http({
           method: "GET",
           url: url,
@@ -862,7 +864,7 @@
           }
         });
       });
-      
+
       //====================POST TRANSPORT=====================
       transport["POST"] = async(function (r) {
         return _http({
@@ -903,8 +905,8 @@
           "jsonpCallbackParameter": { "type": "string", "optional": true },
           "services": { "type": "object", "optional": true },
           "parametersType": { "type": "string", "optional": true, "enum" : ["object", "array", "auto"] },
-          "parameters": { 
-            "type": "array", 
+          "parameters": {
+            "type": "array",
             "optional": true,
             "items": {
               "type": "object",
@@ -935,7 +937,7 @@
 
       function forEach(fn, thisp) {
         function callback(root, thisp) {
-          fn.call(thisp, root); 
+          fn.call(thisp, root);
           var services = root.services, serviceName;
           if (services) {
             for (serviceName in services) {
@@ -946,7 +948,7 @@
           }
           return root;
         }
-        
+
         callback(this, thisp);
       }
 
@@ -956,7 +958,7 @@
         service.contentType = service.contentType || parent.contentType;
         service.target = service.target || parent.target;
         service.jsonpCallbackParameter = service.jsonpCallbackParameter || parent.jsonpCallbackParameter;
-        
+
         if (service.parameters || parent.parameters) {
           service.parameters = (parent.parameters || []).concat(service.parameters || []);
         }
@@ -966,14 +968,14 @@
 
       function _serviceSMD(root, d) {
         var services = root.services, service, serviceName;
-        
+
         if (d >= 10) return;
         if (services) {
           for (serviceName in services) {
             if (services.hasOwnProperty(serviceName)) {
               service = services[serviceName];
               JSONSchema.validate(smdSchema, service, { "throws": true });
-              
+
               service.name = service.name || (root.name ? root.name + "." + serviceName : serviceName);
               _serviceSMD(_serviceInherits(service, root), d + 1);
             }
@@ -999,7 +1001,7 @@
         fn.apply(null, names.map(type.require));
       }
     }
-    
+
 
     function _queryString(o) {
       if (typeof o === "string") return o;
@@ -1018,6 +1020,10 @@
         base += ((base.indexOf("?") === -1) ? '?' : '&') + part;
       }
       return base;
+    }
+
+    function _throw(e) {
+      throw e;
     }
 
     function _throwError(message, opt_class) {
@@ -1061,7 +1067,7 @@
        );
      }
 
-  
+
 /*
   //export angular
   if (typeof angular !== 'undefined') {
