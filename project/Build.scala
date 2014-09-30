@@ -28,7 +28,7 @@ object Build extends Build {
   lazy val root =
     Project("byteground-web-util", file("."))
       .enablePlugins(
-        //SbtByTeGround,
+        SbtByTeGround,
         SbtLess,
         SbtNpm,
         SbtWeb,
@@ -37,7 +37,7 @@ object Build extends Build {
         buildSettings ++
           Seq(
             libraryDependencies ++= Seq(
-              //"org.webjars" % "requirejs" % "2.1.10"//example
+              "org.webjars" % "requirejs" % "2.1.10",
               "org.webjars" % "bootstrap" % "3.2.0"
             )
           ) ++
