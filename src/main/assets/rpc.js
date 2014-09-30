@@ -313,7 +313,7 @@
         function _toArray(o) {
           return (
             Array.isArray(o) ? o :
-            'toArray' in o ? o.toArray() :
+            o && o.toArray ? o.toArray() :
             null
           );
         }
