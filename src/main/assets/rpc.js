@@ -475,7 +475,7 @@
 
         function _delegate(self, methodName) {
           var service = self.service, method, result;
-          var args = aslice.call(2, arguments);
+          var args = aslice.call(arguments, 2);
           if (self[methodName]) {
             result = self[methodName].apply(self, args);
           } else if (service[methodName]) {
