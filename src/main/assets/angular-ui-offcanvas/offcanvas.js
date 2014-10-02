@@ -103,7 +103,7 @@ function (
 
 
   //exports
-  if (typeof angular !== "undefined") exports(angular);
+  if (typeof angular !== "undefined") return exports(angular);
   else throw new Error('angular is not loaded');
 
 });
