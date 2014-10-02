@@ -13,7 +13,6 @@ object Build extends Build {
   val lessSettings: Seq[Setting[_]] = Seq(
     includeFilter in LessKeys.less := "*.less",
     excludeFilter in LessKeys.less := "_*.less"
-    //pipelineStages += htmlMinifier
   )
 
   val buildSettings = Seq(
