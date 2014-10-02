@@ -1,4 +1,5 @@
 import com.byteground.sbt._
+import com.byteground.sbt.SbtNpm.autoImport._
 import com.typesafe.sbt.jse._
 import com.typesafe.sbt.less._
 import com.typesafe.sbt.less.SbtLess.autoImport._
@@ -15,6 +16,8 @@ object Build extends Build {
     excludeFilter in LessKeys.less := "_*.less"
     //pipelineStages += htmlMinifier
   )
+
+  val assetsSettings = lessSettings
 
   val buildSettings = Seq(
     organization := "com.byteground",
@@ -41,8 +44,8 @@ object Build extends Build {
               "org.webjars" % "bootstrap" % "3.2.0"
             )
           ) ++
-          inConfig(Assets)(lessSettings) ++
-          inConfig(TestAssets)(lessSettings)
+          inConfig(Assets)(assetsSettings) ++
+          inConfig(TestAssets)(assetsSettings)
           : _*
       )
 }
