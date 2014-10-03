@@ -14,7 +14,6 @@ object Build extends Build {
   val lessSettings: Seq[Setting[_]] = Seq(
     includeFilter in LessKeys.less := "*.less",
     excludeFilter in LessKeys.less := "_*.less"
-    //pipelineStages += htmlMinifier
   )
 
   val assetsSettings = lessSettings
@@ -41,6 +40,7 @@ object Build extends Build {
           Seq(
             libraryDependencies ++= Seq(
               "org.webjars" % "requirejs" % "2.1.10",
+              "org.webjars" % "q" % "2.0.0",
               "org.webjars" % "bootstrap" % "3.2.0"
             )
           ) ++
