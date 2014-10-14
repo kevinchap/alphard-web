@@ -9,9 +9,10 @@
  *  //-OR-
  *  require(['json!mymodule?callback=JSON_CALLBACK'], function (jsonData) { ... });
  */
+/*global: define */
 define(['module', 'text'], function (module, text) {
   'use strict';
-  
+
   //RequireJS module config
   var moduleConfig = module.config ? module.config() : {};
 

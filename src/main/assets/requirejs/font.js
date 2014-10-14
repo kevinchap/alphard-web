@@ -7,9 +7,10 @@
  *  require(['font!google,families:[Tangerine,Cantarell:700]'], function (f) { ... });
  *
  */
+/*global: define */
 define(['module', 'css'], function (module, css) {
   'use strict';
-  
+
   //RequireJS module config
   var moduleConfig = module.config ? module.config() : {};
 

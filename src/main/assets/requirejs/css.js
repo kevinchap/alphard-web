@@ -7,7 +7,7 @@
  *  require(['css!mymodule'], function (linkElement) { ... });
  *
  */
-/*global: window */
+/*global: window, define */
 define(['module'], function (module) {
   'use strict';
 

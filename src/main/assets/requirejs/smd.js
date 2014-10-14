@@ -6,6 +6,7 @@
  *  require(['smd!mymodule'], function (rpcService) { ... });
  *
  */
+/*global: define */
 define(['module', 'rpc', 'json'], function (module, rpc, json) {
   'use strict';
 

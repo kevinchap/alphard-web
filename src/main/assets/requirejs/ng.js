@@ -16,14 +16,18 @@
  *  //is equivalent to angular.module(..., [ 'ngModule1', 'ngModule2' ])
  *
  */
-/*global: window */
-define(['module'], function (module) {
+/*global: window, define */
+define(['module', 'angular'], function (module, angular) {
+  'use strict';
+
+  //RequireJS module config
+  var moduleConfig = module.config ? module.config() : {};
 
   var ng;
   (function (ng) {
 
     /**
-     * Plugin definition
+     * Plugin loading definition
      *
      * @param {string} name
      * @param {function} req
@@ -31,15 +35,20 @@ define(['module'], function (module) {
      * @param {object} config
      */
     function load(name, req, onLoad, config) {
-      var angularName = config.angularName || 'angular';
-
-      req([angularName, name], function (angular, value) {
-        var dependencies = value.dependencies || [];
-        var factory = value.factory || function () {
+      req([name], function (ngModuleDef) {
+        if (isAngularModule(ngModuleDef)) {
+          onLoad(ngModuleDef);
+          return;
+        }
+        var dependencies = ngModuleDef.dependencies || [];
+        var factory = ngModuleDef.factory || (function () {
           console.warn('no factory defined for ng module ' + name + '!');
-        };
-        var bootstrap = value.bootstrap || false;
+          return function () {};
+        }());
+        var bootstrap = ngModuleDef.bootstrap || false;
+
         req(dependencies, function () {
+          var ngModule;
           var resolvedDependencies = [];
           var angularDependencies = [];
 
@@ -51,19 +60,27 @@ define(['module'], function (module) {
             }
           }
 
-          var ngModule = angular.module(name, angularDependencies);
-
-          factory.apply(this, [ ngModule ].concat(resolvedDependencies));
-
-          if (bootstrap) {
-            angular.bootstrap(document, [ name ]);
-          }
+          ngModule = angular.module(name, angularDependencies);
+          ngModule = factory.apply(this, [ ngModule ].concat(resolvedDependencies)) || ngModule;
           onLoad(ngModule);
+          if (bootstrap) {
+            angular.bootstrap(document, [ ngModule.name ]);
+          }
         });
       });
     }
     ng.load = load;
 
+    /**
+     * @param {string} name
+     * @param {function} normalizeFn
+     * @return {string}
+     */
+    /*
+    function normalize(name, normalizeFn) {
+
+    }
+    ng.normalize = normalize;*/
 
     function isAngularModule(o) {
       return (

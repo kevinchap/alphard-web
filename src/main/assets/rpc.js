@@ -341,9 +341,15 @@ define(['JSONSchema', 'q'], function (JSONSchema, Q) {
        */
       function ServiceMethod(service, smd) {
         function serviceMethod(/*[...]*/) {
+          var argc = arguments.length;
+          var args = new Array(argc);
+          for (var i = 0; i < argc; ++i) {
+            args[i] = arguments[i];
+          }
+
           return (
             /* jshint validthis:true */
-            serviceMethod.apply(this, aslice.call(arguments))
+            serviceMethod.apply(this, args)
             /* jshint validthis:false */
           );
         }
