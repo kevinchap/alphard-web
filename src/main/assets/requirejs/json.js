@@ -11,6 +11,9 @@
  */
 define(['module', 'text'], function (module, text) {
   'use strict';
+  
+  //RequireJS module config
+  var moduleConfig = module.config ? module.config() : {};
 
   var json;
   (function (json) {
@@ -19,8 +22,13 @@ define(['module', 'text'], function (module, text) {
     var __jsonParse = JSON.parse;
     var encode = encodeURIComponent;
 
-    function normalize(module) {
-      return String(module);
+    /**
+     * @param {string} name
+     * @param {function} normalizeFn
+     * @return {string}
+     */
+    function normalize(name, normalizeFn) {
+      return String(name);
     }
     json.normalize = normalize; //export
 
@@ -31,14 +39,38 @@ define(['module', 'text'], function (module, text) {
      */
     function get(url, opt_callback, opt_errback) {
       if (url.indexOf(__jsonCallback) >= 0) {
-        getJSONP(url, opt_callback, opt_errback);
+        _getJSONP(url, opt_callback, opt_errback);
       } else {
-        getText(url, opt_callback, opt_errback);
+        _getText(url, opt_callback, opt_errback);
       }
     }
     json.get = get; //export
 
-    function getJSONP(url, opt_callback, opt_errback) {
+    /**
+     * Plugin loading definition
+     *
+     * @param {string} name
+     * @param {function} req
+     * @param {function} onLoad
+     * @param {object} config
+     */
+    function load(name, req, onLoad, config) {
+      var url = require.toUrl(normalize(name));
+      if (!config.isBuild) {
+        get(url, onLoad, onLoad.error);
+      } else {
+        get("");
+      }
+    }
+    json.load = load; //export
+
+
+    function write(pluginName, moduleName, writeFn) {
+      writeFn(_loadFromFileSystem(pluginName, moduleName));
+    }
+    json.write = write;
+
+    function _getJSONP(url, opt_callback, opt_errback) {
       var parameterName = 'callback';//String(_private.parameterName);
       var attrName = "_" + (++__jsonpId);
       var callbackName = "requirejs.jsonp." + attrName;
@@ -86,7 +118,7 @@ define(['module', 'text'], function (module, text) {
       headElement.appendChild(scriptElement);
     }
 
-    function getText(url, opt_callback, opt_errback) {
+    function _getText(url, opt_callback, opt_errback) {
       text.get(url, function (textContent) {
         try {
           var jsonContent = __jsonParse(textContent);
@@ -104,29 +136,6 @@ define(['module', 'text'], function (module, text) {
         }
       }, opt_errback);
     }
-
-    /**
-     * @param {string} name
-     * @param {object} req
-     * @param {function} onLoad
-     * @param {object} config
-     */
-    function load(name, req, onLoad, config) {
-      var url = require.toUrl(normalize(name));
-
-      if (!config.isBuild) {
-        get(url, onLoad, onLoad.error);
-      } else {
-        get("");
-      }
-    }
-    json.load = load; //export
-
-
-    function write(pluginName, moduleName, writeFn) {
-      writeFn(_loadFromFileSystem(pluginName, moduleName));
-    }
-    json.write = write;
 
     function _createNode(url, onload, onerror) {
       var done = false;

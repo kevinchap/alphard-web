@@ -6,20 +6,23 @@
  *  require(['smd!mymodule'], function (rpcService) { ... });
  *
  */
-define(['rpc', 'json'], function (rpc, json) {
+define(['module', 'rpc', 'json'], function (module, rpc, json) {
   'use strict';
 
+  //RequireJS module config
+  var moduleConfig = module.config ? module.config() : {};
 
   var smd;
   (function (smd) {
     var cache = {};
 
     /**
-     * @param {string} module
+     * @param {string} name
+     * @param {function} normalizeFn
      * @return {string}
      */
-    function normalize(module) {
-      return String(module);
+    function normalize(name, normalizeFn) {
+      return String(name);
     }
     smd.normalize = normalize;
 
@@ -60,6 +63,14 @@ define(['rpc', 'json'], function (rpc, json) {
     }
     smd.get = get;
 
+    /**
+     * Plugin loading definition
+     *
+     * @param {string} name
+     * @param {function} req
+     * @param {function} onLoad
+     * @param {object} config
+     */
     function load(name, req, onLoad, config) {
       var url = require.toUrl(normalize(name));
       var target = _extractTarget(url);

@@ -9,6 +9,9 @@
  */
 define(['module', 'css'], function (module, css) {
   'use strict';
+  
+  //RequireJS module config
+  var moduleConfig = module.config ? module.config() : {};
 
   var font;
   (function (font) {
@@ -32,14 +35,24 @@ define(['module', 'css'], function (module, css) {
 
     /**
      * @param {string} name
+     * @param {function} normalizeFn
+     * @return {string}
+     */
+    /*
+    function normalize(name, normalizeFn) {
+
+    }
+    font.normalize = normalize;*/
+
+    /**
+     * @param {string} name
      * @param {function=} opt_callback
      * @param {function=} opt_errback
      */
     function get(name, opt_callback, opt_errback) {
-      var
-      data = _parseName(name),
-      providerc = 0,
-      providerName;
+      var data = _parseName(name);
+      var providerc = 0;
+      var providerName;
 
       function throwError(e) {
         if (opt_errback) {

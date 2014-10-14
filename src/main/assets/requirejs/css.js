@@ -11,6 +11,9 @@
 define(['module'], function (module) {
   'use strict';
 
+  //RequireJS module config
+  var moduleConfig = module.config ? module.config() : {};
+
   var dom;
   (function (dom) {
     var global = window;
@@ -177,8 +180,10 @@ define(['module'], function (module) {
 
     /**
      * @param {string} name
+     * @param {function} normalizeFn
+     * @return {string}
      */
-    function normalize(name) {
+    function normalize(name, normalizeFn) {
       return loader.normalize(name);
     }
     css.normalize = normalize;
