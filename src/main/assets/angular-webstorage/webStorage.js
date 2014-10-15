@@ -83,7 +83,7 @@ define(['angular'], function (angular) {
             //var val = event.newValue;
             if (event.storageArea === webStorage) {
               //_debug("browser event received", event);
-              _debug(moduleName + ".change broadcast", $storage);
+              _debug(moduleName + ".change broadcast", webStorage);
               $rootScope.$broadcast(moduleName + ".change");
             }
           }
