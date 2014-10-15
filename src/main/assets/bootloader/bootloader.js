@@ -24,6 +24,8 @@
 
         //set width
         if (progressBarElement.style.width != percent) {
+          progressBarElement.setAttribute('aria-valuenow', value);
+
           progressBarElement.style.width = percent;
 
           //Set label
