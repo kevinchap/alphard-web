@@ -20,7 +20,6 @@ object Build extends Build {
 
   val buildSettings = Seq(
     organization := "com.byteground",
-    version := "0.0.1-SNAPSHOT",
     scalaVersion := "2.10.4",
     crossPaths := false,
     importDirectly := true
