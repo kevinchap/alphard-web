@@ -7,8 +7,8 @@ define(['module', 'angular'], function (module, angular) {
       .provider({
         $webStorage: $webStorageProvider,
         $memoryStorage: $memoryStorageProvider,
-        $localStorage: $storageProvider("localStorage"),
-        $sessionStorage: $storageProvider("sessionStorage")
+        $localStorage: $localStorageProvider,
+        $sessionStorage: $sessionProvider
       });
   }
 
@@ -57,30 +57,32 @@ define(['module', 'angular'], function (module, angular) {
     }];
   }
 
-  function $storageProvider(storageType) {
-    return function provider() {
+  function $sessionStorageProvider() {
+    /*jslint validthis:true */
+    this.$get = [function () {
+      return $window.sessionStorage || new MemoryStorage();
+    }];
+  }
 
-      this.$get = [
-        '$rootScope', '$window',
-        function ($rootScope, $window) {
-          var moduleName = "$" + storageType;
-          var isSupported = !!$window[storageType];
-          var webStorage = $window[storageType] || new MemoryStorage();
-          if (isSupported && $window.addEventListener) {
-            $window.addEventListener('storage', __onchange__, false);
-          }
+  function $localStorageProvider() {
+    /*jslint validthis:true */
+    this.$get = ['$rootScope', '$window', function ($rootScope, $window) {
+      var isSupported = !!$window.localStorage;
+      var localStorage = $window.localStorage || new MemoryStorage();
+      if (isSupported && $window.addEventListener) {
+        $window.addEventListener('storage', __onchange__, false);
+      }
 
-          function __onchange__(event) {
-            //var key = event.key;
-            //var val = event.newValue;
-            if (event.storageArea === webStorage) {
-              $rootScope.$broadcast(moduleName + ".change");
-            }
-          }
+      function __onchange__(event) {
+        //var key = event.key;
+        //var val = event.newValue;
+        if (event.storageArea === localStorage) {
+          $rootScope.$broadcast("$localStorage.change", [ event ]);
+        }
+      }
 
-          return webStorage;
-        }];
-    };
+      return localStorage;
+    }];
   }
 
   function $webStorageProvider() {
