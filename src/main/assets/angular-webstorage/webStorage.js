@@ -1,4 +1,4 @@
-define(['angular'], function (angular) {
+define(['module', 'angular'], function (module, angular) {
   'use strict';
 
   function exports() {
@@ -6,7 +6,7 @@ define(['angular'], function (angular) {
       .module("ngWebStorage", [])
       .provider({
         $webStorage: $webStorageProvider,
-        $memoryStorage: $storageProvider("memoryStorage"),
+        $memoryStorage: $memoryStorageProvider,
         $localStorage: $storageProvider("localStorage"),
         $sessionStorage: $storageProvider("sessionStorage")
       });
@@ -50,64 +50,34 @@ define(['angular'], function (angular) {
     return MemoryStorage;
   }());
 
+  function $memoryStorageProvider() {
+    /*jslint validthis:true */
+    this.$get = [function () {
+      return new MemoryStorage();
+    }];
+  }
+
   function $storageProvider(storageType) {
     return function provider() {
-      var settings = {
-        debug: false
-      };
-
-      this.config = function (data) {
-        if (arguments.length) {
-          angular.extend(settings, data);
-          return this;
-        } else {
-          return angular.copy(settings);
-        }
-      };
 
       this.$get = [
-        '$log', '$rootScope', '$window',
-        function ($log, $rootScope, $window) {
+        '$rootScope', '$window',
+        function ($rootScope, $window) {
           var moduleName = "$" + storageType;
-          var isSupported = !!$window[storageType] || 'memoryStorage' === storageType;
+          var isSupported = !!$window[storageType];
           var webStorage = $window[storageType] || new MemoryStorage();
-
-          function __init__() {
-            if (isSupported && $window.addEventListener) {
-              $window.addEventListener('storage', __onchange__, false);
-            }
+          if (isSupported && $window.addEventListener) {
+            $window.addEventListener('storage', __onchange__, false);
           }
 
           function __onchange__(event) {
             //var key = event.key;
             //var val = event.newValue;
             if (event.storageArea === webStorage) {
-              //_debug("browser event received", event);
-              _debug(moduleName + ".change broadcast", webStorage);
               $rootScope.$broadcast(moduleName + ".change");
             }
           }
 
-          //util
-          function _formatMessage(args) {
-            var a = ["[" + moduleName + "]"];
-            for (var i = 0, l = args.length; i < l; ++i) {
-              a.push(args[i]);
-            }
-            return a;
-          }
-
-          function _debug(var_args) {
-            if (settings.debug) {
-              $log.debug.apply($log, _formatMessage(arguments));
-            }
-          }
-
-          function _warn(var_args) {
-            $log.warn.apply($log, _formatMessage(arguments));
-          }
-
-          __init__();
           return webStorage;
         }];
     };
