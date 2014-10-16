@@ -3,7 +3,7 @@ define(['module', 'angular'], function (module, angular) {
 
   function exports() {
     return angular
-      .module("ngWebStorage", [])
+      .module(module.id, [])
       .provider({
         $webStorage: $webStorageProvider,
         $memoryStorage: $memoryStorageProvider,
@@ -70,15 +70,13 @@ define(['module', 'angular'], function (module, angular) {
       var isSupported = !!$window.localStorage;
       var localStorage = $window.localStorage || new MemoryStorage();
       if (isSupported && $window.addEventListener) {
-        $window.addEventListener('storage', __onchange__, false);
-      }
-
-      function __onchange__(event) {
-        //var key = event.key;
-        //var val = event.newValue;
-        if (event.storageArea === localStorage) {
-          $rootScope.$broadcast("$localStorage.change", [ event ]);
-        }
+        $window.addEventListener('storage', function (event) {
+          //var key = event.key;
+          //var val = event.newValue;
+          if (event.storageArea === localStorage) {
+            $rootScope.$broadcast("$localStorage.change", [ event ]);
+          }
+        }, false);
       }
 
       return localStorage;
