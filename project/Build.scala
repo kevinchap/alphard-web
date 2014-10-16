@@ -38,6 +38,7 @@ object Build extends Build {
         buildSettings ++
           Seq(
             libraryDependencies ++= Seq(
+              "org.webjars" % "angularjs" % "1.3.0",
               "org.webjars" % "requirejs" % "2.1.14-3",
               "org.webjars" % "q" % "1.0.1",
               "org.webjars" % "bootstrap" % "3.2.0"
