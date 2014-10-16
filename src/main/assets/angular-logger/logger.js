@@ -28,7 +28,7 @@ define(['module', 'angular'], function (module, angular) {
           error: function () {
             $log.error.apply($log, _formatMessage(name, arguments));
           }
-        }
+        };
       }
 
       function _formatMessage(name, args) {
