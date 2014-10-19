@@ -45,7 +45,8 @@ define(['module'], function (plugin) {
                         if (_isAngularModule(resolvedDependency)) {
                             angularDependencies.push(resolvedDependency.name);
                         } else if (deps[i] == 'module') {
-                            resolvedDependencies.push(config)
+                            console.warn('module is not allowed in deps!');
+                            resolvedDependencies.push(undefined);
                         } else {
                             resolvedDependencies.push(resolvedDependency);
                         }
