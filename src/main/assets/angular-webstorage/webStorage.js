@@ -1,14 +1,14 @@
-define(['angular'], function (angular) {
+define(['module', 'angular'], function (module, angular) {
   'use strict';
 
   function exports() {
     return angular
-      .module("ngWebStorage", [])
+      .module(module.id, [])
       .provider({
         $webStorage: $webStorageProvider,
-        $memoryStorage: $storageProvider("memoryStorage"),
-        $localStorage: $storageProvider("localStorage"),
-        $sessionStorage: $storageProvider("sessionStorage")
+        $memoryStorage: $memoryStorageProvider,
+        $localStorage: $localStorageProvider,
+        $sessionStorage: $sessionProvider
       });
   }
 
@@ -50,67 +50,37 @@ define(['angular'], function (angular) {
     return MemoryStorage;
   }());
 
-  function $storageProvider(storageType) {
-    return function provider() {
-      var settings = {
-        debug: false
-      };
+  function $memoryStorageProvider() {
+    /*jslint validthis:true */
+    this.$get = [function () {
+      return new MemoryStorage();
+    }];
+  }
 
-      this.config = function (data) {
-        if (arguments.length) {
-          angular.extend(settings, data);
-          return this;
-        } else {
-          return angular.copy(settings);
-        }
-      };
+  function $sessionStorageProvider() {
+    /*jslint validthis:true */
+    this.$get = [function () {
+      return $window.sessionStorage || new MemoryStorage();
+    }];
+  }
 
-      this.$get = [
-        '$log', '$rootScope', '$window',
-        function ($log, $rootScope, $window) {
-          var moduleName = "$" + storageType;
-          var isSupported = !!$window[storageType] || 'memoryStorage' === storageType;
-          var webStorage = $window[storageType] || new MemoryStorage();
-
-          function __init__() {
-            if (isSupported && $window.addEventListener) {
-              $window.addEventListener('storage', __onchange__, false);
-            }
+  function $localStorageProvider() {
+    /*jslint validthis:true */
+    this.$get = ['$rootScope', '$window', function ($rootScope, $window) {
+      var isSupported = !!$window.localStorage;
+      var localStorage = $window.localStorage || new MemoryStorage();
+      if (isSupported && $window.addEventListener) {
+        $window.addEventListener('storage', function (event) {
+          //var key = event.key;
+          //var val = event.newValue;
+          if (event.storageArea === localStorage) {
+            $rootScope.$broadcast("$localStorage.change", [ event ]);
           }
+        }, false);
+      }
 
-          function __onchange__(event) {
-            //var key = event.key;
-            //var val = event.newValue;
-            if (event.storageArea === webStorage) {
-              //_debug("browser event received", event);
-              _debug(moduleName + ".change broadcast", webStorage);
-              $rootScope.$broadcast(moduleName + ".change");
-            }
-          }
-
-          //util
-          function _formatMessage(args) {
-            var a = ["[" + moduleName + "]"];
-            for (var i = 0, l = args.length; i < l; ++i) {
-              a.push(args[i]);
-            }
-            return a;
-          }
-
-          function _debug(var_args) {
-            if (settings.debug) {
-              $log.debug.apply($log, _formatMessage(arguments));
-            }
-          }
-
-          function _warn(var_args) {
-            $log.warn.apply($log, _formatMessage(arguments));
-          }
-
-          __init__();
-          return webStorage;
-        }];
-    };
+      return localStorage;
+    }];
   }
 
   function $webStorageProvider() {
