@@ -13,11 +13,9 @@ define(['module', 'ng', 'bootloader/bootloader'], function (module, ng) {
         var depc = deps.length;
 
         bootloader.setDisabled(false);
-console.warn(moduleDefinition);
         function loader() {
           return function () {
             bootloader.incrementValue(1 / depc);
-console.warn(bootloader.getValue(), depc);
           };
         }
 
