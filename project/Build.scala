@@ -39,6 +39,7 @@ object Build extends Build {
           Seq(
             libraryDependencies ++= Seq(
               "org.webjars" % "angularjs" % "1.3.0",
+              "org.webjars" % "angular-ui-router" % "0.2.11",
               "org.webjars" % "requirejs" % "2.1.14-3",
               "org.webjars" % "q" % "1.0.1",
               "org.webjars" % "bootstrap" % "3.2.0"
