@@ -61,12 +61,12 @@
     }
 
     function getElement() {
-      return document.getElementById('bootloader');
+      return document.getElementById('bootloader') || __byClass(document, 'bootloader');
     }
     bootloader.getElement = getElement;
 
     function getProgressElement() {
-      return document.getElementById('bootloader-progress');
+      return __byClass(getElement(), 'bootloader__progress');
     }
     bootloader.getProgressElement = getProgressElement;
 
@@ -121,6 +121,9 @@
     }
     bootloader.setDisabled = setDisabled;
 
+    function __byClass(el, c) {
+      return el && el.getElementsByClassName(c)[0];
+    }
 
     function __rAF(callback) {
       (
