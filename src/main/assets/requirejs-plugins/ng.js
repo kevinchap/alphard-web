@@ -1,3 +1,21 @@
+/**
+ * RequireJS ng! plugin
+ *
+ * Usage:
+ *
+ *  define([], function () {
+ *    return {
+ *      bootstrap: true|false, //optional
+ *      deps: [ 'ng!mod1', 'ng!mod2', 'jsmod' ],
+ *      init: function (ngModule) {
+ *        //ngModule is the generated module with mod1 and mod2 dependencies
+ *      },
+ *      onprogress: function (percent) {  },//optional
+ *      onload: function (ngModule) { }//optional
+ *    };
+ *  });
+ *
+ */
 /*global: window, define */
 define(['module'], function (module) {
   'use strict';
@@ -12,13 +30,18 @@ define(['module'], function (module) {
 
     function load(name, req, onLoad, config) {
       req([angularName, name], function (angular, moduleDefinition) {
-        ng.get(moduleDefinition, onLoad, onLoad.error);
+        ng.get(moduleDefinition, onLoad, onLoad.error, req);
       });
     }
     ng.load = load;
 
-    function get(moduleDefinition, opt_callback, opt_errback) {
+    function get(moduleDefinition, opt_callback, opt_errback, opt_req) {
+      var percent = 0;
+
       function callback(result) {
+        if (moduleDefinition.onload) {
+          moduleDefinition.onload(result);
+        }
         if (result && opt_callback) {
           opt_callback(result);
         }
@@ -32,9 +55,20 @@ define(['module'], function (module) {
         }
       }
 
+      function progressFn(inc) {
+        return function () {
+          percent += inc;
+          if (moduleDefinition.onprogress) {
+            moduleDefinition.onprogress(percent);
+          }
+        };
+      }
+
       if (_isAngularModule(moduleDefinition)) {
+        progressFn(1)();
         callback(moduleDefinition);
       } else {
+        var req = (opt_req || require);
         var deps = moduleDefinition.deps || [];
         var init = moduleDefinition.init || (function () {
           console.warn('no factory defined for ng module ' + name + '!');
@@ -44,8 +78,14 @@ define(['module'], function (module) {
 
         //add angular
         deps.push(angularName);
+        var depc = deps.length;
 
-        require(deps, function () {
+        //progress loader
+        for (var i = 0; i < depc; ++i) {
+          req([deps[i]], progressFn(1 / depc));
+        }
+
+        req(deps, function () {
           var ngModule;
           var resolvedDependencies = [];
           var angularDependencies = [];
@@ -69,6 +109,7 @@ define(['module'], function (module) {
             if (bootstrap) {
               angular.bootstrap(document, [ ngModule.name ]);
             }
+
             callback(ngModule);
           } catch (e) {
             errback(e);
@@ -81,19 +122,19 @@ define(['module'], function (module) {
 
     function _isAngularModule(o) {
       return o &&
-          (typeof o === 'object') &&
-          o.provider &&
-          o.factory &&
-          o.service &&
-          o.value &&
-          o.constant &&
-          o.animation &&
-          o.controller &&
-          o.filter &&
-          o.directive &&
-          o.config &&
-          o.run &&
-          o.name;
+        (typeof o === 'object') &&
+        o.provider &&
+        o.factory &&
+        o.service &&
+        o.value &&
+        o.constant &&
+        o.animation &&
+        o.controller &&
+        o.filter &&
+        o.directive &&
+        o.config &&
+        o.run &&
+        o.name;
     }
 
   }(ng || (ng = {})));
