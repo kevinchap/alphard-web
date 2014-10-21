@@ -76,11 +76,11 @@
 offcanvas,
 .offcanvas,
 offcanvas-content,
-.offcanvas-content,
+.offcanvas__content,
 offcanvas-left,
-.offcanvas-left,
+.offcanvas__left,
 offcanvas-right,
-.offcanvas-right {
+.offcanvas__right {
   background: @offcanvas-bg-color;
 	height: 100%;
 	.box-sizing(border-box);
@@ -95,7 +95,7 @@ offcanvas,
 }
 
 offcanvas-content,
-.offcanvas-content {
+.offcanvas__content {
   display: block;
   position: relative;
   width: 100%;
@@ -114,9 +114,9 @@ offcanvas[disabled] offcanvas-content {
 }
 
 offcanvas-left,
-.offcanvas-left,
+.offcanvas__left,
 offcanvas-right,
-.offcanvas-right {
+.offcanvas__right {
   top: 0;
   position: absolute;
   /*overflow: auto;*/
@@ -132,31 +132,31 @@ offcanvas-right,
 }
 
 offcanvas-left,
-.offcanvas-left {
+.offcanvas__left {
 	left:0;
 	width: @offcanvas-left-width;
 }
 
 offcanvas-right,
-.offcanvas-right {
+.offcanvas__right {
 	right:0;
 	width: @offcanvas-right-width;
 }
 
 /*States*/
-.offcanvas-push-left > .offcanvas-content {
+.offcanvas--push-left > .offcanvas__content {
 	left: @offcanvas-left-width;
 }
-.offcanvas-push-right > .offcanvas-content {
+.offcanvas--push-right > .offcanvas__content {
 	left: -@offcanvas-right-width;
 }
 
 /*Theme*/
-.offcanvas-default {
+.offcanvas--default {
 	.overlay();
 
 	offcanvas-content,
-	.offcanvas-content {
+	.offcanvas__content {
 		.overlay();
 		box-shadow:2px 0px 2px rgba(0, 0, 0, 0.6),-2px 0px 2px rgba(0, 0, 0, 0.6);
 	}
