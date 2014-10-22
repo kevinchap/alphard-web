@@ -8,7 +8,7 @@ define(['module', 'angular'], function (module, angular) {
         $webStorage: $webStorageProvider,
         $memoryStorage: $memoryStorageProvider,
         $localStorage: $localStorageProvider,
-        $sessionStorage: $sessionProvider
+        $sessionStorage: $sessionStorageProvider
       });
   }
 
@@ -59,7 +59,7 @@ define(['module', 'angular'], function (module, angular) {
 
   function $sessionStorageProvider() {
     /*jslint validthis:true */
-    this.$get = [function () {
+    this.$get = ['$window', function ($window) {
       return $window.sessionStorage || new MemoryStorage();
     }];
   }
