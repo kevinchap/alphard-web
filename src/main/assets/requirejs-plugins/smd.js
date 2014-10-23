@@ -11,7 +11,7 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
   'use strict';
 
   //RequireJS module config
-  var moduleConfig = module.config ? module.config() : {};
+  var moduleConfig = (module.config && module.config()) || {};
 
   var smd;
   (function (smd) {

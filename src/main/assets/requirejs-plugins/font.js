@@ -12,7 +12,7 @@ define(['module', 'css'], function (module, css) {
   'use strict';
 
   //RequireJS module config
-  var moduleConfig = module.config ? module.config() : {};
+  var moduleConfig = (module.config && module.config()) || {};
 
   var font;
   (function (font) {

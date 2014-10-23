@@ -20,7 +20,8 @@
 define(['module'], function (module) {
   'use strict';
 
-  var angularName = module.config().angular || 'angular';
+  var moduleConfig = (module.config && module.config()) || {};
+  var angularName = moduleConfig.angular || 'angular';
 
   /**
    * ng module

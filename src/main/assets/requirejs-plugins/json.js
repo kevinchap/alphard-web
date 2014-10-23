@@ -14,7 +14,7 @@ define(['module', 'text'], function (module, text) {
   'use strict';
 
   //RequireJS module config
-  var moduleConfig = module.config ? module.config() : {};
+  var moduleConfig = (module.config && module.config()) || {};
 
   var json;
   (function (json) {
