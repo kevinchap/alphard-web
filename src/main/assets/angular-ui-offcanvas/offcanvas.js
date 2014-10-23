@@ -73,7 +73,7 @@ function (
       return {
         compile: function ($element, attrs) {
           return function link($scope, $element, attrs, offcanvas) {
-            $scope.direction = direction;
+            $scope.direction = "left";
           };
         },
         require: '^offcanvas',
@@ -88,7 +88,7 @@ function (
       return {
         compile: function ($element, attrs) {
           return function link($scope, $element, attrs, offcanvas) {
-            $scope.direction = direction;
+            $scope.direction = "right";
           };
         },
         require: '^offcanvas',
