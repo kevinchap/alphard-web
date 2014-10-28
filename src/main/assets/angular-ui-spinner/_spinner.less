@@ -1,0 +1,178 @@
+/**
+ * Spinner
+ *
+ * <div class="spinner spinner--circle-rotate" >
+ *   <div class="spinner__circle-0"> </div>
+ *   <div class="spinner__circle-1"> </div>
+ * </div>
+ *
+ * @author Julien Polo
+ */
+
+// Spinner variable
+// --------------------------------------------------
+@spinner-height-small: @font-size-small + @padding-small-vertical;
+@spinner-height-base: @font-size-base + @padding-base-vertical;
+@spinner-height-large: @font-size-large + @padding-large-vertical;
+
+// Spinner Style
+// --------------------------------------------------
+.spinner {
+  //.spinner-circle-rotate;
+  .box-sizing(border-box);
+  display: inline-block;
+}
+
+// Spinner Circle Rotate
+// --------------------------------------------------
+.spinner--circle-rotate {
+
+  .spinner-circle-rotate-size(@diameter, @padding) {
+    height: @diameter;
+    width: @diameter;
+    padding: @padding;
+
+    .spinner__circle {
+      border-width: floor(@diameter / 10);
+    }
+  }
+
+  & .spinner__circle {
+    .animation(spinner-circle-rotate-anim, .6s, linear, 0, infinite);
+    height: 100%;
+    width: 100%;
+    border-style: solid;
+    border-color: rgba(255,255,255,.5);
+    border-top-color: rgba(0,0,0,.5);
+    border-right-color: rgba(0,0,0,.5);
+    border-radius: 100%;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+  }
+
+  @-webkit-keyframes spinner-circle-rotate-anim {
+    from { .rotate(0deg); }
+    to { .rotate(359deg); }
+  }
+
+  @keyframes spinner-circle-rotate-anim {
+    from { .rotate(0deg); }
+    to { .rotate(359deg); }
+  }
+
+  // Alternate spinners
+  // --------------------------------------------------
+
+
+  // Spinner Sizes
+  // --------------------------------------------------
+  .spinner-circle-rotate-size(@spinner-height-base, 0);//default size
+
+  &.spinner--lg {
+    .spinner-circle-rotate-size(@spinner-height-large, 0);
+  }
+
+  &.spinner--md {
+    .spinner-circle-rotate-size(@spinner-height-base, 0);
+  }
+
+  &.spinner--sm {
+    .spinner-circle-rotate-size(@font-size-small, 0);
+  }
+
+  &.spinner--xs {
+    .spinner-circle-rotate-size(@font-size-small - @padding-small-vertical, 0);
+  }
+
+}
+
+// Spinner Circle Bounce
+// --------------------------------------------------
+.spinner--circle-bounce {
+
+  .spinner-circle-bounce-size(@padding-vertical; @padding-horizontal; @circle-size) {
+    padding: @padding-vertical @padding-horizontal;
+    //height: @circle-size;
+
+    & > * {
+      width: @circle-size;
+      height: @circle-size;
+      margin: (@circle-size / 5) (@circle-size / 5);
+    }
+  }
+
+  & > * {
+    .animation(spinner-circle-bounce-anim, 1s, linear, 0, infinite);
+    background-color: black;
+    float:left;
+    border-radius:50%;
+    opacity: 0.6;
+  }
+
+  .spinner__circle-1, :nth-child(1) {
+    .animation-delay(0.21s);
+  }
+
+  .spinner__circle-2, :nth-child(2) {
+    .animation-delay(0.5s);
+  }
+
+  .spinner__circle-3, :nth-child(3) {
+    .animation-delay(0.63s);
+  }
+
+  @-moz-keyframes spinner-circle-bounce-anim {
+    0% { }
+    50% { opacity: 0.1; }
+    100% { }
+  }
+
+  @-webkit-keyframes spinner-circle-bounce-anim {
+    0% { }
+    50% { opacity: 0.1; }
+    100% { }
+  }
+
+  @-ms-keyframes spinner-circle-bounce-anim {
+    0%{ }
+    50%{ opacity: 0.1; }
+    100%{ }
+  }
+
+  @keyframes spinner-circle-bounce-anim {
+    0%{ }
+    50%{ opacity: 0.1; }
+    100%{ }
+  }
+
+  // Alternate spinners
+  // --------------------------------------------------
+  &.spinner--inverse {
+    & > * {
+      background-color: white;
+    }
+  }
+
+  // Spinner Sizes
+  // --------------------------------------------------
+  .spinner-circle-bounce-size(0, 0, @spinner-height-base);
+
+  &.spinner--lg {
+    .spinner-circle-bounce-size(0, 0, @spinner-height-large);
+  }
+
+  &.spinner--md {
+    .spinner-circle-bounce-size(0, 0, @spinner-height-base);
+  }
+
+  &.spinner--sm {
+    .spinner-circle-bounce-size(0, 0, @spinner-height-small);
+  }
+
+  &.spinner--xs {
+    .spinner-circle-bounce-size(0, 0, @spinner-height-small - @padding-small-vertical);
+  }
+
+
+}
