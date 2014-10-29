@@ -1,16 +1,19 @@
-/*variables*/
+/**
+ * Offcanvas
+ *
+ *
+ * @author Julien Polo
+ */
+
+// Offcanvas variable
+// --------------------------------------------------
 @offcanvas-bg-color: #FFF;
 @offcanvas-translation-duration: 0.3s;
-@offcanvas-left-width: 300px;
+@offcanvas-left-width: 200px;
 @offcanvas-right-width: 200px;
 
-/*mixin*/
-.box-sizing(@type: border-box) {
-	-webkit-box-sizing: @type;
-	-moz-box-sizing:    @type;
-	box-sizing:         @type;
-}
-
+// Offcanvas mixins
+// --------------------------------------------------
 .transition(@transition) {
 	-webkit-transition: @transition;
 	-moz-transition:    @transition;
@@ -26,14 +29,14 @@
   transition-property: @props;
 }
 
-.translate-fix() {
+.offcanvas-translate-fix() {
   -webkit-backface-visibility: hidden;
   -webkit-perspective: 1000;
   backface-visibility: hidden;
   perspective: 1000;
 }
 
-.overlay() {
+.offcanvas-overlay() {
 
   &:after {
 		content:"";
@@ -73,6 +76,8 @@
   }
 }
 
+// Offcanvas style
+// --------------------------------------------------
 offcanvas,
 .offcanvas,
 offcanvas-content,
@@ -83,7 +88,7 @@ offcanvas-right,
 .offcanvas__right {
   background: @offcanvas-bg-color;
 	height: 100%;
-	.box-sizing(border-box);
+	box-sizing: border-box;
 }
 
 offcanvas,
@@ -102,9 +107,8 @@ offcanvas-content,
   left:0;
   z-index: 1;
   overflow: auto;
-
-  .box-sizing(border-box);
-  .translate-fix();
+  box-sizing: border-box;
+  .offcanvas-translate-fix();
   .transition(all @offcanvas-translation-duration ease);
 	.transition-property(top,left,right,bottom,height);
 }
@@ -143,7 +147,8 @@ offcanvas-right,
 	width: @offcanvas-right-width;
 }
 
-/*States*/
+// Offcanvas states
+// --------------------------------------------------
 .offcanvas--push-left > .offcanvas__content {
 	left: @offcanvas-left-width;
 }
@@ -151,13 +156,14 @@ offcanvas-right,
 	left: -@offcanvas-right-width;
 }
 
-/*Theme*/
+// Offcanvas variants
+// --------------------------------------------------
 .offcanvas--default {
-	.overlay();
+	.offcanvas-overlay();
 
 	offcanvas-content,
 	.offcanvas__content {
-		.overlay();
+		.offcanvas-overlay();
 		box-shadow:2px 0px 2px rgba(0, 0, 0, 0.6),-2px 0px 2px rgba(0, 0, 0, 0.6);
 	}
 }
