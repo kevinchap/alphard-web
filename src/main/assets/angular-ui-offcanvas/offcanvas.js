@@ -2,9 +2,9 @@ define(
 [
   'module',
   'angular',
-  'text!angular-ui-offcanvas/offcanvas.html',
-  'text!angular-ui-offcanvas/offcanvas-content.html',
-  'text!angular-ui-offcanvas/offcanvas-panel.html'
+  'text!./offcanvas.html',
+  'text!./offcanvas-content.html',
+  'text!./offcanvas-panel.html'
 ],
 function (
   module,
