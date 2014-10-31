@@ -17,7 +17,7 @@ function (
 
   describe("$time", inject(function ($time) {
 
-    describe("now()", function () {
+    describe(".now()", function () {
 
       it("should be function", function () {
         expect(typeof $time.now).toBe("function");

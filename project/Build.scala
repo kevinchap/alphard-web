@@ -1,5 +1,6 @@
 import com.byteground.sbt.{SbtNpm, SbtByTeGround}
 import com.byteground.sbt.SbtNpm.autoImport._
+import com.typesafe.sbt.mocha.SbtMocha.autoImport._
 import com.typesafe.sbt.jse._
 import com.typesafe.sbt.less._
 import com.typesafe.sbt.less.SbtLess.autoImport._
@@ -17,6 +18,11 @@ object Build extends Build {
   )
 
   val assetsSettings = lessSettings
+
+  val testAssetsSettings: Seq[Setting[_]] = Seq(
+    MochaKeys.requires ++= Seq("_mocha.conf")//,
+    //WebKeys.jsFilter in TestAssets := GlobFilter("_runSpec.js")
+  )
 
   val buildSettings = Seq(
     organization := "com.byteground",
@@ -46,7 +52,7 @@ object Build extends Build {
             )
           ) ++
           inConfig(Assets)(assetsSettings) ++
-          inConfig(TestAssets)(assetsSettings)
+          inConfig(TestAssets)(assetsSettings ++ testAssetsSettings)
           : _*
       )
 }

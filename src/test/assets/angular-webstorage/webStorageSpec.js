@@ -29,28 +29,28 @@ function (
 
   describe("$memoryStorage", inject(function ($memoryStorage) {
 
-    describe("clear()", function () {
+    describe(".clear()", function () {
       it("should be function", function () {
         expect(typeof $memoryStorage.clear).toBe("function");
         expect($memoryStorage.clear.length).toBe(0);
       });
     });
 
-    describe("getItem()", function () {
+    describe(".getItem()", function () {
       it("should be function", function () {
         expect(typeof $memoryStorage.getItem).toBe("function");
         expect($memoryStorage.getItem.length).toBe(1);
       });
     });
 
-    describe("key()", function () {
+    describe(".key()", function () {
       it("should be function", function () {
         expect(typeof $memoryStorage.key).toBe("function");
         expect($memoryStorage.key.length).toBe(0);
       });
     });
 
-    describe("setItem()", function () {
+    describe(".setItem()", function () {
       it("should be function", function () {
         expect(typeof $memoryStorage.setItem).toBe("function");
         expect($memoryStorage.setItem.length).toBe(2);
