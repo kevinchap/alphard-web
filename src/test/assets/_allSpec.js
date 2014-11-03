@@ -1,7 +1,7 @@
 /*global: define, require*/
-requirejs([
-  //'./angular-time/timeSpec',
-  //'./angular-webstorage/webStorageSpec'
+define([
+  './angular-time/timeSpec',
+  './angular-webstorage/webStorageSpec'
 ],
 function () {
   'use strict';

@@ -17,14 +17,13 @@ object Build extends Build {
     excludeFilter in LessKeys.less := "_*.less"
   )
 
-  val assetsSettings = lessSettings
-
-  val testAssetsSettings: Seq[Setting[_]] = Seq(
-    MochaKeys.requires ++= Seq("_mocha.conf")//,
-    //WebKeys.jsFilter in TestAssets := GlobFilter("_runSpec.js")
+  val mochaSettings: Seq[Setting[_]] = Seq(
+    MochaKeys.requires ++= Seq("_mocha.conf")
   )
 
-  val buildSettings = Seq(
+  val assetsSettings = lessSettings
+
+  val buildSettings = mochaSettings ++ Seq(
     organization := "com.byteground",
     scalaVersion := "2.10.4",
     crossPaths := false,
@@ -38,8 +37,7 @@ object Build extends Build {
         SbtByTeGround,
         SbtLess,
         SbtNpm,
-        SbtWeb,
-        SbtJsEngine
+        SbtWeb
       ).settings(
         buildSettings ++
           Seq(
@@ -48,11 +46,13 @@ object Build extends Build {
               "org.webjars" % "angular-ui-router" % "0.2.11",
               "org.webjars" % "requirejs" % "2.1.14-3",
               "org.webjars" % "q" % "1.0.1",
-              "org.webjars" % "bootstrap" % "3.2.0"
+              "org.webjars" % "bootstrap" % "3.2.0",
+
+              "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test"
             )
           ) ++
           inConfig(Assets)(assetsSettings) ++
-          inConfig(TestAssets)(assetsSettings ++ testAssetsSettings)
+          inConfig(TestAssets)(assetsSettings)
           : _*
       )
 }

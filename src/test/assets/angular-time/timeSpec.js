@@ -1,8 +1,9 @@
 /*global: define*/
+console.warn("nanana");
 define([
   'angular',
   'angular-mocks',
-  'angular-time'
+  'angular-time/time'
 ],
 function (
   ng,
@@ -10,7 +11,7 @@ function (
   ngTime
 ) {
   'use strict';
-
+console.warn("blahhh");
   beforeEach(module(ngTime.name, function () {
 
   }));
