@@ -14,15 +14,17 @@ define(['module', 'css'], function (module, css) {
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
 
-  var font;
-  (function (font) {
+  /**
+   * font module
+   */
+  var font = (function () {
     //example: font!google,families:[Tangerine,Cantarell,Yanone Kaffeesatz:700]
-
     var
     reParts   = /^([^,]+),([^\|]+)\|?/,
     reProps   = /([\w-]+)\s*:\s*(?:(\[[^\]]+\])|([^,]+)),?/g, //match "foo:bar" and "lorem:[ipsum,dolor]" capturing name as $1 and val as $2 or $3
     reArray   = /^\[([^\]]+)\]$/, //match "[foo,bar]" capturing "foo,bar";
     providers = {};
+
 
     function provider(name, impl) {
       if (arguments.length > 1) {
@@ -32,7 +34,6 @@ define(['module', 'css'], function (module, css) {
         return providers[name];
       }
     }
-    font.provider = provider;//export
 
     /**
      * @param {string} name
@@ -42,8 +43,7 @@ define(['module', 'css'], function (module, css) {
     /*
     function normalize(name, normalizeFn) {
 
-    }
-    font.normalize = normalize;*/
+    }*/
 
     /**
      * @param {string} name
@@ -89,7 +89,6 @@ define(['module', 'css'], function (module, css) {
         }
       }
     }
-    font.get = get;//export
 
     /**
      * @param {string} name
@@ -104,9 +103,8 @@ define(['module', 'css'], function (module, css) {
         get(name, onLoad, onLoad.error);
       }
     }
-    font.load = load;//export
 
-
+    //util
     function _typecastVal(val) {
       switch (val) {
         case 'null': return null;
@@ -155,8 +153,13 @@ define(['module', 'css'], function (module, css) {
       return data;
     }
 
-  }(font || (font = {})));
-
+    //exports
+    return {
+      provider: provider,
+      get: get,
+      load: load
+    };
+  }());
 
   //init
   font.provider('google', {

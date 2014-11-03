@@ -16,8 +16,10 @@ define(['module', 'text'], function (module, text) {
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
 
-  var json;
-  (function (json) {
+  /**
+   * json module
+   */
+  var json = (function () {
     var __jsonCallback = 'JSON_CALLBACK';
     var __jsonpId = 1;
     var __jsonParse = JSON.parse;
@@ -31,7 +33,6 @@ define(['module', 'text'], function (module, text) {
     function normalize(name, normalizeFn) {
       return String(name);
     }
-    json.normalize = normalize; //export
 
     /**
      * @param {string} url
@@ -45,7 +46,6 @@ define(['module', 'text'], function (module, text) {
         _getText(url, opt_callback, opt_errback);
       }
     }
-    json.get = get; //export
 
     /**
      * Plugin loading definition
@@ -63,13 +63,11 @@ define(['module', 'text'], function (module, text) {
         get("");
       }
     }
-    json.load = load; //export
 
 
     function write(pluginName, moduleName, writeFn) {
       writeFn(_loadFromFileSystem(pluginName, moduleName));
     }
-    json.write = write;
 
     function _getJSONP(url, opt_callback, opt_errback) {
       var parameterName = 'callback';//String(_private.parameterName);
@@ -187,7 +185,15 @@ define(['module', 'text'], function (module, text) {
       return val;
     }
 
-  }(json || (json = {})));
+    //exports
+    return {
+      get: get,
+      normalize: normalize,
+      load: load,
+      write: write
+    };
+  }());
+
 
   return json;
 });

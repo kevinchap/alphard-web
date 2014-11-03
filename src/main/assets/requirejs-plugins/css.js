@@ -14,8 +14,7 @@ define(['module'], function (module) {
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
 
-  var dom;
-  (function (dom) {
+  var dom = (function () {
     var global = window;
     var __doc = global.document;
     var __head = __doc.getElementsByTagName('head')[0] || __doc.documentElement;
@@ -44,12 +43,10 @@ define(['module'], function (module) {
     function create(n) {
       return __doc.createElement(n);
     }
-    dom.create = create;
 
     function queryLinks() {
       return __doc.getElementsByTagName('link');
     }
-    dom.queryLinks = queryLinks;
 
     function createLink(url, onload, onerror) {
       var link = create('link');
@@ -65,29 +62,16 @@ define(['module'], function (module) {
       };
       return link;
     }
-    dom.createLink = createLink;
-
-    function createImg(url, onload, onerror) {
-      var img = create('img');
-      img.onload = onload;
-      img.onerror = onerror;
-      img.src = url;
-      return img;
-    }
-    dom.createImg = createImg;
 
     function insert(element, opt_parent) {
       (opt_parent || __head).appendChild(element);
     }
-    dom.insert = insert;
 
     function remove(element) {
       if (element && element.parentNode) {
         element.parentNode.removeChild(element);
       }
     }
-    dom.remove = remove;
-
 
     var CSSLoader = (function (_super) {
       var supportWarn = _once(function () {
@@ -136,16 +120,24 @@ define(['module'], function (module) {
         }),
         timeout, interval;
 
-        link = dom.createLink(href, onload, onerror);
+        link = createLink(href, onload, onerror);
         dom.insert(link);
 
         //image loader is a fallback
         if (!hasLinkOnLoad) {
-          img = dom.createImg(href, onload, onerror);
+          img = _createImg(href, onload, onerror);
           dom.insert(img);
           supportWarn();//warn once
         }
         return link;
+      }
+
+      function _createImg(url, onload, onerror) {
+        var img = create('img');
+        img.onload = onload;
+        img.onerror = onerror;
+        img.src = url;
+        return img;
       }
 
       function _warn(message) {
@@ -167,14 +159,21 @@ define(['module'], function (module) {
 
       return CSSLoader;
     }(Object));
-    dom.CSSLoader = CSSLoader;
 
-  }(dom || (dom = {})));
+    return {
+      create: create,
+      createLink: createLink,
+      queryLinks: queryLinks,
+      insert: insert,
+      remove: remove,
+      CSSLoader: CSSLoader
+    };
+  }());
 
-
-
-  var css;
-  (function (css) {
+  /**
+   * css module
+   */
+  var css = (function () {
     var loader = new dom.CSSLoader();
     var ATTR = 'data-requirecss';
 
@@ -186,7 +185,6 @@ define(['module'], function (module) {
     function normalize(name, normalizeFn) {
       return loader.normalize(name);
     }
-    css.normalize = normalize;
 
     /**
      * @param {string} url
@@ -196,7 +194,6 @@ define(['module'], function (module) {
     function get(url, opt_callback, opt_errback) {
       return loader.load(url, opt_callback, opt_errback);
     }
-    css.get = get;
 
     /**
      * @param {string} name
@@ -213,7 +210,6 @@ define(['module'], function (module) {
         link.setAttribute(ATTR, name);
       }
     }
-    css.load = load;
 
     function _isIncluded(name) {
       var links = dom.queryLinks();
@@ -225,7 +221,13 @@ define(['module'], function (module) {
       return false;
     }
 
-  }(css || (css = {})));
+    //exports
+    return {
+      normalize: normalize,
+      get: get,
+      load: load
+    };
+  }());
 
   return css;
 });

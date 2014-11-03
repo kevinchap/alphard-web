@@ -26,8 +26,7 @@ define(['module'], function (module) {
   /**
    * ng module
    */
-  var ng;
-  (function (ng) {
+  var ng = (function () {
 
     function load(name, req, onLoad, config) {
       req([angularName, name], function (angular, moduleDefinition) {
@@ -113,7 +112,6 @@ define(['module'], function (module) {
         }
       });
     }
-    ng.load = load;
 
     function _isAngularModule(o) {
       return o &&
@@ -132,7 +130,11 @@ define(['module'], function (module) {
         o.name;
     }
 
-  }(ng || (ng = {})));
+    //exports
+    return {
+      load: load
+    };
+  }());
 
   return ng;
 });

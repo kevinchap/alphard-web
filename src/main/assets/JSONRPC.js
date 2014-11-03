@@ -8,12 +8,12 @@
  *  req.onerror = function (e) { ... };
  *  req.open('//api.com/mymethod', 'jsonp');//url, parameterName (default is 'callback')
  *  req.send();
- *  
+ *
  */
 (function (global, _exports, undefined) {
   'use strict';
 
-      
+
   //UTIL
   var __obj, __def, __sym, $$create, $$hasInstance, $$iterator, $$toStringTag, __instanceOf, __extends, __proto, __name, __stack, __throw;
   (function (g) {
@@ -35,9 +35,9 @@
     };
     __stack = g.__stack || Error.captureStackTrace || function (o) { o.stack = (new Error()).stack; };
     __throw = g.__throw || function (e) { throw e; };
-    __name = g.__name || function (c, n) { 
-      var cp = c.prototype, s = __sym(n + 'Data'); 
-      c.displayName = n; 
+    __name = g.__name || function (c, n) {
+      var cp = c.prototype, s = __sym(n + 'Data');
+      c.displayName = n;
       cp[$$toStringTag] = n;
       if (__instanceOf(cp, Error)) { cp.name = n; }
       return function (o) {
@@ -62,7 +62,7 @@
 
   /**
    * JSONRPCError class
-   * 
+   *
    */
   var JSONRPCError = (function (_super) {
     __extends(JSONRPCError, _super);
@@ -79,7 +79,7 @@
       '-31001': 'Invalid Response',
       '-31002': 'Internal error'
     };
-  
+
     /**
      * @constructor
      * @param {string}
@@ -138,7 +138,7 @@
      * @type {Object=}
      */
     JSONRPCError.prototype.data = null;
-  
+
     __proto(JSONRPCError.prototype);
     return JSONRPCError;
   }(Error));
@@ -147,12 +147,12 @@
 
   /**
    * JSONRPCObject class
-   * 
+   *
    */
   var JSONRPCObject = (function (_super) {
     __extends(JSONRPCObject, _super);
     var __private = __name(JSONRPCObject, 'JSONRPCObject');
-  
+
     /**
      * @constructor
      */
@@ -184,18 +184,18 @@
     /**
      * @return {string}
      */
-    JSONRPCObject.prototype.toRepresentation = function toRepresentation() {
+    JSONRPCObject.prototype.inspect = function inspect() {
       var s = '', obj = this.toJSON(), prop, val;
       for (prop in obj) {
         val = obj[prop];
         if (s.length) s += ',';
         s += prop + '=' + val;
-      } 
+      }
       return this.constructor.displayName + '(' + s + ')';
     };
 
     /**
-     * 
+     *
      * @return {string}
      */
     JSONRPCObject.prototype.toJSON = function toJSON() {
@@ -210,13 +210,13 @@
     };
 
     /**
-     * 
+     *
      * @return {string}
      */
     JSONRPCObject.prototype.toString = function toString() {
       return JSON.stringify(this);
     };
-  
+
     __proto(JSONRPCObject.prototype);
     return JSONRPCObject;
   }(Object));
@@ -224,13 +224,13 @@
 
   /**
    * JSONRPCRequest class
-   * 
+   *
    */
   var JSONRPCRequest = (function (_super) {
     __extends(JSONRPCRequest, _super);
     var __private = __name(JSONRPCRequest, 'JSONRPCRequest');
     //var reMethod = /^[a-zA-Z][a-zA-Z0-9_.]*$/;
-  
+
     /**
      * @constructor
      * @param {string} method
@@ -252,7 +252,7 @@
       }
       return result;
     }
-  
+
     /**
      * Protocol version
      *
@@ -281,12 +281,12 @@
 
   /**
    * JSONRPCResponse class
-   * 
+   *
    */
   var JSONRPCResponse = (function (_super) {
     __extends(JSONRPCResponse, _super);
     var __private = __name(JSONRPCResponse, 'JSONRPCResponse');
-  
+
     /**
      * @constructor
      * @param {*} value
@@ -295,7 +295,7 @@
       var result, ctor = JSONRPCResponse, self = this;
       if (__instanceOf(self, ctor)) {
         _super.call(this, opt_id);
-        
+
       } else {
         result = __obj(ctor.prototype);
         ctor.apply(result, arguments);
@@ -309,14 +309,14 @@
         _assertIn(o, 'error');
       }
 
-      var 
-      response = new JSONRPCResponse(o.id), 
+      var
+      response = new JSONRPCResponse(o.id),
       error    = o.error,
       result   = o.result;
 
       if (error) {
         response.error = JSONRPCError.fromObject(error);
-      } 
+      }
       if (result) {
         response.result = result;
       }
@@ -340,10 +340,10 @@
 
   /**
    * JSONRPC module
-   * 
+   *
    */
   var JSONRPC;
-  (function (JSONRPC) { 
+  (function (JSONRPC) {
 
     /**
      * @param {string|object} jsonResponse
@@ -403,7 +403,7 @@
   //COMMONJS
   if (typeof module !== "undefined") {
     module.exports = JSONRPC;
-  } 
+  }
 
   //AMD
   if (global.define) {
