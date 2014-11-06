@@ -10,7 +10,7 @@ define(['module', 'angular', './analytics'], function (module, angular, ngAnalyt
   return angular
     .module(module.id, [ ngAnalytics.name ])
     .config(['$analyticsProvider', function ($analyticsProvider) {
-      $analyticsProvider.register("google", "$analyticsGoogle");
+      $analyticsProvider.register("google-analytics", "$analyticsGoogle");
     }])
     .provider("$analyticsGoogle", function $analyticsGoogleProvider() {
       this.$get = ['$document', '$rootElement', '$window',
