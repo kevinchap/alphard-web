@@ -1,14 +1,23 @@
-define([
-  'module',
-  'angular',
-  'angular-session'
-],
-function (
-  module,
-  angular,
-  ngSession
-) {
+/**
+ * Inspired by https://segment.com/docs/libraries/analytics.js/
+ *
+ * Configuration:
+ *   require.config({
+ *     config: {
+ *       "angular-auth/auth": {
+ *         debug: false
+ *       }
+ *     }
+ *   })
+ *
+ */
+define(['module', 'angular', 'angular-session'], function (module, angular, ngSession) {
   'use strict';
+
+  //RequireJS module config
+  var moduleConfig = (module.config && module.config()) || {};
+  var DEBUG = moduleConfig.debug;
+  var STORAGE_KEY = "$auth";
 
   return angular
     .module(module.id, [ ngSession.name ])
@@ -16,26 +25,10 @@ function (
       var $$name = "$auth";
       var $$eventLogin = $$name + ".login";
       var $$eventLogout = $$name + ".logout";
-      var settings = {
-        debug: false,
-        storageKey: $$name.slice(1)
-      };
-
-      this.config = function (data) {
-        var result;
-        if (arguments.length) {
-          angular.extend(settings, data);
-          result = this;
-        } else {
-          result = angular.copy(settings);
-        }
-        return result;
-      };
 
       this.$get = ['$log', '$rootScope', '$session',
       function ($log, $rootScope, $session) {
         var adapters = {};
-        var storageKey = settings.storageKey;
 
         function $auth(name, opt_definition) {
           switch (arguments.length) {
@@ -130,8 +123,8 @@ function (
 
         //watch data
         $session.$onChange(function ($event, dataNew, dataOld) {
-          var authNew = dataNew[storageKey] || {};
-          var authOld = dataOld[storageKey] || {};
+          var authNew = dataNew[STORAGE_KEY] || {};
+          var authOld = dataOld[STORAGE_KEY] || {};
           if (authNew.isLogged && !authOld.isLogged) {
             _dispatchEvent($$eventLogin, authNew.id, authNew.user);
           }
@@ -156,7 +149,7 @@ function (
         //util
         function _sessionStorage(opt_target) {
           var s = $session.$data();
-          return s[storageKey] || (s[storageKey] = {});
+          return s[STORAGE_KEY] || (s[STORAGE_KEY] = {});
         }
 
         function _addEventListener(eventName, fn) {
@@ -177,7 +170,7 @@ function (
         }
 
         function _debug(var_args) {
-          if (settings.debug) {
+          if (DEBUG) {
             $log.debug.apply($log, _formatMessage(arguments));
           }
         }

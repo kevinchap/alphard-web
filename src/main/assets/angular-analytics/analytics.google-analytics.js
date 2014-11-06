@@ -1,3 +1,7 @@
+/**
+ * -trackingId: "UA-..."
+ * -anonymizeIp: true|false
+ */
 define(['module', 'angular', './analytics'], function (module, angular, ngAnalytics) {
   'use strict';
 
@@ -27,8 +31,23 @@ define(['module', 'angular', './analytics'], function (module, angular, ngAnalyt
 
         //api
         function config(conf) {
+          var isLocalhost = $window.location.hostname == 'localhost';
+          var domain = isLocalhost ? 'none' : conf.domain || 'auto';
+
           ga.l = conf.timeInit;
-          ga('create', __required(conf, 'trackingId'), 'auto');
+          ga('create', __required(conf, 'trackingId'), {
+            cookieDomain: domain,
+            allowLinker: true
+          });
+
+          // display advertising
+          if (conf.doubleClick) {
+            ga('require', 'displayfeatures');
+          }
+
+          if (conf.anonymizeIp) {
+            ga('set', 'anonymizeIp', true);
+          }
           _load(conf.debug);
         }
 
