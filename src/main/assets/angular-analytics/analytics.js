@@ -55,12 +55,13 @@ define(['module', 'angular'], function (module, angular) {
 
     Analytics.prototype.addListener = function addListener(listener) {
       var listeners = this.__listeners__;
-      if (listeners.indexOf(listener) >= 0) {
+      if (listeners.indexOf(listener) < 0) {
         __required(listener, 'alias');
         __required(listener, 'identify');
         __required(listener, 'pageview');
         __required(listener, 'track');
         listeners.push(listener);
+        __debug(this, ['addListener(', listener, ')']);
       }
       return this;
     };
@@ -70,6 +71,7 @@ define(['module', 'angular'], function (module, angular) {
       var index = listeners.indexOf(listener);
       if (index >= 0) {
         listeners.splice(index, 1);
+        __debug(this, ['removeListener(', listener, ')']);
       }
       return this;
     };
@@ -246,12 +248,14 @@ define(['module', 'angular'], function (module, angular) {
         }
 
         function onPageChange() {
-          $analytics.pageview($location.path());
+          $analytics.pageview($location.path(), {
+            page: $location.url()
+          });
         }
 
         //connect
-        $rootScope.$on('$routeChangeStart', onPageChange);
-        $rootScope.$on('$stateChangeStart', onPageChange);
+        $rootScope.$on('$routeChangeSuccess', onPageChange);
+        $rootScope.$on('$stateChangeSuccess', onPageChange);
         $rootScope.$on('$auth.login', onLogin);
         $rootScope.$on('$auth.logout', onLogout);
       }]
