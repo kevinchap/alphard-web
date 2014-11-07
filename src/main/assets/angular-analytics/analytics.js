@@ -14,115 +14,168 @@
  */
 define(['module', 'angular'], function (module, angular) {
   'use strict';
-  //util
-  var __throw = function (o) { throw o; };
-  var __required = function (o, name) {
-    return o[name] || __throw(new Error('object must have [' + name + ']'));
-  };
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
-  var TIME_INIT = (new Date()).getTime();
-  var ANONYMOUS_ID = moduleConfig.anonymousId || "anonymous";
-  var DEBUG = moduleConfig.debug;
+
+  /**
+   * Analytics class
+   */
+  var Analytics = (function (_super) {
+
+    function Analytics(opt_conf) {
+      _super.call(this);
+      this.__listeners__ = [];
+      if (opt_conf) {
+        for (var name in opt_conf) {
+          if (name in this) {
+            this[name] = opt_conf[name];
+          }
+        }
+      }
+
+      this.timeStart = this.timeStart || __now(self);
+    }
+
+    Analytics.prototype = Object.create(_super.prototype);
+
+    Analytics.prototype.constructor = Analytics;
+
+    Analytics.prototype.name = "$analytics";
+
+    Analytics.prototype.debug = false;
+
+    Analytics.prototype.anonymousId = "anonymous";
+
+    Analytics.prototype.timeStart = null;
+
+    Analytics.prototype.$log = null;
+
+    Analytics.prototype.$time = null;
+
+    Analytics.prototype.addListener = function addListener(listener) {
+      var listeners = this.__listeners__;
+      if (listeners.indexOf(listener) >= 0) {
+        __required(listener, 'alias');
+        __required(listener, 'identify');
+        __required(listener, 'pageview');
+        __required(listener, 'track');
+        listeners.push(listener);
+      }
+      return this;
+    };
+
+    Analytics.prototype.removeListener = function removeListener(listener) {
+      var listeners = this.__listeners__;
+      var index = listeners.indexOf(listener);
+      if (index >= 0) {
+        listeners.splice(index, 1);
+      }
+      return this;
+    };
+
+    Analytics.prototype.alias = function alias(newId, originalId) {
+      this._forward('alias', [newId, originalId]);
+      return this;
+    };
+
+    Analytics.prototype.identify = function identify(userId, traits) {
+      this._forward('identify', [userId, traits || {}]);
+      return this;
+    };
+
+    Analytics.prototype.pageview = function pageview(url, properties) {
+      this._forward('pageview', [url, properties || {}]);
+      return this;
+    };
+
+    Analytics.prototype.track = function track(event, properties) {
+      this._forward('track', [event, properties || {}]);
+      return this;
+    };
+
+    Analytics.prototype._forward = function _forward(methodName, args) {
+      __debug(this, [methodName + '(', args, ')']);
+      var listeners = this.__listeners__;
+      var listener;
+      for (var i = 0, l = listeners.length; i < l; i++) {
+        listener = listeners[i];
+        listener[methodName].apply(listener, args);
+      }
+    };
+
+    function __throw(o) {
+      throw o;
+    }
+
+    function __required(o, name) {
+      return (name in o) ? o[name] : __throw(new Error('object must have [' + name + ']'));
+    }
+
+    function __now(self) {
+      return self.$time ? self.$time.now() : (new Date()).getTime();
+    }
+
+    function __debug(self, args) {
+      var $log = self.$log;
+      if ($log && self.debug) {
+        $log.debug.apply($log, __formatMessage(self, args));
+      }
+    }
+
+    function __formatMessage(self, args) {
+      return ["[" + self.name + "]"].concat(Array.prototype.slice.call(args));
+    }
+
+    return Analytics;
+  }(Object));
+
+
 
   return angular
     .module(module.id, [])
     .provider("$analytics", function $analyticsProvider() {
-      var $analyticsServiceNames = {};
+      var $analyticsFactoryNames = {};
 
       this.register = function (name, opt_serviceName) {
-        $analyticsServiceNames[name] = opt_serviceName || name;
+        $analyticsFactoryNames[name] = opt_serviceName || name;
         return this;
       };
 
       this.unregister = function (name) {
-        delete $analyticsServiceNames[name];
+        delete $analyticsFactoryNames[name];
         return this;
       };
 
       this.$get = ['$injector', '$log', function ($injector, $log) {
-        var __services = {};
 
-        (function __init__() {
-          for (var name in $analyticsServiceNames) {
-            var serviceConfig = moduleConfig[name];
-            if (serviceConfig) {
-              _implementation(name);//initialize
-            }
+        //build module
+        var $analytics = new Analytics(angular.copy(moduleConfig));
+
+        //inject optional service
+        $analytics.$log = $log;
+        //$analytics.$time = $time;
+
+        //get implementations
+        for (var name in moduleConfig) {
+          var factoryName = $analyticsFactoryNames[name];
+          if (factoryName) {
+            var serviceConfig = _config(name);
+            var ServiceConstructor = $injector.get(factoryName);
+            var service = new ServiceConstructor(serviceConfig);
+            $analytics.addListener(service);
           }
-        }());
-
-        function alias(newId, originalId) {
-          _forward('alias', [newId, originalId]);
-        }
-
-        function identify(userId, traits) {
-          _forward('identify', [userId, traits || {}]);
-        }
-
-        function pageview(url, properties) {
-          _forward('pageview', [url, properties || {}]);
-        }
-
-        function track(event, properties) {
-          _forward('track', [event, properties || {}]);
         }
 
         //util
         function _config(name) {
-          var conf = {
-            debug: DEBUG,
-            anonymousId: ANONYMOUS_ID,
-            timeInit: TIME_INIT
-          };
+          var conf = angular.copy(moduleConfig);
           angular.extend(conf, moduleConfig[name]);
           return conf;
         }
 
-        function _implementation(name) {
-          var serviceName = $analyticsServiceNames[name];
-          var service = __services[name];
-          if (!service) {
-            service = $injector.get(serviceName);
-            var serviceConfig = _config(name);
-            __required(service, 'alias');
-            __required(service, 'identify');
-            __required(service, 'pageview');
-            __required(service, 'track');
-            __required(service, 'config').call(service, serviceConfig);
-            __services[name] = service;
-          }
-          return service;
-        }
-
-        function _forward(methodName, args) {
-          _debug(methodName + '(', args, ')');
-          var listeners = Object.keys(__services);
-          var listener;
-          for (var i = 0, l = listeners.length; i < l; i++) {
-            listener = _implementation(listeners[i]);
-            listener[methodName].apply(listener, args);
-          }
-        }
-
-        function _formatMessage(args) {
-          return ["[$analytics]"].concat(Array.prototype.slice.call(args));
-        }
-
-        function _debug(var_args) {
-          if (DEBUG) {
-            $log.debug.apply($log, _formatMessage(arguments));
-          }
-        }
-
-        return {
-          anonymousId: ANONYMOUS_ID,
-          alias: alias,
-          identify: identify,
-          pageview: pageview,
-          track: track
-        };
+        //exports
+        return $analytics;
       }];
     })
     .directive("ngTrack", ['$analytics', function ($analytics) {
