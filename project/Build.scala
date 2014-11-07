@@ -1,4 +1,5 @@
-import com.byteground.sbt.{SbtNpm, SbtByTeGround}
+import com.byteground.sbt._
+import com.byteground.sbt.SbtByTeGround.autoImport._
 import com.byteground.sbt.SbtNpm.autoImport._
 import com.typesafe.sbt.mocha.SbtMocha.autoImport._
 import com.typesafe.sbt.jse._
@@ -32,22 +33,23 @@ object Build extends Build {
   )
 
   lazy val root =
-    Project("byteground-web-util", file("."))
+    bytegroundProject("web-util")
       .enablePlugins(
-        SbtByTeGround,
-        SbtLess,
         SbtNpm,
+        SbtLess,
         SbtWeb
       ).settings(
         buildSettings ++
           Seq(
             libraryDependencies ++= Seq(
+              "org.webjars" % "requirejs" % "2.1.14-3",
+              "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test",
               "org.webjars" % "angularjs" % "1.3.0",
               "org.webjars" % "angular-ui-router" % "0.2.11",
-              "org.webjars" % "requirejs" % "2.1.14-3",
+              "org.webjars" % "angular-ui-bootstrap" % "0.11.2",
               "org.webjars" % "q" % "1.0.1",
               "org.webjars" % "bootstrap" % "3.2.0",
-              "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test"
+              "org.webjars" % "font-awesome" % "4.2.0"
             )
           ) ++
           inConfig(Assets)(assetsSettings) ++
