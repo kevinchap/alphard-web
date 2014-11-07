@@ -1,16 +1,19 @@
-/*variables*/
+/**
+ * Offcanvas
+ *
+ *
+ * @author Julien Polo
+ */
+
+// Offcanvas variable
+// --------------------------------------------------
 @offcanvas-bg-color: #FFF;
 @offcanvas-translation-duration: 0.3s;
-@offcanvas-left-width: 300px;
+@offcanvas-left-width: 200px;
 @offcanvas-right-width: 200px;
 
-/*mixin*/
-.box-sizing(@type: border-box) {
-	-webkit-box-sizing: @type;
-	-moz-box-sizing:    @type;
-	box-sizing:         @type;
-}
-
+// Offcanvas mixins
+// --------------------------------------------------
 .transition(@transition) {
 	-webkit-transition: @transition;
 	-moz-transition:    @transition;
@@ -26,14 +29,14 @@
   transition-property: @props;
 }
 
-.translate-fix() {
+.offcanvas-translate-fix() {
   -webkit-backface-visibility: hidden;
   -webkit-perspective: 1000;
   backface-visibility: hidden;
   perspective: 1000;
 }
 
-.overlay() {
+.offcanvas-overlay() {
 
   &:after {
 		content:"";
@@ -73,17 +76,19 @@
   }
 }
 
+// Offcanvas style
+// --------------------------------------------------
 offcanvas,
 .offcanvas,
 offcanvas-content,
-.offcanvas-content,
+.offcanvas__content,
 offcanvas-left,
-.offcanvas-left,
+.offcanvas__left,
 offcanvas-right,
-.offcanvas-right {
+.offcanvas__right {
   background: @offcanvas-bg-color;
 	height: 100%;
-	.box-sizing(border-box);
+	box-sizing: border-box;
 }
 
 offcanvas,
@@ -95,16 +100,15 @@ offcanvas,
 }
 
 offcanvas-content,
-.offcanvas-content {
+.offcanvas__content {
   display: block;
   position: relative;
   width: 100%;
   left:0;
   z-index: 1;
   overflow: auto;
-
-  .box-sizing(border-box);
-  .translate-fix();
+  box-sizing: border-box;
+  .offcanvas-translate-fix();
   .transition(all @offcanvas-translation-duration ease);
 	.transition-property(top,left,right,bottom,height);
 }
@@ -114,9 +118,9 @@ offcanvas[disabled] offcanvas-content {
 }
 
 offcanvas-left,
-.offcanvas-left,
+.offcanvas__left,
 offcanvas-right,
-.offcanvas-right {
+.offcanvas__right {
   top: 0;
   position: absolute;
   /*overflow: auto;*/
@@ -132,32 +136,34 @@ offcanvas-right,
 }
 
 offcanvas-left,
-.offcanvas-left {
+.offcanvas__left {
 	left:0;
 	width: @offcanvas-left-width;
 }
 
 offcanvas-right,
-.offcanvas-right {
+.offcanvas__right {
 	right:0;
 	width: @offcanvas-right-width;
 }
 
-/*States*/
-.offcanvas-push-left > .offcanvas-content {
+// Offcanvas states
+// --------------------------------------------------
+.offcanvas--push-left > .offcanvas__content {
 	left: @offcanvas-left-width;
 }
-.offcanvas-push-right > .offcanvas-content {
+.offcanvas--push-right > .offcanvas__content {
 	left: -@offcanvas-right-width;
 }
 
-/*Theme*/
-.offcanvas-default {
-	.overlay();
+// Offcanvas variants
+// --------------------------------------------------
+.offcanvas--default {
+	.offcanvas-overlay();
 
 	offcanvas-content,
-	.offcanvas-content {
-		.overlay();
+	.offcanvas__content {
+		.offcanvas-overlay();
 		box-shadow:2px 0px 2px rgba(0, 0, 0, 0.6),-2px 0px 2px rgba(0, 0, 0, 0.6);
 	}
 }

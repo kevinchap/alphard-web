@@ -1,8 +1,8 @@
-import com.byteground.sbt.{SbtNpm, SbtByTeGround}
-import com.byteground.sbt.SbtNpm.autoImport._
-import com.typesafe.sbt.jse._
-import com.typesafe.sbt.less._
+import com.byteground.sbt.SbtByTeGround.autoImport._
+import com.byteground.sbt._
 import com.typesafe.sbt.less.SbtLess.autoImport._
+import com.typesafe.sbt.less._
+import com.typesafe.sbt.mocha.SbtMocha.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web._
@@ -16,32 +16,37 @@ object Build extends Build {
     excludeFilter in LessKeys.less := "_*.less"
   )
 
+  val mochaSettings: Seq[Setting[_]] = Seq(
+    MochaKeys.requires ++= Seq("_mocha.conf")
+  )
+
   val assetsSettings = lessSettings
 
-  val buildSettings = Seq(
+  val buildSettings = mochaSettings ++ Seq(
     organization := "com.byteground",
     scalaVersion := "2.10.4",
     crossPaths := false,
     importDirectly := true
-    //npmDependencies ++= Seq()
   )
 
   lazy val root =
-    Project("byteground-web-util", file("."))
+    bytegroundProject("web-util")
       .enablePlugins(
-        SbtByTeGround,
-        SbtLess,
         SbtNpm,
-        SbtWeb,
-        SbtJsEngine
+        SbtLess,
+        SbtWeb
       ).settings(
         buildSettings ++
           Seq(
             libraryDependencies ++= Seq(
-              "org.webjars" % "angularjs" % "1.3.0",
               "org.webjars" % "requirejs" % "2.1.14-3",
+              "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test",
+              "org.webjars" % "angularjs" % "1.3.0",
+              "org.webjars" % "angular-ui-router" % "0.2.11",
+              "org.webjars" % "angular-ui-bootstrap" % "0.11.2",
               "org.webjars" % "q" % "1.0.1",
-              "org.webjars" % "bootstrap" % "3.2.0"
+              "org.webjars" % "bootstrap" % "3.2.0",
+              "org.webjars" % "font-awesome" % "4.2.0"
             )
           ) ++
           inConfig(Assets)(assetsSettings) ++

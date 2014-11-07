@@ -11,10 +11,12 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
   'use strict';
 
   //RequireJS module config
-  var moduleConfig = module.config ? module.config() : {};
+  var moduleConfig = (module.config && module.config()) || {};
 
-  var smd;
-  (function (smd) {
+  /**
+   * smd module
+   */
+  var smd = (function () {
     var cache = {};
 
     /**
@@ -25,7 +27,6 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
     function normalize(name, normalizeFn) {
       return String(name);
     }
-    smd.normalize = normalize;
 
     /**
      * @param {string} url
@@ -62,7 +63,6 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
         json.get(url, onLoad, opt_errback);
       }
     }
-    smd.get = get;
 
     /**
      * Plugin loading definition
@@ -82,8 +82,8 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
         onLoad.error
       );
     }
-    smd.load = load;
 
+    //util
     function _extractTarget(url) {
       var pos;
 
@@ -98,7 +98,13 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
       return s.replace(/(\/|\.)smd$/, "");
     }
 
-  }(smd || (smd = {})));
+    //exports
+    return {
+      normalize: normalize,
+      get: get,
+      load: load
+    };
+  }());
 
   return smd;
 });

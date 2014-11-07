@@ -1,26 +1,32 @@
 /*global define*/
 define(['module', 'angular'], function (module, angular) {
   'use strict';
+  return angular
+    .module(module.id, [])
+    .provider("$time", function $timeProvider() {
 
-  function exports() {
-    return angular
-      .module(module.id, [])
-      .provider({
-        $time: $timeProvider
-      });
-  }
+      this.$get = [function () {
+        /**
+         * $time module
+         */
+        var $time = (function () {
+          var __now = Date.now || function () { return (new Date()).getTime(); };
 
-  function $timeProvider() {
-    /*jslint validthis:true */
-    this.$get = [function () {
-      var $time = {};
+          /**
+           * @return {number}
+           */
+          function now() {
+            return __now();
+          }
 
-      $time.now = Date.now || function () { return (new Date()).getTime(); };
+          //exports
+          return {
+            now: now
+          };
+        }());
 
-      return $time;
-    }];
+        return $time;
+      }];
 
-  }
-
-  return exports();
+    });
 });

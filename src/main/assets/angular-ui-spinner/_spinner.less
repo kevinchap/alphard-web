@@ -1,0 +1,111 @@
+/**
+ * Spinner
+ *
+ * <div class="spinner spinner--default" >
+ *   <div class="spinner__circle-0"> </div>
+ *   <div class="spinner__circle-1"> </div>
+ * </div>
+ *
+ * @author Julien Polo
+ */
+
+// Spinner variable
+// --------------------------------------------------
+@spinner-height-small: @font-size-small + @padding-small-vertical;
+@spinner-height-base: @font-size-base + @padding-base-vertical;
+@spinner-height-large: @font-size-large + @padding-large-vertical;
+
+// Spinner Style
+// --------------------------------------------------
+.spinner {
+  //.spinner-circle-rotate;
+  box-sizing: border-box;
+  display: inline-block;
+}
+
+// Spinner mixins
+// --------------------------------------------------
+.spinner-default-size(@diameter, @padding) {
+  height: @diameter;
+  width: @diameter;
+  padding: @padding;
+
+  .spinner__circle-0,
+  .spinner__circle-1 {
+    border-width: floor(@diameter / 10);
+  }
+}
+
+// Spinner Circle Rotate
+// --------------------------------------------------
+.spinner--default {
+  position: relative;
+
+  & .spinner__circle-0,
+  & .spinner__circle-1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    border-style: solid;
+    border-color: rgba(255,255,255,.5);
+    border-top-color: rgba(0,0,0,.5);
+    border-right-color: rgba(0,0,0,.5);
+    border-radius: 100%;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+  }
+  & .spinner__circle-0 {
+    .animation(spinner-default 1s infinite linear);
+  }
+  & .spinner__circle-1 {
+    .animation(spinner-default--inv 1s infinite linear);
+  }
+
+  @-webkit-keyframes spinner-default {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(359deg); }
+  }
+
+  @keyframes spinner-default {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(359deg); }
+  }
+
+  @-webkit-keyframes spinner-default--inv {
+    from { transform: rotate(359deg); }
+    to { transform: rotate(0deg); }
+  }
+
+  @keyframes spinner-default--inv {
+    from { transform: rotate(359deg); }
+    to { transform: rotate(0deg); }
+  }
+
+  // Alternate spinners
+  // --------------------------------------------------
+
+
+  // Spinner Sizes
+  // --------------------------------------------------
+  .spinner-default-size(@spinner-height-base, 0);//default size
+
+  &.spinner--lg {
+    .spinner-default-size(@spinner-height-large, 0);
+  }
+
+  &.spinner--md {
+    .spinner-default-size(@spinner-height-base, 0);
+  }
+
+  &.spinner--sm {
+    .spinner-default-size(@spinner-height-small, 0);
+  }
+
+  &.spinner--xs {
+    .spinner-default-size(@spinner-height-small - @padding-small-vertical, 0);
+  }
+
+}
