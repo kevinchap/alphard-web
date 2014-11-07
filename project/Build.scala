@@ -1,10 +1,8 @@
-import com.byteground.sbt._
 import com.byteground.sbt.SbtByTeGround.autoImport._
-import com.byteground.sbt.SbtNpm.autoImport._
-import com.typesafe.sbt.mocha.SbtMocha.autoImport._
-import com.typesafe.sbt.jse._
-import com.typesafe.sbt.less._
+import com.byteground.sbt._
 import com.typesafe.sbt.less.SbtLess.autoImport._
+import com.typesafe.sbt.less._
+import com.typesafe.sbt.mocha.SbtMocha.autoImport._
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web._
@@ -29,7 +27,6 @@ object Build extends Build {
     scalaVersion := "2.10.4",
     crossPaths := false,
     importDirectly := true
-    //npmDependencies ++= Seq()
   )
 
   lazy val root =
