@@ -17,13 +17,15 @@ define(['module'], function (module) {
     var gaLoaded = false;
     var gaName = window.GoogleAnalyticsObject ||
       (window.GoogleAnalyticsObject = moduleConfig.GoogleAnalyticsObject || 'ga');
-    var ga = window[gaName] || (window[gaName] = function () {
+    var gaPusher = window[gaName] || (window[gaName] = function () {
       _load();
-      ga.q.push(arguments);
+      gaPusher.q.push(arguments);
     });
-    ga.l = ga.l || (new Date()).getTime();
-    ga.q = ga.q || [];
+    gaPusher.q = gaPusher.q || [];
+    //ga.l = ga.l || (new Date()).getTime();
 
+
+    //force to load if asked to
     if (moduleConfig.forceLoad) {
       _load();
     }
@@ -46,7 +48,9 @@ define(['module'], function (module) {
     }
 
     //exports
-    return ga;
+    return function ga() {
+      return window[gaName].apply(window[gaName], arguments);
+    };
   }());
 
   return ga;

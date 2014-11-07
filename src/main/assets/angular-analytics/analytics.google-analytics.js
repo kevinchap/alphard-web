@@ -28,9 +28,8 @@ function (module, angular, ngAnalytics, ga) {
       var $window = this.$window;
       var $ga = this.$ga;
       var isLocalhost = $window.location.hostname == 'localhost';
-      var domain = isLocalhost ? 'none' : this.domain;
+      var domain = this.domain = isLocalhost ? 'none' : this.domain;
 
-      //$ga.l = conf.timeStart;
       $ga('create', __required(opt_conf, 'trackingId'), {
         cookieDomain: domain,
         allowLinker: true
@@ -83,11 +82,9 @@ function (module, angular, ngAnalytics, ga) {
       //var name = page.fullName();
       //var campaign = page.proxy('context.campaign') || {};
       var data = {
-        //page: path(properties, this.options),
-        title: /*name || */properties.title,
-        location: url
+        page: properties.page//,
+        //title: /*name || */properties.title
       };
-
       //this._category = category; // store for later
 
       /*
@@ -97,7 +94,6 @@ function (module, angular, ngAnalytics, ga) {
       if (campaign.content) data.campaignContent = campaign.content;
       if (campaign.term) data.campaignKeyword = campaign.term;
       */
-
       // send
       this.$ga('send', 'pageview', data);
 
