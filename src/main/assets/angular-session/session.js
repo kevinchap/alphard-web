@@ -12,6 +12,10 @@ function (
 ) {
   'use strict';
 
+  //RequireJS module config
+  var moduleConfig = (module.config && module.config()) || {};
+  var DEBUG = moduleConfig.debug;
+
   return angular
     .module(module.id, [ ngAppStorage.name, ngTime.name ])
     .provider("$session", function $sessionProvider() {

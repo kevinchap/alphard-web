@@ -1,6 +1,10 @@
 define(['module', 'angular'], function (module, angular) {
   'use strict';
 
+  //RequireJS module config
+  var moduleConfig = (module.config && module.config()) || {};
+  var DEBUG = moduleConfig.debug;
+
   /**
    * MemoryStorage class
    *
