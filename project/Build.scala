@@ -47,7 +47,6 @@ object Build extends Build {
               "org.webjars" % "requirejs" % "2.1.14-3",
               "org.webjars" % "q" % "1.0.1",
               "org.webjars" % "bootstrap" % "3.2.0",
-
               "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test"
             )
           ) ++
