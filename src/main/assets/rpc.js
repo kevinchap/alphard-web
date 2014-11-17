@@ -1,10 +1,11 @@
-define(['JSONSchema', 'q'], function (JSONSchema, Q) {
+define(['json/jsonschema', 'q'], function (jsonschema, Q) {
   'use strict';
 
   var
   /*jshint evil:true */
   global     = (new Function('return this')).call(null),
   /*jshint evil:false */
+  JSONSchema = jsonschema.Schema,
   baseURL    = global.location ? global.location.href : "",
   isArray    = Array.isArray,
   Promise    = Q.Promise,
@@ -833,10 +834,12 @@ define(['JSONSchema', 'q'], function (JSONSchema, Q) {
     envelope["JSON-RPC-2.0"] = toAsyncFn(function (request) {
 
       return new Promise(function (resolve, reject) {
-        _require([ 'JSONRPC' ], function (JSONRPC) {
+        _require([ 'json/jsonrpc' ], function (jsonrpc) {
           var
-          smd         = request.smd,
-          jsonRequest = new JSONRPC.Request(
+          smd = request.smd,
+          JSONRPCRequest = jsonrpc.Request,
+          JSONRPCError = jsonrpc.Error,
+          jsonRequest = new JSONRPCRequest(
             smd.name,
             _parametersToJSON(request.parameters, smd.parametersType),
             request.id
@@ -851,7 +854,7 @@ define(['JSONSchema', 'q'], function (JSONSchema, Q) {
             contentString: toString(jsonRequest),
 
             onload: function (jsonData) {
-              jsonData = JSONRPC.parseResponse(jsonData);
+              jsonData = jsonrpc.parseResponse(jsonData);
 
               if (jsonData.error) {
                 throw jsonData.error;
@@ -920,8 +923,9 @@ define(['JSONSchema', 'q'], function (JSONSchema, Q) {
     //====================JSONP TRANSPORT=====================
     transport["JSONP"] = toAsyncFn(function (r) {
       return new Promise(function (resolve, reject) {
-        _require(["JSONPRequest"], function (JSONPRequest) {
+        _require(["json/jsonp"], function (jsonp) {
           var
+          JSONPRequest = jsonp.Request,
           request = new JSONPRequest(),
           url     = _queryJoin(
             r.target,
