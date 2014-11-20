@@ -42,6 +42,7 @@ object Build extends Build {
               "org.webjars" % "requirejs" % "2.1.14-3",
               "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test",
               "org.webjars" % "angularjs" % "1.3.0",
+              "org.webjars" % "angular-translate" % "2.4.2",
               "org.webjars" % "angular-ui-router" % "0.2.11",
               "org.webjars" % "angular-ui-bootstrap" % "0.11.2",
               "org.webjars" % "q" % "1.0.1",
