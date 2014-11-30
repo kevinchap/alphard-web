@@ -1,6 +1,3 @@
-/**
- * AngularJS Form module
- */
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
@@ -13,7 +10,6 @@ define(["module", "angular"], function (module, angular) {
         return function link($scope, $element, $attrs, ngModel) {
           if (!ngModel) return;// do nothing if no ng-model
 
-          //validator
           ngModel.$validators.equal = function (modelValue, viewValue) {
             return ngModel.$isEmpty(viewValue) || viewValue === $scope.expected;
           };
