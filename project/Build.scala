@@ -23,19 +23,11 @@ object Build
         crossPaths := false,
         importDirectly := true,
         libraryDependencies ++= Seq(
-          "org.webjars" % "requirejs" % "2.1.14-3",
-          "org.webjars" % "rjs" % "2.1.11-1-trireme" % "test",
-          "org.webjars" % "angularjs" % "1.3.0",
-          "org.webjars" % "angular-translate" % "2.4.2",
-          "org.webjars" % "angular-ui-router" % "0.2.11",
-          "org.webjars" % "angular-ui-bootstrap" % "0.11.2",
+          "org.webjars" % "requirejs" % "2.1.15",
+          "org.webjars" % "angularjs" % "1.3.4-1",
           "org.webjars" % "q" % "1.0.1",
-          "org.webjars" % "bootstrap" % "3.2.0",
-          "org.webjars" % "font-awesome" % "4.2.0"
-        ),
-
-        // Mocha
-        MochaKeys.requires ++= Seq("_mocha.conf")
+          "org.webjars" % "bootstrap" % "3.3.1"
+        )
       ).settings(
         inConfig(Assets)(unscopedSettings) ++
           inConfig(TestAssets)(unscopedSettings)

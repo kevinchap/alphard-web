@@ -1,4 +1,4 @@
-addSbtPlugin("com.byteground" %% "byteground-sbt-community-settings" % "3.8.0")
+addSbtPlugin("com.byteground" %% "byteground-sbt-community-settings" % "3.9.0")
 
 addSbtPlugin("com.typesafe.sbt" %% "sbt-less" % "1.0.4")
 
