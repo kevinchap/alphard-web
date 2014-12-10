@@ -319,7 +319,6 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
                 var referrerURL = $location.url();
                 $event.preventDefault();
                 $rootScope.$broadcast('$stateChangeError',
-                  $event,
                   toState,
                   toParams,
                   fromState,
@@ -360,12 +359,14 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
             var referrerURL = $location.url();
             if (logoutURL) {
               $timeout(function () {
-                $location
-                  .path(logoutURL)
-                  .search({
-                    reason: reason,
-                    referrer: referrerURL
-                  });
+                if (!$event.defaultPrevented) {
+                  $location
+                    .path(logoutURL)
+                    .search({
+                      reason: reason,
+                      referrer: referrerURL
+                    });
+                }
               }, 0);
             }
           });
