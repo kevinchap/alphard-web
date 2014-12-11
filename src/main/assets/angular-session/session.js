@@ -147,9 +147,8 @@ function (
           }
 
           function _create(expirationDelay) {
-            var
-            id  = _generateId(),
-            now = _now();
+            var id  = _generateId();
+            var now = _now();
 
             $clear();
             storage.id = id;
@@ -159,7 +158,12 @@ function (
           }
 
           var watchData = _watcher(
-            function () { return { id: storage.id, data: storage.data}; },
+            function () {
+              return {
+                id: storage.id,
+                data: storage.data
+              };
+            },
             function (dataNew, dataOld) {
               if (dataOld) {
                 if (dataNew.id !== dataOld.id) {

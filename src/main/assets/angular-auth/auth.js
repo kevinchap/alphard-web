@@ -140,7 +140,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           storage.user = userData;
           storage.isLogged = true;
 
-          //_dispatchEvent($$eventLogin, storage.id, storage.user);
+          _dispatchEvent($$eventLogin, storage.id, storage.user);
         }
         $auth.login = login;
 
