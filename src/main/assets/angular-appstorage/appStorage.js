@@ -54,8 +54,8 @@ define([
 
             //poll content
             $browser.addPollFn($sync);
-            //$storage.$onChange(pull);
-            $rootScope.$on('$' + type + '.onchange', pull);
+            var eventName = '$' + type + 'Storage.change';
+            $rootScope.$on(eventName, pull);
             $sync();
           }
 
@@ -72,7 +72,6 @@ define([
             if (!angular.equals(dataOld, data)) {
               angular.copy(data, dataOld);
               $storage[fullname] = angular.toJson(data);
-              //$storage.$sync();
             }
           }
 
