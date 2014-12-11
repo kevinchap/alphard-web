@@ -87,7 +87,6 @@ define(['module', 'angular'], function (module, angular) {
         var localStorage = $window.localStorage || new MemoryStorage();
         if (isSupported && $window.addEventListener) {
           $window.addEventListener('storage', function (event) {
-            console.warn("storage", event);
 
             //if (event.storageArea === localStorage) {
               $rootScope.$broadcast("$localStorage.change", {
