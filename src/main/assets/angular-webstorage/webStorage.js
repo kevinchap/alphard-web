@@ -87,11 +87,15 @@ define(['module', 'angular'], function (module, angular) {
         var localStorage = $window.localStorage || new MemoryStorage();
         if (isSupported && $window.addEventListener) {
           $window.addEventListener('storage', function (event) {
-            //var key = event.key;
-            //var val = event.newValue;
-            if (event.storageArea === localStorage) {
-              $rootScope.$broadcast("$localStorage.change", [ event ]);
-            }
+            console.warn("storage", event);
+
+            //if (event.storageArea === localStorage) {
+              $rootScope.$broadcast("$localStorage.change", {
+                key: event.key,
+                newValue: event.newValue,
+                oldValue: event.oldValue
+              });
+            //}
           }, false);
         }
 
