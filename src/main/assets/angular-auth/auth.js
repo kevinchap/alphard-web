@@ -25,6 +25,11 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
   var LOGOUT_URL = moduleConfig.logoutURL;
   var ACCESS_ERROR_URL = moduleConfig.accessErrorURL;
 
+  //State events
+  var EVENT_STATE_CHANGE_START = "$stateChangeStart";
+  var EVENT_STATE_CHANGE_ERROR = "$stateChangeError";
+  //var EVENT_STATE_CHANGE_SUCCESS = "$stateChangeSuccess";
+
   /**
    * AuthError class
    */
@@ -253,8 +258,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
   /**
    * Route & State filters
    */
-    .run(['$auth', '$injector', '$location', '$rootScope', '$timeout',
-      function ($auth, $injector, $location, $rootScope, $timeout) {
+    .run(['$auth', '$injector', '$location', '$log', '$rootScope', '$timeout',
+      function ($auth, $injector, $location, $log, $rootScope, $timeout) {
 
         function $injectGet(name) {
           try {
@@ -308,32 +313,36 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           }
 
           //Filter authentified route
-          $rootScope.$on('$stateChangeStart',
+          $rootScope.$on(EVENT_STATE_CHANGE_START,
             function ($event, toState, toParams, fromState, fromParams) {
+              var referrerURL = $location.url();
+              var check = !$stateIgnored(toState.name) && // location ignored
+                $stateAuthData(toState.name, "required");
 
-            if (
-              !$stateIgnored(toState.name) && // location ignored
-              $stateAuthData(toState.name, "required") // auth required for state
-            ) {
-              if (!$auth.isLogged()) {
-                var referrerURL = $location.url();
-                $event.preventDefault();
-                $rootScope.$broadcast('$stateChangeError',
-                  toState,
-                  toParams,
-                  fromState,
-                  fromParams,
-                  new AuthRequiredError(
-                    'Authentication is required',
-                    referrerURL
-                  )
-                );
+              if (check) {
+                if (!$auth.isLogged()) {
+                  _debug('ACCESS ' + referrerURL + ' (Refused)');
+                  $event.preventDefault();//abort change start
+                  $rootScope.$broadcast(EVENT_STATE_CHANGE_ERROR,
+                    toState,
+                    toParams,
+                    fromState,
+                    fromParams,
+                    new AuthRequiredError(
+                      'Authentication is required',
+                      referrerURL
+                    )
+                  );
+                } else {
+                  _debug('ACCESS ' + referrerURL + ' : (OK)');
+                }
+              } else {
+                _debug('ACCESS ' + referrerURL + ' (OK - Ignored)');
               }
-            }
-          });
+            });
 
           //Default state change error handler
-          $rootScope.$on('$stateChangeError',
+          $rootScope.$on(EVENT_STATE_CHANGE_ERROR,
             function ($event, toState, toParams, fromState, fromParams, error) {
             var accessErrorURL = $auth.accessErrorURL;
             var referrerURL = $location.url();
@@ -383,13 +392,16 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         if ($route) {
           $routeInterceptor($route);
         }
-      }])
 
-  /**
-   * Logout hook
-   */
+        //util
+        function _formatMessage(args) {
+          return ["[$auth]"].concat(Array.prototype.slice.call(args));
+        }
 
-    .run(['$auth', '$location', '$timeout', function ($auth, $location, $timeout) {
-
-    }]);
+        function _debug(var_args) {
+          if (DEBUG) {
+            $log.debug.apply($log, _formatMessage(arguments));
+          }
+        }
+      }]);
 });
