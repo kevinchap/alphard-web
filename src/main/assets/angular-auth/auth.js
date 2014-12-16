@@ -327,7 +327,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
                     )
                   );
                 } else {
-                  _debug('ACCESS ' + referrerURL + ' : (OK)');
+                  _debug('ACCESS ' + referrerURL + ' (OK)');
                 }
               } else {
                 _debug('ACCESS ' + referrerURL + ' (OK - Ignored)');
