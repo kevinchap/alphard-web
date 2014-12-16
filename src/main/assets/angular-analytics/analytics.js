@@ -180,10 +180,25 @@ define(['module', 'angular'], function (module, angular) {
         return $analytics;
       }];
     })
-    .directive("ngTrack", ['$analytics', function ($analytics) {
+
+  /**
+   *
+   *
+   * Usage:
+   *
+   * <anytag
+   *   ng-analytics="toto.titi.tata"
+   *   [ng-analytics-on="click focus"]
+   *   [ng-analytics-data="{}"]>
+   *
+   * </anytag>
+   */
+    .directive("ngAnalytics", ['$analytics', function ($analytics) {
+      var $$name = "ngAnalytics";
+      var COMMAND = ['a:','button:submit','input:button','input:submit'];
 
       function _isCommand(element) {
-        return ['a:','button:submit','input:button','input:submit'].indexOf(
+        return COMMAND.indexOf(
           element.tagName.toLowerCase() + ':' + (element.type || '')) >= 0;
       }
 
@@ -198,41 +213,65 @@ define(['module', 'angular'], function (module, angular) {
         );
       }
 
-      function _isProperty(name) {
-        return name.substr(0, 9) === 'analytics' &&
-          ['on', 'event'].indexOf(name.substr(10)) === -1;
-      }
-
-      function compile($element, $attrs) {
-
-        return function link($scope, $element, $attrs) {
-          var eventType = $attrs.analyticsOn || _inferEventType($element[0]);
-
-          function eventName() {
-            return $attrs.analyticsEvent || _inferEventName($element[0]);
-          }
-
-          function eventData() {
-            var properties = {};
-            angular.forEach($attrs.$attr, function(attr, name) {
-              if (_isProperty(attr)) {
-                properties[name.slice(9)] = $attrs[name];
-              }
-            });
-            return properties;
-          }
-
-          $element.bind(eventType, function() {
-            $analytics.track(eventName(), eventData());
-          });
-        };
-      }
+      /*function _isProperty(name) {
+        return name.substr(0, $$name.length) === $$name &&
+          ['on', 'event'].indexOf(name.substr($$name.length + 1)) === -1;
+      }*/
 
       /////////////////// EXPORT ///////////////////
       return {
         restrict: 'A',
         scope: false,
-        compile: compile
+        compile: function compile($element, $attrs) {
+
+          return function link($scope, $element, $attrs) {
+            var eventType = attr('on') || _inferEventType($element[0]);
+
+            function attr(name) {
+              return $$name + name.charAt(0).toUpperCase() + name.slice(1);
+            }
+
+            function trackName() {
+              return attr('event') || _inferEventName($element[0]);
+            }
+
+            function trackData(eventTypeDefault) {
+              var data = {};
+              /*angular.forEach($attrs.$attr, function(attr, name) {
+                if (_isProperty(attr)) {
+                  data[name.slice(9)] = $attrs[name];
+                }
+              });*/
+
+              //set default eventType
+              data.eventType = eventTypeDefault;
+
+              //get data from ng-analytics-data
+              var attrData = attr('data');
+              if (attrData) {
+                angular.extend(data, $scope.$eval(attrData));
+              }
+
+              return data;
+            }
+
+            (function init() {
+              $element.bind(eventType, onEvent);
+              $scope.$on("$destroy", onDestroy)
+            }());
+
+            function onEvent($event) {
+              $analytics.track(
+                trackName(),
+                trackData($event.type)
+              );
+            }
+
+            function onDestroy($event) {
+              $element.bind(eventType, onEvent);
+            }
+          };
+        }
       };
     }])
     .run(
