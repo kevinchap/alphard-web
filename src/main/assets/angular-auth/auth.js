@@ -261,13 +261,6 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
     .run(['$auth', '$injector', '$location', '$log', '$rootScope', '$timeout',
       function ($auth, $injector, $location, $log, $rootScope, $timeout) {
 
-        function $injectGet(name) {
-          try {
-            return $injector.get(name);
-          } catch (e) { }
-          return null;
-        }
-
         function $routeInterceptor($route) {
           throw new Error('NotImplemented');
         }
@@ -383,14 +376,12 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         }
 
         // $state extension
-        var $state = $injectGet('$state');
-        if ($state) {
-          $stateInterceptor($state);
+        if ($injector.has('$state')) {
+          $stateInterceptor($injector.get('$state'));
         }
 
-        var $route = $injectGet('$route');
-        if ($route) {
-          $routeInterceptor($route);
+        if ($injector.has('$route')) {
+          $routeInterceptor($injector.get('$route'));
         }
 
         //util
