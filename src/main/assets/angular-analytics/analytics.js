@@ -257,7 +257,7 @@ define(['module', 'angular'], function (module, angular) {
 
             (function init() {
               $element.bind(eventType, onEvent);
-              $scope.$on("$destroy", onDestroy)
+              $scope.$on("$destroy", onDestroy);
             }());
 
             function onEvent($event) {
