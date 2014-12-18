@@ -3,6 +3,20 @@ define(["module", "angular"], function (module, angular) {
 
   return angular
     .module(module.id, [])
+
+  /**
+   * ngEqual directive
+   *
+   * Usage:
+   *
+   *  <input ng-model="..." ng-equal="myValue">
+   *
+   *  In controller:
+   *  ```
+   *  $scope.myValue = 'foo';//add "equal" error if ngModel is not $scope.myValue
+   *  ```
+   *
+   */
     .directive("ngEqual", [function () {
 
       function compile($element, $attrs) {

@@ -25,7 +25,6 @@ function (
       var $$eventChange = $$name + '.change';
       var $$eventExpiration = $$name + ".expiration";
       var settings = {
-        debug: false,
         storageType: "local",
         storageKey: 'ng.' + $$name.slice(1),
         expiration: 1 * 24 * 60 * 60 * 1000 //1 day
@@ -133,7 +132,7 @@ function (
             _debug("session created (id=" + $id() + ")");
           });
           $onChange(function ($event, dataNew, dataOld) {
-            _debug("session changed (id=" + $id() + ")");
+            _debug("session changed (id=" + $id() + ")", dataNew, dataOld);
           });
           $onExpire(function ($event, reason) {
             _debug("session expiring (reason=" + reason + ")");
@@ -148,9 +147,8 @@ function (
           }
 
           function _create(expirationDelay) {
-            var
-            id  = _generateId(),
-            now = _now();
+            var id  = _generateId();
+            var now = _now();
 
             $clear();
             storage.id = id;
@@ -160,7 +158,12 @@ function (
           }
 
           var watchData = _watcher(
-            function () { return { id: storage.id, data: storage.data}; },
+            function () {
+              return {
+                id: storage.id,
+                data: storage.data
+              };
+            },
             function (dataNew, dataOld) {
               if (dataOld) {
                 if (dataNew.id !== dataOld.id) {
@@ -233,7 +236,7 @@ function (
           }
 
           function _debug(var_args) {
-            if (settings.debug) {
+            if (DEBUG) {
               $log.debug.apply($log, _formatMessage(arguments));
             }
           }

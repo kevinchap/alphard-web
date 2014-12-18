@@ -21,7 +21,8 @@ define(['module'], function (module) {
   'use strict';
 
   var moduleConfig = (module.config && module.config()) || {};
-  var angularName = moduleConfig.angular || 'angular';
+  var DEBUG = moduleConfig.debug || false;
+  var ANGULAR_NAME = moduleConfig.angular || 'angular';
 
   /**
    * ng module
@@ -29,7 +30,7 @@ define(['module'], function (module) {
   var ng = (function () {
 
     function load(name, req, onLoad, config) {
-      req([angularName, name], function (angular, moduleDefinition) {
+      req([ANGULAR_NAME, name], function (angular, moduleDefinition) {
         var percent = 0;
 
         function callback(result) {
@@ -70,7 +71,7 @@ define(['module'], function (module) {
           var bootstrap = moduleDefinition.bootstrap || false;
 
           //add angular
-          deps.push(angularName);
+          deps.push(ANGULAR_NAME);
           var depc = deps.length;
 
           //progress loader
@@ -99,11 +100,15 @@ define(['module'], function (module) {
               ngModule = angular.module(name, angularDependencies);
               ngModule = init.apply(this, [ ngModule ].concat(resolvedDependencies)) || ngModule;
 
-              if (bootstrap) {
-                angular.bootstrap(document, [ ngModule.name ]);
-              }
-
+              //callback
               callback(ngModule);
+              if (bootstrap) {
+                angular
+                  .element(document)
+                  .ready(function () {
+                    angular.bootstrap(document, [ ngModule.name ]);
+                  });
+              }
             } catch (e) {
               errback(e);
             }

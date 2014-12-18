@@ -12,7 +12,11 @@ function (
   'use strict';
 
   /**
-   * <spinner>
+   * Spinner directive
+   *
+   * Usage:
+   *
+   * <spinner [size="xs|sm|md|lg"]>
    * </spinner>
    */
   return angular

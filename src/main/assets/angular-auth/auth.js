@@ -5,7 +5,10 @@
  *   require.config({
  *     config: {
  *       "angular-auth/auth": {
- *         debug: false
+ *         debug: false,
+ *         loginURL: "...",
+ *         logoutURL: "...",
+ *         accessErrorURL: "..."
  *       }
  *     }
  *   })
@@ -18,6 +21,58 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
   var moduleConfig = (module.config && module.config()) || {};
   var DEBUG = moduleConfig.debug;
   var STORAGE_KEY = "$auth";
+  var LOGIN_URL = moduleConfig.loginURL;
+  var LOGOUT_URL = moduleConfig.logoutURL;
+  var ACCESS_ERROR_URL = moduleConfig.accessErrorURL;
+
+  //State events
+  var EVENT_STATE_CHANGE_START = "$stateChangeStart";
+  var EVENT_STATE_CHANGE_ERROR = "$stateChangeError";
+  //var EVENT_STATE_CHANGE_SUCCESS = "$stateChangeSuccess";
+
+  /**
+   * AuthError class
+   */
+  var AuthError = (function (_super) {
+
+    function AuthError(message) {
+      _super.call(this);
+
+      this.name = this.name;
+      this.message = message;
+      if (Error.captureStackTrace) {
+        Error.captureStackTrace(this, this.constructor);
+      } else {
+        this.stack = (new Error()).stack; // IMPORTANT!
+      }
+    }
+
+    AuthError.prototype = Object.create(_super.prototype);
+
+    AuthError.prototype.constructor = AuthError;
+
+    AuthError.prototype.name = "AuthError";
+
+    return AuthError;
+  }(Error));
+  
+  /**
+   * AuthRequiredError class
+   */
+  var AuthRequiredError = (function (_super) {
+
+    function AuthRequiredError(message) {
+      _super.call(this, message);
+    }
+
+    AuthRequiredError.prototype = Object.create(_super.prototype);
+
+    AuthRequiredError.prototype.constructor = AuthRequiredError;
+
+    AuthRequiredError.prototype.name = "AuthRequiredError";
+
+    return AuthRequiredError;
+  }(AuthError));
 
   return angular
     .module(module.id, [ ngSession.name ])
@@ -25,6 +80,19 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
       var $$name = "$auth";
       var $$eventLogin = $$name + ".login";
       var $$eventLogout = $$name + ".logout";
+      var settings = {
+        loginURL: LOGIN_URL,
+        logoutURL: LOGOUT_URL,
+        accessErrorURL: ACCESS_ERROR_URL
+      };
+
+      this.config = function (o) {
+        if (arguments.length) {
+          angular.extend(settings, o);
+        } else {
+          return angular.copy(o);
+        }
+      };
 
       this.$get = ['$log', '$rootScope', '$session',
       function ($log, $rootScope, $session) {
@@ -39,6 +107,11 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
               adapters[name] = opt_definition;
           }
         }
+
+        //url
+        $auth.loginURL = settings.loginURL;
+        $auth.logoutURL = settings.logoutURL;
+        $auth.accessErrorURL = settings.accessErrorURL;
 
         /**
          * @return {string}
@@ -72,7 +145,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           storage.user = userData;
           storage.isLogged = true;
 
-          //_dispatchEvent($$eventLogin, storage.id, storage.user);
+          _dispatchEvent($$eventLogin, storage.id, storage.user);
         }
         $auth.login = login;
 
@@ -137,6 +210,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           }
         });
 
+
         $onLogin(function ($event, id, userData) {
           _debug('"' + id + '" logged in (id=', id, 'userData=', userData, ').');
         });
@@ -145,6 +219,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           var _id = id();
           _debug((_id ? '"' + _id + '"' : '<anonymous>') + ' logged out (reason: ' + reason + ').');
         });
+
+        //
 
         //util
         function _sessionStorage(opt_target) {
@@ -177,5 +253,146 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         return $auth;
       }];
-    });
+    })
+
+  /**
+   * Route & State filters
+   */
+    .run(['$auth', '$injector', '$location', '$log', '$rootScope', '$timeout',
+      function ($auth, $injector, $location, $log, $rootScope, $timeout) {
+
+        function $routeInterceptor($route) {
+          throw new Error('NotImplemented');
+        }
+
+        function $stateInterceptor($state) {
+
+          //Getter for auth data configured in each route
+          function $stateAuthData(state, key) {
+            if (state.length !== 0) {
+              var stateData = $state.get(state);
+              var authData = stateData && stateData.$auth;
+              return (
+                authData && (key in authData) ? authData[key] :
+                  $stateAuthData(state.split(".").slice(0, -1).join("."), key)
+              );
+            }
+            return null;
+          }
+
+          /*
+          function $stateAuthByRole(role) {
+            var states = $state.get();
+            var cache = $stateAuthByRole.cache || ($stateAuthByRole.cache = {});
+            var returnValue = cache[role];
+            if (!returnValue) {
+              for (var stateName in states) {
+                var stateData = states[stateName];
+                var authData = stateData.$auth;
+                if (
+                  !stateData.abstract &&
+                  authData &&
+                  authData[role]
+                ) {
+                  returnValue = cache[role] = stateName;
+                }
+              }
+            }
+            return returnValue;
+          }*/
+
+          function $stateIgnored(state) {
+            return false;
+          }
+
+          //Filter authentified route
+          $rootScope.$on(EVENT_STATE_CHANGE_START,
+            function ($event, toState, toParams, fromState, fromParams) {
+              var referrerURL = $location.url();
+              var check = !$stateIgnored(toState.name) && // location ignored
+                $stateAuthData(toState.name, "required");
+
+              if (check) {
+                if (!$auth.isLogged()) {
+                  _debug('ACCESS ' + referrerURL + ' (Refused)');
+                  $event.preventDefault();//abort change start
+                  $rootScope.$broadcast(EVENT_STATE_CHANGE_ERROR,
+                    toState,
+                    toParams,
+                    fromState,
+                    fromParams,
+                    new AuthRequiredError(
+                      'Authentication is required',
+                      referrerURL
+                    )
+                  );
+                } else {
+                  _debug('ACCESS ' + referrerURL + ' (OK)');
+                }
+              } else {
+                _debug('ACCESS ' + referrerURL + ' (OK - Ignored)');
+              }
+            });
+
+          //Default state change error handler
+          $rootScope.$on(EVENT_STATE_CHANGE_ERROR,
+            function ($event, toState, toParams, fromState, fromParams, error) {
+            var accessErrorURL = $auth.accessErrorURL;
+            var referrerURL = $location.url();
+            if (accessErrorURL && error.name === 'AuthRequiredError') {
+              //mark as caught
+              $event.preventDefault();
+
+              //redirect
+              $timeout(function () {
+                $location
+                  .path(accessErrorURL)
+                  .search({
+                    reason: error.name,
+                    referrer: referrerURL
+                  });
+              }, 0);
+            }
+          });
+
+          //Default logout behavior
+          $auth.$onLogout(function ($event, reason) {
+            var logoutURL = $auth.logoutURL;
+            var referrerURL = $location.url();
+            if (logoutURL) {
+              $timeout(function () {
+                if (!$event.defaultPrevented) {
+                  $location
+                    .path(logoutURL)
+                    .search({
+                      reason: reason,
+                      referrer: referrerURL
+                    });
+                }
+              }, 0);
+            }
+          });
+
+        }
+
+        // $state extension
+        if ($injector.has('$state')) {
+          $stateInterceptor($injector.get('$state'));
+        }
+
+        if ($injector.has('$route')) {
+          $routeInterceptor($injector.get('$route'));
+        }
+
+        //util
+        function _formatMessage(args) {
+          return ["[$auth]"].concat(Array.prototype.slice.call(args));
+        }
+
+        function _debug(var_args) {
+          if (DEBUG) {
+            $log.debug.apply($log, _formatMessage(arguments));
+          }
+        }
+      }]);
 });

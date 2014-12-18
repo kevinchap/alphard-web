@@ -12,10 +12,12 @@ define(['module', 'angular'], function (module, angular) {
    *  Follows exact same API than localStorage and sessionStorage
    */
   var MemoryStorage = (function () {
+    var __keys = Object.keys;
+
     function MemoryStorage() {
       if (this instanceof MemoryStorage) {
         Object.defineProperty(this, "length", {
-          get: function () { return Object.keys(this).length; },
+          get: function () { return __keys(this).length; },
           set: function (val) { }
         });
       } else {
@@ -24,14 +26,14 @@ define(['module', 'angular'], function (module, angular) {
     }
 
     MemoryStorage.prototype.clear = function clear() {
-      var keys = Object.keys(this);
+      var keys = __keys(this);
       for (var i = 0, l = keys.length; i < l; ++i) {
         delete this[keys[i]];
       }
     };
 
     MemoryStorage.prototype.key = function key(index) {
-      return Object.keys(this)[index];
+      return __keys(this)[index];
     };
 
     MemoryStorage.prototype.getItem = function getItem(key) {
@@ -53,54 +55,81 @@ define(['module', 'angular'], function (module, angular) {
   return angular
     .module(module.id, [])
     .provider("$webStorage", function $webStorageProvider() {
-      this.$get = [
-        '$localStorage', '$memoryStorage', '$sessionStorage',
-        function ($localStorage, $memoryStorage, $sessionStorage) {
+      this.$get = ['$log', '$rootScope', '$window', function ($log, $rootScope, $window) {
+        function windowStorage(name) {
+          var storageSupported = !!$window[name];
+          var storage = $window[name] || new MemoryStorage();
+          var $$name = '$' + name;
+          var $$eventName = $$name + ".change";
 
-          function $webStorage(type) {
-            var result;
-            switch (type) {
-              case $webStorage.LOCAL: result = $localStorage; break;
-              case $webStorage.MEMORY: result = $memoryStorage; break;
-              case $webStorage.SESSION: result = $sessionStorage; break;
-              default: throw new Error(type + " is not a valid storage");
+          function _debug(var_args) {
+            if (DEBUG) {
+              $log.debug.apply(
+                $log,
+                ["[" + $$name + "]"].concat(Array.prototype.slice.call(arguments))
+              );
             }
-            return result;
           }
 
-          //string identifier for storage
-          $webStorage.LOCAL = 'local';
-          $webStorage.MEMORY = 'memory';
-          $webStorage.SESSION = 'session';
+          if (storageSupported && $window.addEventListener) {
+            $window.addEventListener('storage', function (event) {
+              //filter if sessionStorage or localStorage
+              if (event.storageArea === storage) {
+                var eventData = {
+                  key: event.key,
+                  newValue: event.newValue,
+                  oldValue: event.oldValue
+                };
+                _debug("$rootScope.broadcast(", eventData, ")");
+                $rootScope.$broadcast($$eventName, eventData);
+              }
+            }, false);
+          }
+          return storage;
+        }
 
-          return $webStorage;
-        }];
+        //Memory
+        var memoryStorage = new MemoryStorage();
+
+        //Session
+        var sessionStorage = windowStorage('sessionStorage');
+
+        //Local
+        var localStorage = windowStorage('localStorage');
+
+        //Factory
+        function $webStorage(type) {
+          var result;
+          switch (type) {
+            case $webStorage.LOCAL: result = localStorage; break;
+            case $webStorage.MEMORY: result = memoryStorage; break;
+            case $webStorage.SESSION: result = sessionStorage; break;
+            default: throw new Error(type + " is not a valid storage");
+          }
+          return result;
+        }
+
+        //string identifier for storage
+        $webStorage.LOCAL = 'local';
+        $webStorage.MEMORY = 'memory';
+        $webStorage.SESSION = 'session';
+
+        return $webStorage;
+      }];
     })
     .provider("$memoryStorage", function $memoryStorageProvider() {
-      this.$get = [function () {
-        return new MemoryStorage();
+      this.$get = ['$webStorage', function ($webStorage) {
+        return $webStorage($webStorage.MEMORY);
       }];
     })
     .provider("$localStorage", function $localStorageProvider() {
-      this.$get = ['$rootScope', '$window', function ($rootScope, $window) {
-        var isSupported = !!$window.localStorage;
-        var localStorage = $window.localStorage || new MemoryStorage();
-        if (isSupported && $window.addEventListener) {
-          $window.addEventListener('storage', function (event) {
-            //var key = event.key;
-            //var val = event.newValue;
-            if (event.storageArea === localStorage) {
-              $rootScope.$broadcast("$localStorage.change", [ event ]);
-            }
-          }, false);
-        }
-
-        return localStorage;
+      this.$get = ['$webStorage', function ($webStorage) {
+        return $webStorage($webStorage.LOCAL);
       }];
     })
     .provider("$sessionStorage", function $sessionStorageProvider() {
-      this.$get = ['$window', function ($window) {
-        return $window.sessionStorage || new MemoryStorage();
+      this.$get = ['$webStorage', function ($webStorage) {
+        return $webStorage($webStorage.SESSION);
       }];
     });
 });

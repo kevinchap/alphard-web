@@ -170,7 +170,7 @@ define(['module', 'css'], function (module, css) {
       url      = '',
       i = 0;
 
-      //url += (location.protocol === "https:" ? "https:" : "http:");
+      url += (location.protocol === "https:" ? "https:" : "http:");
       url += "//fonts.googleapis.com/css?";
 
       if (families) {

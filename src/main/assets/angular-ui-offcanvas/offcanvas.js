@@ -16,6 +16,10 @@ function (
   'use strict';
 
   /**
+   * Offcanvas directive
+   *
+   * Usage:
+   *
    * <offcanvas>
    *   <offcanvas-content>
    *   </offcanvas-content>
