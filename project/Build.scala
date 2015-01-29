@@ -35,7 +35,6 @@ object Build
       )
 
   private val unscopedSettings = Seq(
-    // Less
     includeFilter in LessKeys.less := "*.less",
     excludeFilter in LessKeys.less := "_*.less"
   )

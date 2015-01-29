@@ -111,7 +111,7 @@ define(['module'], function (module) {
         }),
         onerror = _once(function () {
           dom.remove(img);
-          var error = new Error('Stylesheet failed to load');
+          var error = new Error('Stylesheet failed to load:' + href);
           if (opt_errback) {
             opt_errback.call(link, error, null);
           } else {
