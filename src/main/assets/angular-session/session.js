@@ -180,6 +180,9 @@ function (
           watchData();
 
           function _refresh() {
+            storage.data = storage.data || {};//auto allocate
+
+            //expiration
             var expiredAt = storage.expiredAt;
             if (!isExpiring && expiredAt && expiredAt < _now()) {
               isExpiring = true;
