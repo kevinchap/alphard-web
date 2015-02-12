@@ -40,6 +40,7 @@
     }
 
     var __updateDelay = 100;
+    var __updateTimer = null;
     var __updated = __now();
     function __update__() {
       var currentTime = __now();
@@ -58,8 +59,21 @@
       }
 
       //schedule next
-      setTimeout(__update__, __updateDelay);
+      __scheduleUpdate();
       __updated = currentTime;
+    }
+
+    function __scheduleUpdate() {
+      if (!__updateTimer) {
+        __updateTimer = setTimeout(__update__, __updateDelay);
+      }
+    }
+
+    function __cancelUpdate() {
+      if (__updateTimer) {
+        clearTimeout(__updateTimer);
+        __updateTimer = null;
+      }
     }
 
     function getElement() {
@@ -109,6 +123,13 @@
         element.setAttribute(DISABLED, '');
       } else {
         element.removeAttribute(DISABLED);
+      }
+
+      //cancel timer
+      if (opt_val) {
+        __scheduleUpdate();
+      } else {
+        __cancelUpdate();
       }
       return /*jslint validthis:true*/this;
     }
