@@ -1,20 +1,28 @@
 // Offcanvas variable
 // --------------------------------------------------
-@offcanvas-bg-color: #FFF;
+@offcanvas-bg-color: #fff;
 @offcanvas-translation-duration: 0.3s;
 @offcanvas-left-width: 200px;
 @offcanvas-right-width: 200px;
 
 // Offcanvas mixins
 // --------------------------------------------------
-.transition(@transition) {
-	-webkit-transition: @transition;
-	-moz-transition:    @transition;
-	-ms-transition:     @transition;
-	-o-transition:      @transition;
+.offcanvas-transition(@transition) {
+  -webkit-transition: @transition;
+  -moz-transition: @transition;
+  -o-transition: @transition;
+  transition: @transition;
 }
 
-.transition-property(...) {
+.offcanvas-transform(@transform) {
+  -webkit-transform: @transform;
+  -moz-transform: @transform;
+  -ms-transform: @transform;
+  -o-transform: @transform;
+  transform: @transform;
+}
+
+.offcanvas-transition-property(...) {
   @props: ~`"@{arguments}".replace(/[\[\]]/g, '')`;
   -webkit-transition-property: @props;
   -moz-transition-property: @props;
@@ -32,26 +40,26 @@
 .offcanvas-overlay() {
 
   &:after {
-		content:"";
-		position:absolute;
-		top:0;
-		left:0;
-		width:100%;
-		height:100%;
-		background:rgba(0,0,0,0.1);
-		z-index:-1;
-		opacity:0;
-		.transition(opacity 0.3s ease-out);
-	}
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+    opacity: 0;
+    .offcanvas-transition(opacity 0.3s ease-out);
+  }
 
-	&[disabled] {
-		overflow:hidden;
-	}
+  &[disabled] {
+    overflow: hidden;
+  }
 
-	&[disabled]:after {
-		z-index:8000;
-		opacity:1;
-	}
+  &[disabled]:after {
+    z-index: 8000;
+    opacity: 1;
+  }
 
 }
 
@@ -71,20 +79,20 @@
 
 // Offcanvas style
 // --------------------------------------------------
-offcanvas,
+//offcanvas,
 .offcanvas,
-offcanvas-content,
+//offcanvas-content,
 .offcanvas__content,
-offcanvas-left,
+//offcanvas-left,
 .offcanvas__left,
-offcanvas-right,
+//offcanvas-right,
 .offcanvas__right {
   background: @offcanvas-bg-color;
-	height: 100%;
-	box-sizing: border-box;
+  height: 100%;
+  box-sizing: border-box;
 }
 
-offcanvas,
+//offcanvas,
 .offcanvas {
   display: block;
   position: relative;
@@ -92,73 +100,77 @@ offcanvas,
   overflow: hidden;
 }
 
-offcanvas-content,
+.offcanvas[disabled] .offcanvas-content {
+  overflow: hidden;
+}
+
+//offcanvas-content,
 .offcanvas__content {
   display: block;
   position: relative;
   width: 100%;
-  left:0;
+  //left: 0;
+  .offcanvas-transform(translate3d(0, 0, 0));
   z-index: 1;
   overflow: auto;
   box-sizing: border-box;
   .offcanvas-translate-fix();
-  .transition(all @offcanvas-translation-duration ease);
-	.transition-property(top,left,right,bottom,height);
+  .offcanvas-transition(all @offcanvas-translation-duration ease);
+  .offcanvas-transition-property(top, left, right, bottom, height, transform, -moz-transform, -ms-transform, -webkit-transform);
 }
 
-offcanvas[disabled] offcanvas-content {
-  overflow: hidden;
-}
-
-offcanvas-left,
+//offcanvas-left,
 .offcanvas__left,
-offcanvas-right,
+//offcanvas-right,
 .offcanvas__right {
   top: 0;
   position: absolute;
   /*overflow: auto;*/
-	z-index: -1;
-	.transition(z-index @offcanvas-translation-duration ease);
+  z-index: -1;
+  .offcanvas-transition(z-index @offcanvas-translation-duration ease);
 
   &[pushed] {
-		z-index: 0;
+    z-index: 0;
     display: block;
     overflow-x: hidden;
     overflow-y: auto;
   }
 }
 
-offcanvas-left,
+//offcanvas-left,
 .offcanvas__left {
-	left:0;
-	width: @offcanvas-left-width;
+  left: 0;
+  width: @offcanvas-left-width;
 }
 
-offcanvas-right,
+//offcanvas-right,
 .offcanvas__right {
-	right:0;
-	width: @offcanvas-right-width;
+  right: 0;
+  width: @offcanvas-right-width;
 }
 
 // Offcanvas states
 // --------------------------------------------------
 .offcanvas--push-left > .offcanvas__content {
-	left: @offcanvas-left-width;
+  //left: @offcanvas-left-width;
+  .offcanvas-transform(translate3d(@offcanvas-left-width, 0, 0));
 }
+
 .offcanvas--push-right > .offcanvas__content {
-	left: -@offcanvas-right-width;
+  //left: -@offcanvas-right-width;
+  .offcanvas-transform(translate3d(@offcanvas-left-width, 0, 0));
 }
 
 // Offcanvas variants
 // --------------------------------------------------
 .offcanvas--default {
-	.offcanvas-overlay();
+  .offcanvas-overlay();
 
-	offcanvas-content,
-	.offcanvas__content {
-		.offcanvas-overlay();
-		box-shadow:2px 0px 2px rgba(0, 0, 0, 0.6),-2px 0px 2px rgba(0, 0, 0, 0.6);
-	}
+  //offcanvas-content,
+  .offcanvas__content {
+    .offcanvas-overlay();
+    box-shadow: 2px 0 2px rgba(0, 0, 0, 0.6), -2px 0 2px rgba(0, 0, 0, 0.6);
+  }
 }
 
 .i--menu {
