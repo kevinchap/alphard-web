@@ -1,18 +1,4 @@
-define(
-[
-  'module',
-  'angular',
-  'text!./offcanvas.html',
-  'text!./offcanvas-content.html',
-  'text!./offcanvas-panel.html'
-],
-function (
-  module,
-  angular,
-  offcanvasHTML,
-  offcanvasContentHTML,
-  offcanvasPanelHTML
-) {
+define(['module', 'angular'], function (module, angular) {
   'use strict';
 
   /**
@@ -34,6 +20,7 @@ function (
   return angular
     .module(module.id, [])
     .controller('OffCanvasController', ['$log', function ($log) {
+      var self = this;
       this.NONE = "none";
       this.LEFT = "left";
       this.RIGHT = "right";
@@ -53,54 +40,102 @@ function (
         }
       };
 
+      self.$$class = "offcanvas";
+
+
     }])
+
     .directive("offcanvas", function offcanvas() {
       return {
-        restrict: 'E',
-        replace: true,
-        transclude: true,
-        template: offcanvasHTML,
+        restrict: 'EA',
+        //replace: true,
+        //transclude: true,
+        //template: offcanvasHTML,
         controller: "OffCanvasController",
-        controllerAs: "offcanvas"
+        controllerAs: "offcanvas",
+        compile: function () {
+          return function link($scope, $element, $attrs, offcanvas) {
+
+            $element.bind("click", onClick);
+            $scope.$on("$destroy", onDestroy);
+            $scope.$watch(function () {
+              var $$class = offcanvas.$$class;
+
+              $element
+                .addClass($$class)
+                .toggleClass($$class + "--push-left", offcanvas.isVisible('left'))
+                .toggleClass($$class + "--push-right", offcanvas.isVisible('right'));
+            });
+
+            function onDestroy() {
+              $element.bind("click", onClick);
+            }
+
+            function onClick($event) {
+              offcanvas.setVisible(offcanvas.NONE);
+              $scope.$apply();
+            }
+          };
+        }
       };
     })
+
     .directive("offcanvasContent", function offcanvasContent() {
       return {
         require: '^offcanvas',
-        restrict: 'E',
-        replace: true,
-        transclude: true,
-        template: offcanvasContentHTML
+        restrict: 'EA',
+        compile: function () {
+          return function link($scope, $element, $attrs, offcanvas) {
+            var $$class = offcanvas.$$class + '__content';
+
+            $scope.$watch(
+              function () {
+                $element
+                  .addClass($$class)
+                  .attr("disabled", offcanvas.isVisible() || null);
+              });
+          };
+        }
       };
     })
+
     .directive("offcanvasLeft", function offcanvasLeft() {
+      var direction = "left";
       return {
-        compile: function ($element, attrs) {
-          return function link($scope, $element, attrs, offcanvas) {
-            $scope.direction = "left";
-          };
-        },
         require: '^offcanvas',
-        restrict: 'E',
-        replace: true,
-        transclude: true,
-        template: offcanvasPanelHTML,
-        scope: true
+        restrict: 'EA',
+        compile: function () {
+          return function link($scope, $element, $attrs, offcanvas) {
+            var $$class = offcanvas.$$class + '__' + direction;
+
+            $scope.$watch(function () {
+              $element
+                .addClass($$class)
+                .addClass($$class + "--" + direction)
+                .attr("pushed", offcanvas.isVisible(direction) || null);
+            });
+          };
+        }
       };
     })
+
     .directive("offcanvasRight", function offcanvasRight() {
+      var direction = "right";
       return {
-        compile: function ($element, attrs) {
-          return function link($scope, $element, attrs, offcanvas) {
-            $scope.direction = "right";
-          };
-        },
         require: '^offcanvas',
-        restrict: 'E',
-        replace: true,
-        transclude: true,
-        template: offcanvasPanelHTML,
-        scope: true
+        restrict: 'EA',
+        compile: function () {
+          return function link($scope, $element, $attrs, offcanvas) {
+            var $$class = offcanvas.$$class + '__' + direction;
+
+            $scope.$watch(function () {
+              $element
+                .addClass($$class)
+                .addClass($$class + "--" + direction)
+                .attr("pushed", offcanvas.isVisible(direction) || null);
+            });
+          };
+        }
       };
     });
 });
