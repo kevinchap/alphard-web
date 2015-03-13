@@ -111,7 +111,6 @@ define(['module', 'angular'], function (module, angular) {
             $scope.$watch(function () {
               $element
                 .addClass($$class)
-                .addClass($$class + "--" + direction)
                 .attr("pushed", offcanvas.isVisible(direction) || null);
             });
           };
@@ -131,7 +130,6 @@ define(['module', 'angular'], function (module, angular) {
             $scope.$watch(function () {
               $element
                 .addClass($$class)
-                .addClass($$class + "--" + direction)
                 .attr("pushed", offcanvas.isVisible(direction) || null);
             });
           };
