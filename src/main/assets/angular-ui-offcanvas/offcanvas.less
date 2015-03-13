@@ -7,6 +7,11 @@
 
 // Offcanvas mixins
 // --------------------------------------------------
+.offcanvas-translate-left(@left) {
+  left: @left;
+  //.offcanvas-transform(translate3d(@left, 0, 0));
+}
+
 .offcanvas-transition(@transition) {
   -webkit-transition: @transition;
   -moz-transition: @transition;
@@ -28,13 +33,6 @@
   -moz-transition-property: @props;
   -o-transition-property: @props;
   transition-property: @props;
-}
-
-.offcanvas-translate-fix() {
-  -webkit-backface-visibility: hidden;
-  -webkit-perspective: 1000;
-  backface-visibility: hidden;
-  perspective: 1000;
 }
 
 .offcanvas-overlay() {
@@ -109,12 +107,10 @@
   display: block;
   position: relative;
   width: 100%;
-  //left: 0;
-  .offcanvas-transform(translate3d(0, 0, 0));
   z-index: 1;
   overflow: auto;
   box-sizing: border-box;
-  .offcanvas-translate-fix();
+  .offcanvas-translate-left(0);
   .offcanvas-transition(all @offcanvas-translation-duration ease);
   .offcanvas-transition-property(top, left, right, bottom, height, transform, -moz-transform, -ms-transform, -webkit-transform);
 }
@@ -152,13 +148,11 @@
 // Offcanvas states
 // --------------------------------------------------
 .offcanvas--push-left > .offcanvas__content {
-  //left: @offcanvas-left-width;
-  .offcanvas-transform(translate3d(@offcanvas-left-width, 0, 0));
+  .offcanvas-translate-left(@offcanvas-left-width);
 }
 
 .offcanvas--push-right > .offcanvas__content {
-  //left: -@offcanvas-right-width;
-  .offcanvas-transform(translate3d(@offcanvas-left-width, 0, 0));
+  .offcanvas-translate-left(-@offcanvas-left-width);
 }
 
 // Offcanvas variants
