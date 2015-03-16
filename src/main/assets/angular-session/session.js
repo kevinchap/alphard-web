@@ -76,6 +76,7 @@ function (
            */
           function $new(opt_expiration, opt_reason) {
             _dispatchEvent($$eventExpiration, opt_reason || EXPIRATION_USER);
+            //lastReason = opt_reason || EXPIRATION_USER;
             _create(opt_expiration);
             return this;
           }
@@ -157,6 +158,7 @@ function (
             watchData();
           }
 
+          //var lastReason = null;
           var watchData = _watcher(
             function () {
               return {
@@ -167,6 +169,10 @@ function (
             function (dataNew, dataOld) {
               if (dataOld) {
                 if (dataNew.id !== dataOld.id) {
+                  //if (dataOld.id) {
+                    //_dispatchEvent($$eventExpiration, lastReason || EXPIRATION_TIMEOUT);
+                  //}
+                  //lastReason = null;
                   _dispatchEvent($$eventCreation);
                   _dispatchEvent($$eventChange, dataNew.data, {});
                 } else {
@@ -187,6 +193,8 @@ function (
             if (!isExpiring && expiredAt && expiredAt < _now()) {
               isExpiring = true;
               _dispatchEvent($$eventExpiration, EXPIRATION_TIMEOUT);
+
+              //lastReason = EXPIRATION_TIMEOUT;
               _create(null);
               isExpiring = false;
             }
@@ -235,12 +243,16 @@ function (
           }
 
           function _formatMessage(args) {
-            return ["[" + $$name + "]"].concat(Array.prototype.slice.call(args));
+            return ["[" + $$name + "]"].concat(args);
           }
 
           function _debug(var_args) {
             if (DEBUG) {
-              $log.debug.apply($log, _formatMessage(arguments));
+              var offset = 0;
+              for (var i = 0, l = arguments.length - offset, rest = new Array(l); i < l; ++i) {
+                rest[i] = arguments[i + offset];
+              }
+              $log.debug.apply($log, _formatMessage(rest));
             }
           }
 
@@ -251,6 +263,10 @@ function (
             EXPIRATION_INVALID: EXPIRATION_INVALID,
             EXPIRATION_USER: EXPIRATION_USER,
             EXPIRATION_TIMEOUT: EXPIRATION_TIMEOUT,
+
+            EVENT_CHANGE: $$eventChange,
+            EVENT_CREATION: $$eventCreation,
+            EVENT_EXPIRATION: $$eventExpiration,
 
             $id: $id,
             $new: $new,

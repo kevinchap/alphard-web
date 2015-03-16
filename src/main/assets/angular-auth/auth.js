@@ -113,6 +113,10 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         $auth.logoutURL = settings.logoutURL;
         $auth.accessErrorURL = settings.accessErrorURL;
 
+        //Constant
+        $auth.EVENT_LOGIN = $$eventLogin;
+        $auth.EVENT_LOGOUT = $$eventLogout;
+
         /**
          * @return {string}
          */
@@ -242,12 +246,16 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         }
 
         function _formatMessage(args) {
-          return ["[" + $$name + "]"].concat(Array.prototype.slice.call(args));
+          return ["[" + $$name + "]"].concat(args);
         }
 
         function _debug(var_args) {
           if (DEBUG) {
-            $log.debug.apply($log, _formatMessage(arguments));
+            var offset = 0;
+            for (var i = 0, l = arguments.length - offset, rest = new Array(l); i < l; ++i) {
+              rest[i] = arguments[i + offset];
+            }
+            $log.debug.apply($log, _formatMessage(rest));
           }
         }
 
@@ -330,7 +338,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
                   _debug('ACCESS ' + referrerURL + ' (OK)');
                 }
               } else {
-                _debug('ACCESS ' + referrerURL + ' (OK - Ignored)');
+                _debug('ACCESS ' + referrerURL + ' (OK - Passed)');
               }
             });
 
@@ -386,12 +394,17 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         //util
         function _formatMessage(args) {
-          return ["[$auth]"].concat(Array.prototype.slice.call(args));
+          return ["[$auth]"].concat(args);
         }
 
         function _debug(var_args) {
           if (DEBUG) {
-            $log.debug.apply($log, _formatMessage(arguments));
+            var offset = 0;
+            for (var i = 0, l = arguments.length - offset, rest = new Array(l); i < l; ++i) {
+              rest[i] = arguments[i + offset];
+            }
+
+            $log.debug.apply($log, _formatMessage(rest));
           }
         }
       }]);
