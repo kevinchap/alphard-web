@@ -252,6 +252,10 @@ function (
             EXPIRATION_USER: EXPIRATION_USER,
             EXPIRATION_TIMEOUT: EXPIRATION_TIMEOUT,
 
+            EVENT_CHANGE: $$eventChange,
+            EVENT_CREATION: $$eventCreation,
+            EVENT_EXPIRATION: $$eventExpiration,
+
             $id: $id,
             $new: $new,
             $data: $data,
