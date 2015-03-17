@@ -52,7 +52,8 @@ function (
         var $session = (function () {
           var INT_LIMIT = Math.pow(2, 32);
           var storage = $appStorageFactory(settings.storageKey, settings.storageType);
-          var isExpiring  = false;
+          var isExpiring = false;
+          var lastReason = null;
 
           var EXPIRATION_INVALID = 'ExpirationInvalid';
           var EXPIRATION_USER = 'ExpirationUser';
@@ -75,8 +76,7 @@ function (
            * @return {string}
            */
           function $new(opt_expiration, opt_reason) {
-            _dispatchEvent($$eventExpiration, opt_reason || EXPIRATION_USER);
-            _create(opt_expiration);
+            _create(opt_expiration, opt_reason || EXPIRATION_USER);
             return this;
           }
 
@@ -103,7 +103,8 @@ function (
           /**
            * Add an creation event handler
            *
-           * @param {function} fn
+           * @param {function($ev: Event)} fn
+           * @returns {function}
            */
           function $onCreate(fn) {
             return _addEventListener($$eventCreation, fn);
@@ -112,7 +113,8 @@ function (
           /**
            * Add an expiration event handler
            *
-           * @param {function} fn
+           * @param {function($ev: Event, reason: string, data: *)} fn
+           * @returns {function}
            */
           function $onChange(fn) {
             return _addEventListener($$eventChange, fn);
@@ -121,7 +123,8 @@ function (
           /**
            * Add an expiration event handler
            *
-           * @param {function} fn
+           * @param {function($ev: Event, reason: string, data: *)} fn
+           * @returns {function}
            */
           function $onExpire(fn) {
             return _addEventListener($$eventExpiration, fn);
@@ -146,7 +149,10 @@ function (
             $browser.addPollFn(_refresh)();
           }
 
-          function _create(expirationDelay) {
+          function _create(expirationDelay, expirationReason) {
+            lastReason = expirationReason;
+            //_dispatchEvent($$eventExpiration, expirationReason);
+
             var id  = _generateId();
             var now = _now();
 
@@ -155,6 +161,7 @@ function (
             storage.createdAt = now;
             storage.expiredAt = now + (expirationDelay || settings.expiration);
             watchData();
+            lastReason = null;
           }
 
           var watchData = _watcher(
@@ -167,6 +174,9 @@ function (
             function (dataNew, dataOld) {
               if (dataOld) {
                 if (dataNew.id !== dataOld.id) {
+                  if (dataOld.id) {
+                    _dispatchEvent($$eventExpiration, lastReason || EXPIRATION_TIMEOUT, dataOld);
+                  }
                   _dispatchEvent($$eventCreation);
                   _dispatchEvent($$eventChange, dataNew.data, {});
                 } else {
@@ -186,8 +196,7 @@ function (
             var expiredAt = storage.expiredAt;
             if (!isExpiring && expiredAt && expiredAt < _now()) {
               isExpiring = true;
-              _dispatchEvent($$eventExpiration, EXPIRATION_TIMEOUT);
-              _create(null);
+              _create(null, EXPIRATION_TIMEOUT);
               isExpiring = false;
             }
             watchData();
@@ -235,12 +244,16 @@ function (
           }
 
           function _formatMessage(args) {
-            return ["[" + $$name + "]"].concat(Array.prototype.slice.call(args));
+            return ["[" + $$name + "]"].concat(args);
           }
 
           function _debug(var_args) {
             if (DEBUG) {
-              $log.debug.apply($log, _formatMessage(arguments));
+              var offset = 0;
+              for (var i = 0, l = arguments.length - offset, rest = new Array(l); i < l; ++i) {
+                rest[i] = arguments[i + offset];
+              }
+              $log.debug.apply($log, _formatMessage(rest));
             }
           }
 

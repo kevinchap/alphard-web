@@ -43,7 +43,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
       if (Error.captureStackTrace) {
         Error.captureStackTrace(this, this.constructor);
       } else {
-        this.stack = (new Error()).stack; // IMPORTANT!
+        this.stack = (new Error()).stack;// IMPORTANT!
       }
     }
 
@@ -61,8 +61,18 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
    */
   var AuthRequiredError = (function (_super) {
 
-    function AuthRequiredError(message) {
-      _super.call(this, message);
+    /**
+     *
+     * @param {string} message
+     * @param {string=} opt_referrerUrl
+     * @constructor
+     */
+    function AuthRequiredError(message, opt_referrerUrl) {
+      _super.call(
+        this,
+        message + (opt_referrerUrl ? '(' + opt_referrerUrl + ')' : '')
+      );
+      this.referrerUrl = opt_referrerUrl || "";
     }
 
     AuthRequiredError.prototype = Object.create(_super.prototype);
@@ -71,11 +81,54 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
     AuthRequiredError.prototype.name = "AuthRequiredError";
 
+    AuthRequiredError.prototype.referrerUrl = "";
+
     return AuthRequiredError;
   }(AuthError));
 
   return angular
     .module(module.id, [ ngSession.name ])
+
+    /**
+     *
+     * Usage:
+     *
+     *   var value = null;
+     *   $userCache.put("foo", "bar");
+     *   value = $userCache.get("foo");//"bar"
+     *
+     *   $auth.logout();
+     *   value = $userCache.get("foo");//undefined
+     */
+    .provider("$userCache", function () {
+      this.$get = ["$auth", "$cacheFactory", function ($auth, $cacheFactory) {
+        var $userCache = $cacheFactory("$userCache");
+        var _removeAll = function () { $userCache.removeAll(); };
+        var _offLogin = $auth.$onLogin(_removeAll);
+        var _offLogout = $auth.$onLogout(_removeAll);
+
+        $userCache.destroy = (function (_super) {
+          function destroy() {
+            _offLogin();
+            _offLogout();
+            //free reference
+            _offLogin = null;
+            _offLogout = null;
+            _super.call($userCache);
+          }
+          return destroy;
+        }($userCache.destroy));
+
+
+        return $userCache;
+      }];
+    })
+
+    /**
+     * Usage:
+     *
+     *
+     */
     .provider("$auth", function $authProvider() {
       var $$name = "$auth";
       var $$eventLogin = $$name + ".login";
@@ -112,6 +165,10 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         $auth.loginURL = settings.loginURL;
         $auth.logoutURL = settings.logoutURL;
         $auth.accessErrorURL = settings.accessErrorURL;
+
+        //Constant
+        $auth.EVENT_LOGIN = $$eventLogin;
+        $auth.EVENT_LOGOUT = $$eventLogout;
 
         /**
          * @return {string}
@@ -174,10 +231,12 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         }
         $auth.isLogged = isLogged;
 
+
         /**
          * Call fn when `login` event is triggered
          *
-         * @param {function} fn($event, identifier, userData)
+         * @param {function($event: Event, identifier: string, userData: object):*} fn
+         * @returns {function}
          */
         function $onLogin(fn) {
           return _addEventListener($$eventLogin, fn);
@@ -187,7 +246,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         /**
          * Call fn when `logout` event is triggered
          *
-         * @param {function} fn($event, reason)
+         * @param {function($event: Event, identifier: string):*} fn
+         * @returns {function}
          */
         function $onLogout(fn) {
           return _addEventListener($$eventLogout, fn);
@@ -204,13 +264,13 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         });
 
         //watch expiration
-        $session.$onExpire(function ($event, reason) {
-          if (isLogged()) {
+        $session.$onExpire(function ($event, reason, sessionData) {
+          var $auth = _sessionStorage(sessionData.data);
+          if ($auth && $auth.isLogged) {
             _dispatchEvent($$eventLogout, reason);
           }
         });
-
-
+        
         $onLogin(function ($event, id, userData) {
           _debug('"' + id + '" logged in (id=', id, 'userData=', userData, ').');
         });
@@ -223,8 +283,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         //
 
         //util
-        function _sessionStorage(opt_target) {
-          var s = $session.$data();
+        function _sessionStorage(opt_data) {
+          var s = opt_data || $session.$data();
           return s[STORAGE_KEY] || (s[STORAGE_KEY] = {});
         }
 
@@ -242,12 +302,16 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         }
 
         function _formatMessage(args) {
-          return ["[" + $$name + "]"].concat(Array.prototype.slice.call(args));
+          return ["[" + $$name + "]"].concat(args);
         }
 
         function _debug(var_args) {
           if (DEBUG) {
-            $log.debug.apply($log, _formatMessage(arguments));
+            var offset = 0;
+            for (var i = 0, l = arguments.length - offset, rest = new Array(l); i < l; ++i) {
+              rest[i] = arguments[i + offset];
+            }
+            $log.debug.apply($log, _formatMessage(rest));
           }
         }
 
@@ -255,66 +319,59 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
       }];
     })
 
-  /**
-   * Route & State filters
-   */
-    .run(['$auth', '$injector', '$location', '$log', '$rootScope', '$timeout',
-      function ($auth, $injector, $location, $log, $rootScope, $timeout) {
+    /**
+     * Route & State filters
+     */
+    .run(['$auth', '$cacheFactory', '$injector', '$location', '$log', '$rootScope', '$timeout',
+      function ($auth, $cacheFactory, $injector, $location, $log, $rootScope, $timeout) {
+
+        function _debugAccess(url, status) {
+          _debug('ACCESS ' + url + ' (' + status + ')');
+        }
 
         function $routeInterceptor($route) {
           throw new Error('NotImplemented');
         }
 
         function $stateInterceptor($state) {
+          var $stateDataCache = $cacheFactory("$stateAuth");
+          var stateDataDefault = { required: false };
 
           //Getter for auth data configured in each route
-          function $stateAuthData(state, key) {
-            if (state.length !== 0) {
-              var stateData = $state.get(state);
-              var authData = stateData && stateData.$auth;
-              return (
-                authData && (key in authData) ? authData[key] :
-                  $stateAuthData(state.split(".").slice(0, -1).join("."), key)
-              );
+          function $stateAuthData(state) {
+            var stateAuthData = state ? $stateDataCache.get(state.name) : null;
+            if (stateAuthData === undefined) {
+              var stateParentData = $stateAuthData($stateParent(state));
+              stateAuthData = angular.extend({}, stateDataDefault, stateParentData, state.$auth);
+              $stateDataCache.put(state.name, stateAuthData);
             }
-            return null;
+            return stateAuthData;
           }
 
-          /*
-          function $stateAuthByRole(role) {
-            var states = $state.get();
-            var cache = $stateAuthByRole.cache || ($stateAuthByRole.cache = {});
-            var returnValue = cache[role];
-            if (!returnValue) {
-              for (var stateName in states) {
-                var stateData = states[stateName];
-                var authData = stateData.$auth;
-                if (
-                  !stateData.abstract &&
-                  authData &&
-                  authData[role]
-                ) {
-                  returnValue = cache[role] = stateName;
-                }
-              }
-            }
-            return returnValue;
-          }*/
+          function $stateParent(state) {
+            var parentName = state ? state.name.split(".").slice(0, -1).join(".") : "";
+            return parentName.length ? $state.get(parentName) : null;
+          }
 
           function $stateIgnored(state) {
             return false;
+          }
+
+          function $stateAuthRequired(state) {
+            return (
+              !$stateIgnored(state) && // location ignored
+              $stateAuthData(state).required
+            );
           }
 
           //Filter authentified route
           $rootScope.$on(EVENT_STATE_CHANGE_START,
             function ($event, toState, toParams, fromState, fromParams) {
               var referrerURL = $location.url();
-              var check = !$stateIgnored(toState.name) && // location ignored
-                $stateAuthData(toState.name, "required");
 
-              if (check) {
+              if ($stateAuthRequired(toState)) {
                 if (!$auth.isLogged()) {
-                  _debug('ACCESS ' + referrerURL + ' (Refused)');
+                  _debugAccess(referrerURL, 'Refused');
                   $event.preventDefault();//abort change start
                   $rootScope.$broadcast(EVENT_STATE_CHANGE_ERROR,
                     toState,
@@ -327,10 +384,10 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
                     )
                   );
                 } else {
-                  _debug('ACCESS ' + referrerURL + ' (OK)');
+                  _debugAccess(referrerURL, 'OK');
                 }
               } else {
-                _debug('ACCESS ' + referrerURL + ' (OK - Ignored)');
+                _debugAccess(referrerURL, 'OK - Passed');
               }
             });
 
@@ -339,7 +396,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
             function ($event, toState, toParams, fromState, fromParams, error) {
             var accessErrorURL = $auth.accessErrorURL;
             var referrerURL = $location.url();
-            if (accessErrorURL && error.name === 'AuthRequiredError') {
+            if (accessErrorURL && (error.name === AuthRequiredError.prototype.name)) {
               //mark as caught
               $event.preventDefault();
 
@@ -360,16 +417,18 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
             var logoutURL = $auth.logoutURL;
             var referrerURL = $location.url();
             if (logoutURL) {
-              $timeout(function () {
-                if (!$event.defaultPrevented) {
-                  $location
-                    .path(logoutURL)
-                    .search({
-                      reason: reason,
-                      referrer: referrerURL
-                    });
-                }
-              }, 0);
+              if ($stateAuthRequired($state.$current)) {
+                $timeout(function () {
+                  if (!$event.defaultPrevented) {
+                    $location
+                      .path($auth.accessErrorURL)
+                      .search({
+                        reason: AuthRequiredError.prototype.name,
+                        referrer: referrerURL
+                      });
+                  }
+                }, 0);
+              }
             }
           });
 
@@ -386,12 +445,16 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         //util
         function _formatMessage(args) {
-          return ["[$auth]"].concat(Array.prototype.slice.call(args));
+          return ["[$auth]"].concat(args);
         }
 
         function _debug(var_args) {
           if (DEBUG) {
-            $log.debug.apply($log, _formatMessage(arguments));
+            var offset = 0;
+            for (var i = 0, l = arguments.length - offset, rest = new Array(l); i < l; ++i) {
+              rest[i] = arguments[i + offset];
+            }
+            $log.debug.apply($log, _formatMessage(rest));
           }
         }
       }]);
