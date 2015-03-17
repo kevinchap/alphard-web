@@ -27,7 +27,7 @@ define(['module', 'text'], function (module, text) {
 
     /**
      * @param {string} name
-     * @param {function} normalizeFn
+     * @param {function(name: string): string} normalizeFn
      * @return {string}
      */
     function normalize(name, normalizeFn) {
@@ -51,12 +51,12 @@ define(['module', 'text'], function (module, text) {
      * Plugin loading definition
      *
      * @param {string} name
-     * @param {function} req
+     * @param {function} parentRequire
      * @param {function} onLoad
      * @param {object} config
      */
-    function load(name, req, onLoad, config) {
-      var url = require.toUrl(normalize(name));
+    function load(name, parentRequire, onLoad, config) {
+      var url = parentRequire.toUrl(normalize(name));
       if (!config.isBuild) {
         get(url, onLoad, onLoad.error);
       } else {
