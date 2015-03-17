@@ -179,7 +179,7 @@ define(['module'], function (module) {
 
     /**
      * @param {string} name
-     * @param {function} normalizeFn
+     * @param {function(name: string): string} normalizeFn
      * @return {string}
      */
     function normalize(name, normalizeFn) {
@@ -197,15 +197,15 @@ define(['module'], function (module) {
 
     /**
      * @param {string} name
-     * @param {object} req
+     * @param {object} parentRequire
      * @param {function} onLoad
      * @param {object} config
      */
-    function load(name, req, onLoad, config) {
+    function load(name, parentRequire, onLoad, config) {
       if (_isIncluded(name)) {
         onLoad();
       } else {
-        var url = require.toUrl(normalize(name));
+        var url = parentRequire.toUrl(normalize(name));
         var link = get(url, onLoad, onLoad.error);
         link.setAttribute(ATTR, name);
       }
