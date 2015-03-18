@@ -21,7 +21,7 @@ define(['module'], function (module) {
   'use strict';
 
   var moduleConfig = (module.config && module.config()) || {};
-  var DEBUG = moduleConfig.debug || false;
+  var DEBUG = !!moduleConfig.debug;
   var ANGULAR_NAME = moduleConfig.angular || 'angular';
 
   /**

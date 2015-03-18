@@ -13,7 +13,7 @@ define(['module'], function (module) {
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
-  var DEBUG = moduleConfig.debug;
+  var DEBUG = !!moduleConfig.debug;
 
   // Util
   function debug(var_args) {
