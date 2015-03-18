@@ -29,8 +29,15 @@ define(['module'], function (module) {
    */
   var ng = (function () {
 
-    function load(name, req, onLoad, config) {
-      req([ANGULAR_NAME, name], function (angular, moduleDefinition) {
+    /**
+     *
+     * @param {string} name
+     * @param {function} parentRequire
+     * @param {function} onLoad
+     * @param {string} config
+     */
+    function load(name, parentRequire, onLoad, config) {
+      parentRequire([ANGULAR_NAME, name], function (angular, moduleDefinition) {
         var percent = 0;
 
         function callback(result) {
@@ -76,10 +83,10 @@ define(['module'], function (module) {
 
           //progress loader
           for (var i = 0; i < depc; ++i) {
-            req([deps[i]], progressFn(1 / depc));
+            parentRequire([deps[i]], progressFn(1 / depc));
           }
 
-          req(deps, function () {
+          parentRequire(deps, function () {
             var ngModule;
             var resolvedDependencies = [];
             var angularDependencies = [];
