@@ -37,6 +37,10 @@ define(["module"], function (module) {
     var __encode = encodeURIComponent;
     var __jsonCallback = 'JSON_CALLBACK';
     var __jsonpId = 1;
+    var __async = "_async";
+    var __formatMessage = function (url, state) {
+      return "JSONP " + url + " (" + state + ")";
+    };
 
     /**
      * @param {string} name
@@ -56,8 +60,8 @@ define(["module"], function (module) {
     function get(url, opt_callback, opt_errback) {
       var parameterName = PARAM_NAME;
       var attrName = "_" + (++__jsonpId);
-      var callbackName = "requirejs.jsonp." + attrName;
-      var callbacks = requirejs.jsonp || (requirejs.jsonp = {});
+      var callbackName = "requirejs." + __async + "." + attrName;
+      var callbacks = requirejs[__async] || (requirejs[__async] = {});
       var headElement = _hostElement();
       var scriptElement;
 
@@ -78,21 +82,21 @@ define(["module"], function (module) {
       };
 
       //3. launch loading (script creation etc)
-      debug(url, "loading start");
+      debug(__formatMessage(url, 'Loading Start'));
       scriptElement = _createNode(url,
         function () {
-          debug(url, "loading success");
+          debug(__formatMessage(url, 'Loading Success'));
           _removeNode(scriptElement);
         },
         function () {
-          debug(url, "loading error");
+          debug(__formatMessage(url, 'Loading Failed'));
           if (callbacks[attrName]) {
             delete callbacks[attrName];
           }
           _removeNode(scriptElement);
 
           //send error to onerror hook or throw error
-          var error = new Error('GET ' + url + ' (Loading error)');
+          var error = new Error(__formatMessage(url, 'Loading error'));
           if (opt_errback) {
             opt_errback(error);
           } else {
