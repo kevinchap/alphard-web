@@ -56,24 +56,17 @@ define(['module', 'angular'], function (module, angular) {
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
 
-            $element.bind("click", onClick);
-            $scope.$on("$destroy", onDestroy);
             $scope.$watch(function () {
               var $$class = offcanvas.$$class;
 
               $element
                 .addClass($$class)
-                .toggleClass($$class + "--push-left", offcanvas.isVisible('left'))
-                .toggleClass($$class + "--push-right", offcanvas.isVisible('right'));
+                .toggleClass($$class + "--push-left", isVisible('left'))
+                .toggleClass($$class + "--push-right", isVisible('right'));
             });
 
-            function onDestroy() {
-              $element.bind("click", onClick);
-            }
-
-            function onClick($event) {
-              offcanvas.setVisible(offcanvas.NONE);
-              $scope.$apply();
+            function isVisible(s) {
+              return offcanvas.isVisible(s);
             }
           };
         }
@@ -88,11 +81,31 @@ define(['module', 'angular'], function (module, angular) {
           return function link($scope, $element, $attrs, offcanvas) {
             var $$class = offcanvas.$$class + '__content';
 
+            function isVisible() {
+              return offcanvas.isVisible();
+            }
+
+            function close() {
+              offcanvas.setVisible(offcanvas.NONE);
+            }
+
+            function onDestroy() {
+              $element.bind("click", onClick);
+            }
+
+            function onClick($event) {
+              if (isVisible()) {
+                close();
+              }
+              $scope.$apply();
+            }
+
+            $element.bind("click", onClick);
+            $scope.$on("$destroy", onDestroy);
             $scope.$watch(
               function () {
-                $element
-                  .addClass($$class)
-                  .attr("disabled", offcanvas.isVisible() || null);
+                $element.addClass($$class);
+                $element.attr("disabled", isVisible());
               });
           };
         }
@@ -109,9 +122,13 @@ define(['module', 'angular'], function (module, angular) {
             var $$class = offcanvas.$$class + '__' + direction;
 
             $scope.$watch(function () {
-              $element
-                .addClass($$class)
-                .attr("pushed", offcanvas.isVisible(direction) || null);
+              $element.addClass($$class);
+
+              if (offcanvas.isVisible(direction)) {
+                $element.attr("pushed", "");
+              } else {
+                $element.removeAttr("pushed");
+              }
             });
           };
         }
@@ -128,9 +145,13 @@ define(['module', 'angular'], function (module, angular) {
             var $$class = offcanvas.$$class + '__' + direction;
 
             $scope.$watch(function () {
-              $element
-                .addClass($$class)
-                .attr("pushed", offcanvas.isVisible(direction) || null);
+              $element.addClass($$class);
+
+              if (offcanvas.isVisible(direction)) {
+                $element.attr("pushed", "");
+              } else {
+                $element.removeAttr("pushed");
+              }
             });
           };
         }

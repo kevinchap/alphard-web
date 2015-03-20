@@ -21,7 +21,7 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
 
     /**
      * @param {string} name
-     * @param {function} normalizeFn
+     * @param {function(name: string): string} normalizeFn
      * @return {string}
      */
     function normalize(name, normalizeFn) {
@@ -68,12 +68,12 @@ define(['module', 'rpc', 'json'], function (module, rpc, json) {
      * Plugin loading definition
      *
      * @param {string} name
-     * @param {function} req
+     * @param {function} parentRequire
      * @param {function} onLoad
      * @param {object} config
      */
-    function load(name, req, onLoad, config) {
-      var url = require.toUrl(normalize(name));
+    function load(name, parentRequire, onLoad, config) {
+      var url = parentRequire.toUrl(normalize(name));
       var target = _extractTarget(url);
       get(
         url,
