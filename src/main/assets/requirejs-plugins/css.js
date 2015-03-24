@@ -55,19 +55,18 @@ define(['module'], function (module) {
       isSafari = true;
     }
 
-    var hasLinkOnLoad = isIE || isOP || isChrome || (!isSafari && ('onload' in __linkElement));
+    var hasLinkOnLoad = isIE || isOP || isChrome || (/*!isSafari && */('onload' in __linkElement));
 
     var supportWarn = _once(function () {
       _warn("<link/> does not support 'onload' event. Image loader enabled");
     });
 
-
     function CSSLoader() {
-      var self = this, Ctor = CSSLoader;
+      var self = this;
       if (self instanceof CSSLoader) {
         _super.call(self);
       } else {
-        return new Ctor();
+        return new CSSLoader();
       }
     }
 
@@ -93,19 +92,22 @@ define(['module'], function (module) {
     }
 
     function _domLoadCSS(href, opt_callback, opt_errback) {
-      debug(__formatMessage(href, "Loading Start"));
+      var message = __formatMessage(href, "Loading");
+
+      debug(message + " Start");
       var link, img;//hack loader
-      var onload = _once(function () {
-        debug(__formatMessage(href, "Loading Success"));
+      var onload = _once(function (imageLoader) {
+        debug(message + " Success" + (imageLoader ? " <img>" : ""));
         _domRemove(img);
         if (opt_callback) {
           opt_callback.call(link, null, true);
         }
       });
-      var onerror = _once(function () {
-        debug(__formatMessage(href, "Loading Failed"));
+      var onerror = _once(function (imageLoader) {
+        var errorMessage = message + " Failed" + (imageLoader ? " <img>" : "");
+        debug(errorMessage);
         _domRemove(img);
-        var error = new Error('Stylesheet failed to load:' + href);
+        var error = new Error(errorMessage);
         if (opt_errback) {
           opt_errback.call(link, error, null);
         } else {
@@ -113,13 +115,19 @@ define(['module'], function (module) {
         }
       });
 
-      link = _createLink(href, onload, onerror);
+      link = _createLink(href,
+        function () { onload(false); },
+        function () { onerror(false); }
+      );
       _domInsert(link);
 
       //image loader is a fallback
       if (!hasLinkOnLoad) {
-        img = _createImg(href, onload, onerror);
-        _domInsert(img);
+        img = _createImg(href,
+          function () { onload(true); },
+          function () { onerror(true); }
+        );
+        //_domInsert(img);
         supportWarn();//warn once
       }
       return link;
@@ -141,7 +149,7 @@ define(['module'], function (module) {
     }
 
     function _createImg(url, onload, onerror) {
-      var img = __doc.createElement('img');
+      var img = new Image();
       img.onload = onload;
       img.onerror = onerror;
       img.src = url;
