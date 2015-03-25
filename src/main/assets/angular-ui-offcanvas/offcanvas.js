@@ -90,17 +90,17 @@ define(['module', 'angular'], function (module, angular) {
             }
 
             function onDestroy() {
-              $element.bind("click", onClick);
+              $element.bind("mousedown", onMouseDown);
             }
 
-            function onClick($event) {
+            function onMouseDown($event) {
               if (isVisible()) {
                 close();
               }
               $scope.$apply();
             }
 
-            $element.bind("click", onClick);
+            $element.bind("mousedown", onMouseDown);
             $scope.$on("$destroy", onDestroy);
             $scope.$watch(
               function () {

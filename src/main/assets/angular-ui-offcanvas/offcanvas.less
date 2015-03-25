@@ -60,20 +60,15 @@
 
 // Offcanvas style
 // --------------------------------------------------
-//offcanvas,
 .offcanvas,
-//offcanvas-content,
 .offcanvas__content,
-//offcanvas-left,
 .offcanvas__left,
-//offcanvas-right,
 .offcanvas__right {
   background: @offcanvas-bg-color;
   height: 100%;
   box-sizing: border-box;
 }
 
-//offcanvas,
 .offcanvas {
   display: block;
   position: relative;
@@ -81,7 +76,6 @@
   overflow: hidden;
 }
 
-//offcanvas-content,
 .offcanvas__content {
   display: block;
   position: relative;
@@ -89,14 +83,13 @@
   //z-index: 1;
   overflow: auto;
   box-sizing: border-box;
-  .offcanvas-transition(all @offcanvas-translation-duration ease);
-  .offcanvas-transition-property(top, left, right, bottom, height, transform, -moz-transform, -ms-transform, -webkit-transform);
 }
 
-//offcanvas-left,
 .offcanvas__left,
-//offcanvas-right,
 .offcanvas__right {
+  .offcanvas-transition(all @offcanvas-translation-duration ease);
+  .offcanvas-transition-property(left, right);
+  .offcanvas-transform(translate3d(0, 0, 0));
   top: 0;
   position: absolute;
   z-index: @offcanvas-panel-z-index;
@@ -109,18 +102,16 @@
   }
 }
 
-//offcanvas-left,
 .offcanvas__left {
-  .offcanvas-transition(left @offcanvas-translation-duration ease);
   left: -@offcanvas-left-width;
+  //.offcanvas-transform(translate3d(-100%, 0, 0));
   //left: 0;
   width: @offcanvas-left-width;
 }
 
-//offcanvas-right,
 .offcanvas__right {
-  .offcanvas-transition(right @offcanvas-translation-duration ease);
   right: -@offcanvas-right-width;
+  //.offcanvas-transform(translate3d(100%, 0, 0));
   //right: 0;
   width: @offcanvas-right-width;
 }
@@ -129,18 +120,23 @@
 // --------------------------------------------------
 .offcanvas--push-left > .offcanvas__left {
   left: 0;
+  //.offcanvas-transform(translate3d(0, 0, 0));
 }
 .offcanvas--push-right > .offcanvas__right {
   right: 0;
+  //.offcanvas-transform(translate3d(0, 0, 0));
 }
 
 // Offcanvas variants
 // --------------------------------------------------
 .offcanvas--default {
-  //.offcanvas-overlay();
+  .offcanvas-overlay();
 
   .offcanvas__content {
     .offcanvas-overlay();
+    &:after {
+      position: fixed;
+    }
   }
 
   .offcanvas__left[pushed],
