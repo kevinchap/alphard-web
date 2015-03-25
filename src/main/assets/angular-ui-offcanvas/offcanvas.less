@@ -82,6 +82,7 @@
   width: 100%;
   //z-index: 1;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
@@ -95,7 +96,6 @@
   z-index: @offcanvas-panel-z-index;
 
   &[pushed] {
-    //z-index: @offcanvas-panel-z-index;
     display: block;
     overflow-x: hidden;
     overflow-y: auto;
@@ -104,15 +104,11 @@
 
 .offcanvas__left {
   left: -@offcanvas-left-width;
-  //.offcanvas-transform(translate3d(-100%, 0, 0));
-  //left: 0;
   width: @offcanvas-left-width;
 }
 
 .offcanvas__right {
   right: -@offcanvas-right-width;
-  //.offcanvas-transform(translate3d(100%, 0, 0));
-  //right: 0;
   width: @offcanvas-right-width;
 }
 
@@ -120,11 +116,9 @@
 // --------------------------------------------------
 .offcanvas--push-left > .offcanvas__left {
   left: 0;
-  //.offcanvas-transform(translate3d(0, 0, 0));
 }
 .offcanvas--push-right > .offcanvas__right {
   right: 0;
-  //.offcanvas-transform(translate3d(0, 0, 0));
 }
 
 // Offcanvas variants
