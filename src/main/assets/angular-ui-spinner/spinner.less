@@ -9,9 +9,11 @@
 
 // Spinner variable
 // --------------------------------------------------
+/*
 @spinner-height-small: @font-size-small + @padding-small-vertical;
 @spinner-height-base: @font-size-base + @padding-base-vertical;
 @spinner-height-large: @font-size-large + @padding-large-vertical;
+*/
 
 // Spinner Style
 // --------------------------------------------------
@@ -23,21 +25,11 @@
 
 // Spinner mixins
 // --------------------------------------------------
-.spinner-default-size(@diameter, @padding) {
-  height: @diameter;
-  width: @diameter;
-  padding: @padding;
-
-  .spinner__circle-0,
-  .spinner__circle-1 {
-    border-width: floor(@diameter / 10);
-  }
-}
 
 // Spinner Circle Rotate
 // --------------------------------------------------
 .spinner--default {
-  position: relative;
+  /*position: relative;
 
   & .spinner__circle-0,
   & .spinner__circle-1 {
@@ -105,5 +97,5 @@
   &.spinner--xs {
     .spinner-default-size(@spinner-height-small - @padding-small-vertical, 0);
   }
-
+  */
 }
