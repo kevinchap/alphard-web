@@ -81,13 +81,15 @@
   position: relative;
   width: 100%;
   //z-index: 1;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  //overflow: auto;
+  //-webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
 .offcanvas__left,
 .offcanvas__right {
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
   .offcanvas-transition(all @offcanvas-translation-duration ease);
   .offcanvas-transition-property(left, right);
   .offcanvas-transform(translate3d(0, 0, 0));
