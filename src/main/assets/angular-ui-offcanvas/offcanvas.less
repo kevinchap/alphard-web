@@ -64,8 +64,7 @@
 .offcanvas__content,
 .offcanvas__left,
 .offcanvas__right {
-  background: @offcanvas-bg-color;
-  height: 100%;
+  //height: 100%;
   box-sizing: border-box;
 }
 
@@ -73,13 +72,15 @@
   display: block;
   position: relative;
   width: 100%;
-  overflow: hidden;
+  height: 100%;
+  //overflow: hidden;
 }
 
 .offcanvas__content {
   display: block;
   position: relative;
   width: 100%;
+  height: 100%;
   //z-index: 1;
   //overflow: auto;
   //-webkit-overflow-scrolling: touch;
@@ -88,13 +89,14 @@
 
 .offcanvas__left,
 .offcanvas__right {
+  background: @offcanvas-bg-color;
   -webkit-backface-visibility: hidden;
   -webkit-perspective: 1000;
   .offcanvas-transition(all @offcanvas-translation-duration ease);
   .offcanvas-transition-property(left, right);
   .offcanvas-transform(translate3d(0, 0, 0));
   top: 0;
-  position: absolute;
+  position: fixed;
   z-index: @offcanvas-panel-z-index;
 
   &[pushed] {
@@ -107,11 +109,13 @@
 .offcanvas__left {
   left: -@offcanvas-left-width;
   width: @offcanvas-left-width;
+  height: 100%;
 }
 
 .offcanvas__right {
   right: -@offcanvas-right-width;
   width: @offcanvas-right-width;
+  height: 100%;
 }
 
 // Offcanvas states
