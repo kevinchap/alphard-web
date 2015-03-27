@@ -1,0 +1,15 @@
+<div class="{{$$class}}__runner">
+  <div range-handle="min"><i></i></div>
+  <div range-handle="max"><i></i></div>
+  <div range-join></div>
+</div>
+<div class="{{$$class}}__value-runner">
+  <div range-value="min"
+       ng-show="showValues">
+    <div>{{filteredModelMin}}</div>
+  </div>
+  <div range-value="max"
+       ng-show="showValues">
+    <div>{{filteredModelMax}}</div>
+  </div>
+</div>
