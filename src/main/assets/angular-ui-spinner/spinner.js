@@ -18,8 +18,10 @@ define(["module", "angular"], function (module, angular) {
     return isDefined(val) ? val : defaultValue;
   }
 
-  function cssClass(opt_suffix) {
-    return "spinner" + (opt_suffix ? "--" + ("" + opt_suffix).toLowerCase() : "");
+  function bem(prefix, sep) {
+    return function $bem(opt_suffix) {
+      return prefix + (opt_suffix ? sep + String(opt_suffix).toLowerCase() : "");
+    };
   }
 
   function debug(var_args) {
@@ -119,8 +121,9 @@ define(["module", "angular"], function (module, angular) {
      * </spinner>
      */
     .directive("spinner", ["$compile", "spinnerTemplate", function ($compile, spinnerTemplate) {
-        var $$class = cssClass();
-        var $$classActive = cssClass("active");
+        var $$class = "spinner";
+        var $m = bem($$class, "--");
+        var $$classActive = $m("active");
 
         function _readBoolean(v) {
           return v !== 'false' && v !== false;
@@ -173,11 +176,11 @@ define(["module", "angular"], function (module, angular) {
                 debug("variant=", variant);
 
                 if (variantOld) {
-                  $element.removeClass(cssClass(variantOld));
+                  $element.removeClass($m(variantOld));
                 }
                 if (variant) {
                   setContent();
-                  $element.addClass(cssClass(variant));
+                  $element.addClass($m(variant));
                 }
               });
               $scope.$watch("alt", function (altNew) {

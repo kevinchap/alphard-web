@@ -17,6 +17,25 @@ define(['module', 'angular'], function (module, angular) {
    * </offcanvas>
    */
 
+  //RequireJS Config
+  var config = (module.config && module.config()) || {};
+  function bem(prefix, sep) {
+    return function $bem(opt_suffix) {
+      return prefix + (opt_suffix ? sep + String(opt_suffix).toLowerCase() : "");
+    };
+  }
+
+  function debug(var_args) {
+    if (config.debug) {
+      var args = ['[' + module.id + ']'];
+      for (var i = 0, l = arguments.length; i < l; i++) {
+        args.push(arguments[i]);
+      }
+      console.debug.apply(console, args);
+    }
+  }
+
+  debug("config", config);
   return angular
     .module(module.id, [])
     .controller('OffCanvasController', ['$log', function ($log) {
@@ -41,11 +60,10 @@ define(['module', 'angular'], function (module, angular) {
       };
 
       self.$$class = "offcanvas";
-
-
     }])
 
     .directive("offcanvas", function offcanvas() {
+
       return {
         restrict: 'EA',
         //replace: true,
@@ -55,14 +73,13 @@ define(['module', 'angular'], function (module, angular) {
         controllerAs: "offcanvas",
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
+            var $m = bem(offcanvas.$$class, "--");
 
             $scope.$watch(function () {
-              var $$class = offcanvas.$$class;
-
               $element
-                .addClass($$class)
-                .toggleClass($$class + "--push-left", isVisible('left'))
-                .toggleClass($$class + "--push-right", isVisible('right'));
+                .addClass($m())
+                .toggleClass($m("push-left"), isVisible('left'))
+                .toggleClass($m("push-right"), isVisible('right'));
             });
 
             function isVisible(s) {
@@ -79,7 +96,7 @@ define(['module', 'angular'], function (module, angular) {
         restrict: 'EA',
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = offcanvas.$$class + '__content';
+            var $$class = bem(offcanvas.$$class, "__")("content");
 
             function isVisible() {
               return offcanvas.isVisible();
@@ -119,7 +136,7 @@ define(['module', 'angular'], function (module, angular) {
         restrict: 'EA',
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = offcanvas.$$class + '__' + direction;
+            var $$class = bem(offcanvas.$$class, "__")(direction);
 
             $scope.$watch(function () {
               $element.addClass($$class);
@@ -142,7 +159,7 @@ define(['module', 'angular'], function (module, angular) {
         restrict: 'EA',
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = offcanvas.$$class + '__' + direction;
+            var $$class = bem(offcanvas.$$class, "__")(direction);
 
             $scope.$watch(function () {
               $element.addClass($$class);
