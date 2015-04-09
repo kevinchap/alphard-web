@@ -40,40 +40,40 @@ define(['module', 'angular'], function (module, angular) {
     .module(module.id, [])
     .controller('OffCanvasController', ['$log', function ($log) {
       var self = this;
-      this.NONE = "none";
-      this.LEFT = "left";
-      this.RIGHT = "right";
+      var NONE = self.NONE = "none";
+      var LEFT = self.LEFT = "left";
+      var RIGHT = self.RIGHT = "right";
 
-      this.direction = this.NONE;
+      self.$$class = "offcanvas";
+      self.direction = NONE;
 
-      this.isVisible = function (opt_direction) {
-        return opt_direction ? opt_direction === this.direction : this.direction !== this.NONE;
+      self.isVisible = function (opt_direction) {
+        var direction = self.direction;
+        return opt_direction ? opt_direction === direction : direction !== NONE;
       };
 
-      this.setVisible = function (direction) {
-        if ([this.NONE, this.LEFT, this.RIGHT].indexOf(direction) < 0) {
+      self.setVisible = function (direction) {
+        if ([NONE, LEFT, RIGHT].indexOf(direction) < 0) {
           $log.warn('unknown direction ' + direction);
-          this.direction = this.NONE;
+          self.direction = NONE;
         } else {
-          this.direction = direction || this.NONE;
+          self.direction = direction || NONE;
         }
       };
 
-      self.$$class = "offcanvas";
+
     }])
 
     .directive("offcanvas", function offcanvas() {
 
       return {
-        restrict: 'EA',
-        //replace: true,
-        //transclude: true,
-        //template: offcanvasHTML,
+        restrict: "EA",
         controller: "OffCanvasController",
         controllerAs: "offcanvas",
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
             var $m = bem(offcanvas.$$class, "--");
+            var isVisible = offcanvas.isVisible;
 
             $scope.$watch(function () {
               $element
@@ -81,10 +81,6 @@ define(['module', 'angular'], function (module, angular) {
                 .toggleClass($m("push-left"), isVisible('left'))
                 .toggleClass($m("push-right"), isVisible('right'));
             });
-
-            function isVisible(s) {
-              return offcanvas.isVisible(s);
-            }
           };
         }
       };
