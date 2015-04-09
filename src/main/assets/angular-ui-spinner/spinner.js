@@ -10,6 +10,7 @@ define(["module", "angular"], function (module, angular) {
   var VARIANT_DEFAULT = config.variant || "default";
   var ALT_DEFAULT = config.alt || "loading";
   var ACTIVE_DEFAULT = true;
+  var CSS = ("css" in config) ? config.css : ("css!" + module.id);
 
   //util
   var isDefined = angular.isDefined;
@@ -121,79 +122,81 @@ define(["module", "angular"], function (module, angular) {
      * </spinner>
      */
     .directive("spinner", ["$compile", "spinnerTemplate", function ($compile, spinnerTemplate) {
-        var $$class = "spinner";
-        var $m = bem($$class, "--");
-        var $$classActive = $m("active");
+      var $$class = "spinner";
+      var $m = bem($$class, "--");
+      var $$classActive = $m("active");
 
-        function _readBoolean(v) {
-          return v !== 'false' && v !== false;
-        }
-        return {
-          restrict: "EA",
-          scope: {
-            name: "@",
-            variant: "@",
-            active: "@",
-            alt: "@"
-          },
-          compile: function (tElement) {
-            tElement
-              .attr(ARIA_VALUEMIN, 0)
-              .attr(ARIA_VALUEMAX, 100)
-              .attr(ROLE, 'progressbar');
+      function _readBoolean(v) {
+        return v !== 'false' && v !== false;
+      }
+      return {
+        restrict: "EA",
+        scope: {
+          name: "@",
+          variant: "@",
+          active: "@",
+          alt: "@"
+        },
+        compile: function (tElement) {
+          tElement
+            .attr(ARIA_VALUEMIN, 0)
+            .attr(ARIA_VALUEMAX, 100)
+            .attr(ROLE, 'progressbar');
 
-            return function link($scope, $element, $attrs) {
+          return function link($scope, $element, $attrs) {
 
-              function setContent() {
-                var variant = $scope.variant;
-                return spinnerTemplate
-                  .compile(variant)
-                  .then(function (templateCompiled) {
-                    if ($scope.variant === variant) {//safe guard
-                      $element.html('');
-                      if (templateCompiled) {
-                        templateCompiled($scope, function (clonedElement) {
-                          $element.append(clonedElement);
-                        });
-                      }
+            function setContent() {
+              var variant = $scope.variant;
+              return spinnerTemplate
+                .compile(variant)
+                .then(function (templateCompiled) {
+                  if ($scope.variant === variant) {//safe guard
+                    $element.html('');
+                    if (templateCompiled) {
+                      templateCompiled($scope, function (clonedElement) {
+                        $element.append(clonedElement);
+                      });
                     }
-                  });
+                  }
+                });
+            }
+
+            //lazyload css
+            if (CSS) {
+              require([ CSS ]);
+            }
+
+            //default values
+            $scope.variant = prop($scope, 'variant', VARIANT_DEFAULT);
+            $scope.active = prop($scope, 'active', ACTIVE_DEFAULT);
+            $scope.alt = prop($scope, 'alt', ALT_DEFAULT);
+
+            //watchers
+            $scope.$watch(function () {
+              $element.addClass($$class);
+            });
+            $scope.$watch("variant", function (variant, variantOld) {
+              debug("variant=", variant);
+
+              if (variantOld) {
+                $element.removeClass($m(variantOld));
               }
+              if (variant) {
+                setContent();
+                $element.addClass($m(variant));
+              }
+            });
+            $scope.$watch("alt", function (altNew) {
+              debug("alt=", altNew);
+              $attrs[ARIA_LABEL] = isDefined(altNew) ? altNew : null;
+            });
+            $scope.$watch("active", function (activeNew) {
+              debug("active=", activeNew);
+              $element.toggleClass($$classActive, _readBoolean(activeNew));
+            });
 
-              //lazyload css
-              //require(["css!spinner/spinner"]);
-
-              //default values
-              $scope.variant = prop($scope, 'variant', VARIANT_DEFAULT);
-              $scope.active = prop($scope, 'active', ACTIVE_DEFAULT);
-              $scope.alt = prop($scope, 'alt', ALT_DEFAULT);
-
-              //watchers
-              $scope.$watch(function () {
-                $element.addClass($$class);
-              });
-              $scope.$watch("variant", function (variant, variantOld) {
-                debug("variant=", variant);
-
-                if (variantOld) {
-                  $element.removeClass($m(variantOld));
-                }
-                if (variant) {
-                  setContent();
-                  $element.addClass($m(variant));
-                }
-              });
-              $scope.$watch("alt", function (altNew) {
-                debug("alt=", altNew);
-                $attrs[ARIA_LABEL] = isDefined(altNew) ? altNew : null;
-              });
-              $scope.$watch("active", function (activeNew) {
-                debug("active=", activeNew);
-                $element.toggleClass($$classActive, _readBoolean(activeNew));
-              });
-
-            };
-          }
-        };
-      }]);
+          };
+        }
+      };
+    }]);
 });
