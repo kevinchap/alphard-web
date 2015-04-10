@@ -60,5 +60,5 @@ define([
 ], function () {
   "use strict";
 
-  return window.google.maps;
+  return google.maps;
 });
