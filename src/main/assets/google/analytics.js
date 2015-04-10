@@ -35,8 +35,9 @@ define(['module'], function (module) {
         gaLoaded = true;
         var isSecured = 'https:' == window.location.protocol;
         var scriptElement = document.createElement('script');
-        scriptElement.async = true;
         scriptElement.type = 'text/javascript';
+        scriptElement.charset = "utf-8";
+        scriptElement.async = true;
         scriptElement.src =
           (isSecured ? 'https://ssl' : 'http://www') +
           '.google-analytics.com/' +
