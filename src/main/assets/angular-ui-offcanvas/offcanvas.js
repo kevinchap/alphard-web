@@ -19,6 +19,9 @@ define(['module', 'angular'], function (module, angular) {
 
   //RequireJS Config
   var config = (module.config && module.config()) || {};
+  var DISABLED = "disabled";
+  var PUSHED = "pushed";
+
   function bem(prefix, sep) {
     return function $bem(opt_suffix) {
       return prefix + (opt_suffix ? sep + String(opt_suffix).toLowerCase() : "");
@@ -78,8 +81,8 @@ define(['module', 'angular'], function (module, angular) {
             $scope.$watch(function () {
               $element
                 .addClass($m())
-                .toggleClass($m("push-left"), isVisible('left'))
-                .toggleClass($m("push-right"), isVisible('right'));
+                .toggleClass($m("push-left"), isVisible(offcanvas.LEFT))
+                .toggleClass($m("push-right"), isVisible(offcanvas.RIGHT));
             });
           };
         }
@@ -118,7 +121,7 @@ define(['module', 'angular'], function (module, angular) {
             $scope.$watch(
               function () {
                 $element.addClass($$class);
-                $element.attr("disabled", isVisible());
+                $element.attr(DISABLED, isVisible());
               });
           };
         }
@@ -133,14 +136,14 @@ define(['module', 'angular'], function (module, angular) {
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
             var $$class = bem(offcanvas.$$class, "__")(direction);
+            var isVisible = offcanvas.isVisible;
 
             $scope.$watch(function () {
               $element.addClass($$class);
-
-              if (offcanvas.isVisible(direction)) {
-                $element.attr("pushed", "");
+              if (isVisible(direction)) {
+                $element.attr(PUSHED, "");
               } else {
-                $element.removeAttr("pushed");
+                $element.removeAttr(PUSHED);
               }
             });
           };
@@ -156,14 +159,15 @@ define(['module', 'angular'], function (module, angular) {
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
             var $$class = bem(offcanvas.$$class, "__")(direction);
+            var isVisible = offcanvas.isVisible;
 
             $scope.$watch(function () {
               $element.addClass($$class);
 
-              if (offcanvas.isVisible(direction)) {
-                $element.attr("pushed", "");
+              if (isVisible(direction)) {
+                $element.attr(PUSHED, "");
               } else {
-                $element.removeAttr("pushed");
+                $element.removeAttr(PUSHED);
               }
             });
           };
