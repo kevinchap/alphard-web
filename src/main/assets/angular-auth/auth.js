@@ -196,13 +196,13 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           if (isLogged()) {
             _throwError("AlreadyLogged");
           }
-          $session.$new(opt_expiration);
-          var storage = _sessionStorage();
-          storage.id = identifier;
-          storage.user = userData;
-          storage.isLogged = true;
-
-          _dispatchEvent($$eventLogin, storage.id, storage.user);
+          var sessionData = {};
+          sessionData[STORAGE_KEY] = {
+            id: identifier,
+            user: userData,
+            isLogged: true
+          };
+          $session.$new(sessionData, opt_expiration);
         }
         $auth.login = login;
 
@@ -215,7 +215,7 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         function logout(opt_reason) {
           var result = isLogged();
           if (result) {
-            $session.$new(null, opt_reason);
+            $session.$new(null, null, opt_reason);
           }
           return result;
         }
@@ -254,14 +254,22 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         }
         $auth.$onLogout = $onLogout;
 
-        //watch data
+        //watch creation
+        $session.$onCreate(function ($event, sessionData) {
+          var $auth = _sessionStorage(sessionData.data);
+          if ($auth.isLogged) {
+            _dispatchEvent($$eventLogin, $auth.id, $auth.user);
+          }
+        });
+
+/*
         $session.$onChange(function ($event, dataNew, dataOld) {
           var authNew = dataNew[STORAGE_KEY] || {};
           var authOld = dataOld[STORAGE_KEY] || {};
           if (authNew.isLogged && !authOld.isLogged) {
             _dispatchEvent($$eventLogin, authNew.id, authNew.user);
           }
-        });
+        });*/
 
         //watch expiration
         $session.$onExpire(function ($event, reason, sessionData) {
@@ -292,8 +300,13 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
           return $rootScope.$on(eventName, fn);
         }
 
-        function _dispatchEvent(eventName, $1, $2) {
-          return $rootScope.$broadcast(eventName, $1, $2);
+        function _dispatchEvent(eventName) {
+          switch (arguments.length) {
+            case 1: $rootScope.$broadcast(eventName); break;
+            case 2: $rootScope.$broadcast(eventName, arguments[1]); break;
+            case 3: $rootScope.$broadcast(eventName, arguments[1], arguments[2]); break;
+            case 4: $rootScope.$broadcast(eventName, arguments[1], arguments[2], arguments[3]); break;
+          }
         }
 
         function _throwError(message, opt_type) {

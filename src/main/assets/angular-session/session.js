@@ -71,13 +71,14 @@ function (
           /**
            * Create a new session
            *
+           * @param {object=} opt_data
            * @param {number=} opt_expiration
            * @param {string=} opt_reason
            * @return {string}
            */
-          function $new(opt_expiration, opt_reason) {
-            _create(opt_expiration, opt_reason || EXPIRATION_USER);
-            return this;
+          function $new(opt_data, opt_expiration, opt_reason) {
+            _create(opt_data, opt_expiration, opt_reason || EXPIRATION_USER);
+            return $session;
           }
 
           /**
@@ -87,7 +88,7 @@ function (
            */
           function $data() {
             _refresh();
-            return storage.data;
+            return (storage.data || (storage.data = {}));
           }
 
           /**
@@ -96,8 +97,13 @@ function (
            * @return {object}
            */
           function $clear() {
-            angular.copy({}, storage.data || (storage.data = {}));
+            storage.data = {};
             return this;
+          }
+
+          function $sync() {
+            _refresh();
+            return $session;
           }
 
           /**
@@ -149,17 +155,19 @@ function (
             $browser.addPollFn(_refresh)();
           }
 
-          function _create(expirationDelay, expirationReason) {
+          function _create(data, expirationDelay, expirationReason) {
             lastReason = expirationReason;
             //_dispatchEvent($$eventExpiration, expirationReason);
 
             var id  = _generateId();
             var now = _now();
-
             $clear();
             storage.id = id;
             storage.createdAt = now;
             storage.expiredAt = now + (expirationDelay || settings.expiration);
+            if (data) {
+              angular.copy(data, storage.data);
+            }
             watchData();
             lastReason = null;
           }
@@ -173,11 +181,14 @@ function (
             },
             function (dataNew, dataOld) {
               if (dataOld) {
+                dataNew = angular.copy(dataNew);
+                dataOld = angular.copy(dataOld);
+
                 if (dataNew.id !== dataOld.id) {
                   if (dataOld.id) {
                     _dispatchEvent($$eventExpiration, lastReason || EXPIRATION_TIMEOUT, dataOld);
                   }
-                  _dispatchEvent($$eventCreation);
+                  _dispatchEvent($$eventCreation, dataNew);
                   _dispatchEvent($$eventChange, dataNew.data, {});
                 } else {
                   _dispatchEvent($$eventChange, dataNew.data, dataOld.data);
@@ -196,7 +207,7 @@ function (
             var expiredAt = storage.expiredAt;
             if (!isExpiring && expiredAt && expiredAt < _now()) {
               isExpiring = true;
-              _create(null, EXPIRATION_TIMEOUT);
+              _create({}, null, EXPIRATION_TIMEOUT);
               isExpiring = false;
             }
             watchData();
@@ -210,8 +221,13 @@ function (
             return $rootScope.$on(eventName, fn);
           }
 
-          function _dispatchEvent(eventName, $1, $2) {
-            $rootScope.$broadcast(eventName, $1, $2);
+          function _dispatchEvent(eventName) {
+            switch (arguments.length) {
+              case 1: $rootScope.$broadcast(eventName); break;
+              case 2: $rootScope.$broadcast(eventName, arguments[1]); break;
+              case 3: $rootScope.$broadcast(eventName, arguments[1], arguments[2]); break;
+              case 4: $rootScope.$broadcast(eventName, arguments[1], arguments[2], arguments[3]); break;
+            }
           }
 
           function _now() {
@@ -273,6 +289,7 @@ function (
             $new: $new,
             $data: $data,
             $clear: $clear,
+            $sync: $sync,
 
             $onCreate: $onCreate,
             $onChange: $onChange,

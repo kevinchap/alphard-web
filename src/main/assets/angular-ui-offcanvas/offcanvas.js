@@ -17,57 +17,73 @@ define(['module', 'angular'], function (module, angular) {
    * </offcanvas>
    */
 
+  //RequireJS Config
+  var config = (module.config && module.config()) || {};
+  var DISABLED = "disabled";
+  var PUSHED = "pushed";
+
+  function bem(prefix, sep) {
+    return function $bem(opt_suffix) {
+      return prefix + (opt_suffix ? sep + String(opt_suffix).toLowerCase() : "");
+    };
+  }
+
+  function debug(var_args) {
+    if (config.debug) {
+      var args = ['[' + module.id + ']'];
+      for (var i = 0, l = arguments.length; i < l; i++) {
+        args.push(arguments[i]);
+      }
+      console.debug.apply(console, args);
+    }
+  }
+
+  debug("config", config);
   return angular
     .module(module.id, [])
     .controller('OffCanvasController', ['$log', function ($log) {
       var self = this;
-      this.NONE = "none";
-      this.LEFT = "left";
-      this.RIGHT = "right";
-
-      this.direction = this.NONE;
-
-      this.isVisible = function (opt_direction) {
-        return opt_direction ? opt_direction === this.direction : this.direction !== this.NONE;
-      };
-
-      this.setVisible = function (direction) {
-        if ([this.NONE, this.LEFT, this.RIGHT].indexOf(direction) < 0) {
-          $log.warn('unknown direction ' + direction);
-          this.direction = this.NONE;
-        } else {
-          this.direction = direction || this.NONE;
-        }
-      };
+      var NONE = self.NONE = "none";
+      var LEFT = self.LEFT = "left";
+      var RIGHT = self.RIGHT = "right";
 
       self.$$class = "offcanvas";
+      self.direction = NONE;
+
+      self.isVisible = function (opt_direction) {
+        var direction = self.direction;
+        return opt_direction ? opt_direction === direction : direction !== NONE;
+      };
+
+      self.setVisible = function (direction) {
+        if ([NONE, LEFT, RIGHT].indexOf(direction) < 0) {
+          $log.warn('unknown direction ' + direction);
+          self.direction = NONE;
+        } else {
+          self.direction = direction || NONE;
+        }
+      };
 
 
     }])
 
     .directive("offcanvas", function offcanvas() {
+
       return {
-        restrict: 'EA',
-        //replace: true,
-        //transclude: true,
-        //template: offcanvasHTML,
+        restrict: "EA",
         controller: "OffCanvasController",
         controllerAs: "offcanvas",
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
+            var $m = bem(offcanvas.$$class, "--");
+            var isVisible = offcanvas.isVisible;
 
             $scope.$watch(function () {
-              var $$class = offcanvas.$$class;
-
               $element
-                .addClass($$class)
-                .toggleClass($$class + "--push-left", isVisible('left'))
-                .toggleClass($$class + "--push-right", isVisible('right'));
+                .addClass($m())
+                .toggleClass($m("push-left"), isVisible(offcanvas.LEFT))
+                .toggleClass($m("push-right"), isVisible(offcanvas.RIGHT));
             });
-
-            function isVisible(s) {
-              return offcanvas.isVisible(s);
-            }
           };
         }
       };
@@ -79,7 +95,7 @@ define(['module', 'angular'], function (module, angular) {
         restrict: 'EA',
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = offcanvas.$$class + '__content';
+            var $$class = bem(offcanvas.$$class, "__")("content");
 
             function isVisible() {
               return offcanvas.isVisible();
@@ -105,7 +121,7 @@ define(['module', 'angular'], function (module, angular) {
             $scope.$watch(
               function () {
                 $element.addClass($$class);
-                $element.attr("disabled", isVisible());
+                $element.attr(DISABLED, isVisible());
               });
           };
         }
@@ -119,15 +135,15 @@ define(['module', 'angular'], function (module, angular) {
         restrict: 'EA',
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = offcanvas.$$class + '__' + direction;
+            var $$class = bem(offcanvas.$$class, "__")(direction);
+            var isVisible = offcanvas.isVisible;
 
             $scope.$watch(function () {
               $element.addClass($$class);
-
-              if (offcanvas.isVisible(direction)) {
-                $element.attr("pushed", "");
+              if (isVisible(direction)) {
+                $element.attr(PUSHED, "");
               } else {
-                $element.removeAttr("pushed");
+                $element.removeAttr(PUSHED);
               }
             });
           };
@@ -142,15 +158,16 @@ define(['module', 'angular'], function (module, angular) {
         restrict: 'EA',
         compile: function () {
           return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = offcanvas.$$class + '__' + direction;
+            var $$class = bem(offcanvas.$$class, "__")(direction);
+            var isVisible = offcanvas.isVisible;
 
             $scope.$watch(function () {
               $element.addClass($$class);
 
-              if (offcanvas.isVisible(direction)) {
-                $element.attr("pushed", "");
+              if (isVisible(direction)) {
+                $element.attr(PUSHED, "");
               } else {
-                $element.removeAttr("pushed");
+                $element.removeAttr(PUSHED);
               }
             });
           };

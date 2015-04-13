@@ -136,9 +136,10 @@ define(["module"], function (module) {
     function _createNode(url, onload, onerror) {
       var done = false;
       var scriptElement = document.createElement('script');
-
-      scriptElement.src = url;
+      scriptElement.type = "text/javascript";
+      scriptElement.charset = "utf-8";
       scriptElement.async = true;
+      scriptElement.src = url;
 
       scriptElement.onload =
         scriptElement.onreadystatechange = function () {
