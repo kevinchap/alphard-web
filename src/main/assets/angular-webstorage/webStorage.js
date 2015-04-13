@@ -57,8 +57,19 @@ define(['module', 'angular'], function (module, angular) {
     .provider("$webStorage", function $webStorageProvider() {
       this.$get = ['$log', '$rootScope', '$window', function ($log, $rootScope, $window) {
         function windowStorage(name) {
-          var storageSupported = !!$window[name];
-          var storage = $window[name] || new MemoryStorage();
+          var storageSupported = (function () {
+            var testKey = 'localStorageTest' + Math.random();
+            var storage = $window[name];
+            var returnValue = false;
+            try {
+              //Safari in private mode can throw error
+              storage.setItem(testKey, 1);
+              storage.removeItem(testKey);
+              returnValue = true;
+            } catch (e) {}
+            return returnValue;
+          }());
+          var storage = storageSupported ? $window[name] : new MemoryStorage();
           var $$name = '$' + name;
           var $$eventName = $$name + ".change";
 
