@@ -68,7 +68,7 @@ define(["module", "angular"], function (module, angular) {
             returnValue = filters[i](returnValue);
           }
           returnValue = __strNullable(returnValue);
-          debug(r, "->", returnValue);
+          debug("format(", u, ") ->", returnValue);
           return returnValue;
         };
 
