@@ -23,6 +23,8 @@ define([
   return angular
     .module(module.id, [ ngWebStorage.name ])
     .provider("$appStorageFactory", function $appStorageFactoryProvider() {
+      var equals = angular.equals;
+      var copy = angular.copy;
       var settings = {
         prefix: ""
       };
@@ -53,8 +55,7 @@ define([
             AppStorage.prototype.constructor = AppStorage;
             return AppStorage;
           }(Object));
-          
-          
+
           var fullname = settings.prefix + name;
           var type = opt_type || "local";
           var $storage = $webStorage(type);
@@ -75,22 +76,23 @@ define([
           }
 
           function hasLocalChanges() {
-            return !angular.equals(data, dataOld);
+            return !equals(data, dataOld);
           }
 
           function pull() {
-            var storageData = $storage[fullname];
+            var storageData = $storage.getItem(fullname);
             storageData = storageData ? angular.fromJson(storageData) : null;
-            if (!angular.equals(storageData, data)) {
-              angular.copy(storageData, data);
-              dataOld = angular.copy(storageData);
+            if (!equals(storageData, data)) {
+              copy(storageData, data);
+              dataOld = copy(storageData);
             }
           }
 
           function push() {
             if (hasLocalChanges()) {
-              angular.copy(data, dataOld);
-              $storage[fullname] = angular.toJson(data);
+              copy(data, dataOld);
+              $storage.setItem(fullname, angular.toJson(data));
+              //$storage[fullname] = angular.toJson(data);
             }
           }
 

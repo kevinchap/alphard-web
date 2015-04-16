@@ -131,8 +131,17 @@ define(["module", "angular"], function (module, angular) {
       return {
         priority: 100, // it needs to run after the attributes are interpolated
         link: function ($scope, $element, $attrs) {
+          var srcOld;
+
           $attrs.$observe('src', function (src) {
-            $attrs.$set('src', $url(src));
+            if (src !== srcOld) {
+              srcOld = src;
+              var srcFiltered = $url(src);
+              if (srcFiltered !== src) {
+                debug($element[0], "src=", srcFiltered);
+                $attrs.$set('src', srcFiltered);
+              }
+            }
           });
         }
       };
