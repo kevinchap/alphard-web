@@ -99,7 +99,7 @@ define([], function () {
 
     /**
      *
-     * @param {HTMLElement} element
+     * @param {Element} element
      * @param {string|Array<string>} classStr
      * @returns {boolean}
      */
@@ -111,7 +111,7 @@ define([], function () {
 
     /**
      *
-     * @param {HTMLElement} element
+     * @param {Element} element
      * @param {string|Array<string>} classStr
      */
     function add(element, classStr) {
@@ -122,7 +122,7 @@ define([], function () {
 
     /**
      *
-     * @param {HTMLElement} element
+     * @param {Element} element
      * @param {string|Array<string>=} opt_classStr
      */
     function remove(element, opt_classStr) {
@@ -133,7 +133,7 @@ define([], function () {
 
     /**
      *
-     * @param {HTMLElement} element
+     * @param {Element} element
      * @param {string|Array<string>} classStr
      * @param {boolean=} opt_condition
      * @returns {*}

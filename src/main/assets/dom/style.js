@@ -5,6 +5,15 @@ define([], function () {
    * style module
    */
   var style = (function (_exports) {
+    var __keys = Object.keys || function (o) {
+      var keys = [];
+      for (var prop in o) {
+        if (o.hasOwnProperty(prop)) {
+          keys.push(prop);
+        }
+      }
+      return keys;
+    };
     var testElement = document.createElement("div");
     var hasCurrentStyle = !!testElement.currentStyle;
     var hooks = [];
@@ -69,7 +78,7 @@ define([], function () {
      * @param {object} style
      */
     function update(element, style) {
-      var keys = Object.keys(style), key;
+      var keys = __keys(style), key;
       for (var i = 0, l = keys.length; i < l; ++i) {
         key = keys[i];
         _set(element, key, style[key]);
