@@ -13,8 +13,15 @@
 define([], function () {
   'use strict';
 
+  //Util
+  var __str = function (o) { return "" + o; };
+  var __encode = encodeURIComponent;
+  var __stack = Error.captureStackTrace || function () {};
+
   /*jshint evil:true */
-  var global = (new Function('return this')).call(null);
+  var global = typeof window !== "undefined " ? window :
+    typeof global !== "undefined " ? global :
+    (new Function('return this')).call(null);
   /*jshint evil:false */
 
   /**
@@ -29,13 +36,13 @@ define([], function () {
     var JSONPError = (function (_super) {
       /**
        * @constructor
-       * @param {*} value
+       * @param {*} message
        */
       function JSONPError(message) {
         if (this instanceof JSONPError) {
           _super.call(this);
           this.message = message;
-          //__stack(this, this.constructor);
+          __stack(this, this.constructor);
         } else {
           return new JSONPError(message);
         }
@@ -59,12 +66,9 @@ define([], function () {
       var JSON_CALLBACK = 'JSON_CALLBACK';
       var GLOBAL_VAR = "__jsonp__";
 
-      var
-      str    = String,
-      id     = 0,
-      doc    = global.document,
-      encode = encodeURIComponent,
-      head   = doc && doc.getElementsByTagName("head")[0];
+      var id = 0;
+      var doc = global.document;
+      var head = doc && doc.getElementsByTagName("head")[0];
 
       /**
        * @constructor
@@ -110,8 +114,8 @@ define([], function () {
         }
 
         var self = this;
-        var parameterName = str(this._parameterName);
-        var url = str(this._url);
+        var parameterName = __str(this._parameterName);
+        var url = __str(this._url);
         var attrName = "_" + (++id);
         var callbackName = GLOBAL_VAR + "." + attrName;
         var callbacks = global[GLOBAL_VAR] || (global[GLOBAL_VAR] = {});
@@ -119,10 +123,10 @@ define([], function () {
 
         //1. form the url
         if (url.indexOf(JSON_CALLBACK) >= 0) {
-          url = url.replace(JSON_CALLBACK, encode(callbackName));
+          url = url.replace(JSON_CALLBACK, __encode(callbackName));
         } else {
           url += url.indexOf('?') < 0 ? '?' : '&';
-          url += encode(parameterName) + '=' + encode(callbackName);
+          url += __encode(parameterName) + '=' + __encode(callbackName);
         }
 
         //2. set callback
@@ -158,9 +162,8 @@ define([], function () {
       };
 
       function _createNode(url, onload, onerror) {
-        var
-        done = false,
-        script = doc.createElement('script');
+        var done = false;
+        var script = doc.createElement('script');
 
         script.src = url;
         script.async = true;
