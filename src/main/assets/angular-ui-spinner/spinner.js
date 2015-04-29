@@ -57,10 +57,22 @@ define(["module", "angular"], function (module, angular) {
         var $compiledCache = $cacheFactory("spinnerTemplate");
         var $empty = $q.when("");
 
+        /**
+         * Return an url from a variant name
+         *
+         * @param {string} variant
+         * @returns {string}
+         */
         function url(variant) {
           return module.id + "--" + variant + ".html";
         }
 
+        /**
+         * Return a promise of a variant template
+         *
+         * @param {string} variant
+         * @returns {Promise<string>}
+         */
         function get(variant) {
           var u = url(variant);
           return isDefined(u) ? $http
@@ -70,6 +82,13 @@ define(["module", "angular"], function (module, angular) {
             }) : $empty;
         }
 
+        /**
+         * Cache get/set variant template
+         *
+         * @param {string} variant
+         * @param {string=} opt_templateContent
+         * @returns {string}
+         */
         function cache(variant, opt_templateContent) {
           var u = url(variant);
           if (isDefined(u)) {
@@ -82,6 +101,11 @@ define(["module", "angular"], function (module, angular) {
           }
         }
 
+        /**
+         *
+         * @param {string} variant
+         * @returns {Promise<function>}
+         */
         function compile(variant) {
           var cacheKey = url(variant);
           var compiled = $compiledCache.get(cacheKey);
