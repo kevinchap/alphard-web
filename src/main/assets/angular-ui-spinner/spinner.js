@@ -70,10 +70,15 @@ define(["module", "angular"], function (module, angular) {
             }) : $empty;
         }
 
-        function put(variant, templateContent) {
+        function cache(variant, opt_templateContent) {
           var u = url(variant);
           if (isDefined(u)) {
-            $templateCache.put(u, templateContent);
+            if (arguments.length > 1) {
+              $templateCache.put(u, opt_templateContent);
+              return opt_templateContent;
+            } else {
+              return $templateCache.get(u);
+            }
           }
         }
 
@@ -98,13 +103,13 @@ define(["module", "angular"], function (module, angular) {
         }
 
         //Default Variant templates
-        put(VARIANT_DEFAULT, "");
+        cache(VARIANT_DEFAULT, "");
 
         return {
           url: url,
           compile: compile,
           get: get,
-          put: put
+          cache: cache
         };
       }];
 
