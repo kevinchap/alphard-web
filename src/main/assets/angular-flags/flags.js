@@ -41,7 +41,7 @@ define(["module", "angular"], function (module, angular) {
      */
     .directive("flag", [function () {
       var $$class = "flag-icon";
-      var $m = bem($$class, "--");
+      var $m = bem($$class, "-");
 
       function _countryCode(s) {
         var returnValue = str(s);
@@ -66,8 +66,8 @@ define(["module", "angular"], function (module, angular) {
             $scope.$watch("country", function (country, countryOld) {
               debug($element[0], "country=", country);
               $element
-                .removeClass($$class + "-" + _countryCode(countryOld))
-                .addClass($$class + "-" + _countryCode(country));
+                .removeClass($m(_countryCode(countryOld)))
+                .addClass($m(_countryCode(country)));
             });
             $scope.$watch("squared", function (squared) {
               debug($element[0], "squared=", squared);

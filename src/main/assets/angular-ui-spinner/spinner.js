@@ -57,10 +57,22 @@ define(["module", "angular"], function (module, angular) {
         var $compiledCache = $cacheFactory("spinnerTemplate");
         var $empty = $q.when("");
 
+        /**
+         * Return an url from a variant name
+         *
+         * @param {string} variant
+         * @returns {string}
+         */
         function url(variant) {
           return module.id + "--" + variant + ".html";
         }
 
+        /**
+         * Return a promise of a variant template
+         *
+         * @param {string} variant
+         * @returns {Promise<string>}
+         */
         function get(variant) {
           var u = url(variant);
           return isDefined(u) ? $http
@@ -70,13 +82,30 @@ define(["module", "angular"], function (module, angular) {
             }) : $empty;
         }
 
-        function put(variant, templateContent) {
+        /**
+         * Cache get/set variant template
+         *
+         * @param {string} variant
+         * @param {string=} opt_templateContent
+         * @returns {string}
+         */
+        function cache(variant, opt_templateContent) {
           var u = url(variant);
           if (isDefined(u)) {
-            $templateCache.put(u, templateContent);
+            if (arguments.length > 1) {
+              $templateCache.put(u, opt_templateContent);
+              return opt_templateContent;
+            } else {
+              return $templateCache.get(u);
+            }
           }
         }
 
+        /**
+         *
+         * @param {string} variant
+         * @returns {Promise<function>}
+         */
         function compile(variant) {
           var cacheKey = url(variant);
           var compiled = $compiledCache.get(cacheKey);
@@ -98,13 +127,13 @@ define(["module", "angular"], function (module, angular) {
         }
 
         //Default Variant templates
-        put(VARIANT_DEFAULT, "");
+        cache(VARIANT_DEFAULT, "");
 
         return {
           url: url,
           compile: compile,
           get: get,
-          put: put
+          cache: cache
         };
       }];
 
