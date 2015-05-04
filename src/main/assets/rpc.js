@@ -564,7 +564,7 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
 
       /**
        * @constructor
-       * @param {Object} smd
+       * @param {Object=} smd
        * @param {Object=} options -> see #config()
        */
       function Service(smd, options) {
