@@ -49,7 +49,7 @@ define([], function () {
      * @param {string} value
      */
     function set(element, name, value) {
-      if (value === undefined) {
+      if (value === undefined || value === null) {
         //unset
         element.removeAttribute(name);
       } else {
