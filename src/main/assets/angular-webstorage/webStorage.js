@@ -1,75 +1,31 @@
-define(['module', 'angular'], function (module, angular) {
+define([
+  'module',
+  'require',
+  'angular',
+  'dom/cookieStorage',
+  'dom/localStorage',
+  'dom/memoryStorage',
+  'dom/sessionStorage'
+], function (module, require) {
   'use strict';
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
   var DEBUG = moduleConfig.debug;
 
-  /**
-   * MemoryStorage class
-   *
-   * Description:
-   *  Follows exact same API than localStorage and sessionStorage
-   */
-  var MemoryStorage = (function () {
-    var __keys = Object.keys;
-
-    function MemoryStorage() {
-      if (this instanceof MemoryStorage) {
-        Object.defineProperty(this, "length", {
-          get: function () { return __keys(this).length; },
-          set: function (val) { }
-        });
-      } else {
-        return new MemoryStorage();
-      }
-    }
-
-    MemoryStorage.prototype.clear = function clear() {
-      var keys = __keys(this);
-      for (var i = 0, l = keys.length; i < l; ++i) {
-        delete this[keys[i]];
-      }
-    };
-
-    MemoryStorage.prototype.key = function key(index) {
-      return __keys(this)[index];
-    };
-
-    MemoryStorage.prototype.getItem = function getItem(key) {
-      return this[key];
-    };
-
-    MemoryStorage.prototype.setItem = function setItem(key, val) {
-      this[key] = String(val);
-    };
-
-    MemoryStorage.prototype.removeItem = function removeItem(key) {
-      delete this[key];
-    };
-
-    return MemoryStorage;
-  }());
+  //Imports
+  var angular = require("angular");
+  var cookieStorage = require("dom/cookieStorage");
+  var localStorage = require("dom/localStorage");
+  var memoryStorage = require("dom/memoryStorage");
+  var sessionStorage = require("dom/sessionStorage");
 
 
   return angular
     .module(module.id, [])
     .provider("$webStorage", function $webStorageProvider() {
       this.$get = ['$log', '$rootScope', '$window', function ($log, $rootScope, $window) {
-        function windowStorage(name) {
-          var storageSupported = (function () {
-            var testKey = 'localStorageTest' + Math.random();
-            var storage = $window[name];
-            var returnValue = false;
-            try {
-              //Safari in private mode can throw error
-              storage.setItem(testKey, 1);
-              storage.removeItem(testKey);
-              returnValue = true;
-            } catch (e) {}
-            return returnValue;
-          }());
-          var storage = storageSupported ? $window[name] : new MemoryStorage();
+        function $storage(name, storage) {
           var $$name = '$' + name;
           var $$eventName = $$name + ".change";
 
@@ -82,7 +38,7 @@ define(['module', 'angular'], function (module, angular) {
             }
           }
 
-          if (storageSupported && $window.addEventListener) {
+          if ($window.addEventListener) {
             $window.addEventListener('storage', function (event) {
               //filter if sessionStorage or localStorage
               if (event.storageArea === storage) {
@@ -99,22 +55,26 @@ define(['module', 'angular'], function (module, angular) {
           return storage;
         }
 
+        //Cookie
+        var $cookieStorage = $storage('cookieStorage', cookieStorage);
+
         //Memory
-        var memoryStorage = new MemoryStorage();
+        var $memoryStorage = $storage("memoryStorage", memoryStorage);
 
         //Session
-        var sessionStorage = windowStorage('sessionStorage');
+        var $sessionStorage = $storage('sessionStorage', sessionStorage);
 
         //Local
-        var localStorage = windowStorage('localStorage');
+        var $localStorage = $storage('localStorage', localStorage);
 
         //Factory
         function $webStorage(type) {
           var result;
           switch (type) {
-            case $webStorage.LOCAL: result = localStorage; break;
-            case $webStorage.MEMORY: result = memoryStorage; break;
-            case $webStorage.SESSION: result = sessionStorage; break;
+            case $webStorage.LOCAL: result = $localStorage; break;
+            case $webStorage.MEMORY: result = $memoryStorage; break;
+            case $webStorage.SESSION: result = $sessionStorage; break;
+            case $webStorage.COOKIE: result = $cookieStorage; break;
             default: throw new Error(type + " is not a valid storage");
           }
           return result;
@@ -124,8 +84,14 @@ define(['module', 'angular'], function (module, angular) {
         $webStorage.LOCAL = 'local';
         $webStorage.MEMORY = 'memory';
         $webStorage.SESSION = 'session';
+        $webStorage.COOKIE = 'cookie';
 
         return $webStorage;
+      }];
+    })
+    .provider("$cookieStorage", function $cookieStorageProvider() {
+      this.$get = ['$webStorage', function ($webStorage) {
+        return $webStorage($webStorage.COOKIE);
       }];
     })
     .provider("$memoryStorage", function $memoryStorageProvider() {
