@@ -70,10 +70,6 @@ define(["require", "exports"], function (require, exports) {
       var secure = options.secure;
       var expirationDate = null;
       var cookieDelete = false;
-      //Domain
-      if (domain !== undefined) {
-        domain = "." + domain;
-      }
       //Expiration
       if (expires !== undefined) {
         expirationDate = new Date(+expires);
