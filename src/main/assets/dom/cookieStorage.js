@@ -1,109 +1,94 @@
-define([], function () {
-  "use strict";
-
+define(["require", "exports"], function (require, exports) {
+  //Constant
+  var ES_COMPAT = 3;
   //Util
+  var __now = Date.now;
+  var __keys = Object.keys;
   var __str = function (o) {
     return "" + o;
   };
-  var __keys = Object.keys || function (o) {
-      var keys = [];
-      for (var key in o) {
-        if (o.hasOwnProperty(key)) {
-          keys.push(key);
-        }
-      }
-      return keys;
-    };
-  var __decode = function (s) {
-    try {
-      return decodeURIComponent(s);
-    } catch (e) {
-      return s;
-    }
-  };
-  var __defineGetter = Object.defineProperty ?
-    function (o, name, getter) {
-      Object.defineProperty(o, name, {get: getter});
-    } :
-    function (o, name, getter) {
-      o.__defineGetter__(name, getter);
-    };
-  var __extend = function (dest, var_args) {
-    for (var argi = 1, argc = arguments.length; argi < argc; argi++) {
-      var argument = arguments[argi];
-      if (argument !== undefined) {
-        var keys = __keys(argument);
-        for (var i = 0, l = keys.length; i < l; i++) {
-          var key = keys[i];
-          dest[key] = argument[key];
-        }
-      }
-    }
-    return dest;
-  };
-
-
-  var _cookie = (function () {
-    var __document = document || {};
+  var __defineGetter = Object.defineProperty ? function (o, name, getter) {
+    Object.defineProperty(o, name, { get: getter });
+  } : null;
+  var __cookieRead = (function () {
+    var __document = document;
     var __cookies = {};
     var __cookiesStr = '';
-    var __cookiesKeys = [];
-
-
-    function keys() {
-      _pull();
-      return __cookiesKeys;
-    }
-
-    function read() {
-      _pull();
+    var __decode = decodeURIComponent;
+    var __read = function () {
+      var cookieArray, cookie, i, index, name;
+      var currentCookieString = __document.cookie || '';
+      if (currentCookieString !== __cookiesStr) {
+        __cookiesStr = currentCookieString;
+        cookieArray = __cookiesStr.split('; ');
+        __cookies = {};
+        for (i = 0; i < cookieArray.length; i++) {
+          cookie = cookieArray[i];
+          index = cookie.indexOf('=');
+          if (index > 0) {
+            name = __decode(cookie.substring(0, index));
+            // the first value that is seen for a cookie is the most
+            // specific one.  values for the same cookie name that
+            // follow are for less specific paths.
+            if (__cookies[name] === undefined) {
+              __cookies[name] = __decode(cookie.substring(index + 1));
+            }
+          }
+        }
+      }
       return __cookies;
-    }
-
-    function write(key, value, options) {
-      options = __extend({path: '/'}, options);
-
+    };
+    return __read;
+  }());
+  var __cookieWrite = (function () {
+    var __document = document;
+    var __encodeKey = function (s) {
+      var r = s;
+      if (r.length) {
+        r = encodeURIComponent(r);
+        r = r.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
+        r = r.replace(/[\(\)]/g, encodeURIComponent); //escape
+      }
+      return r;
+    };
+    var __encodeValue = function (s) {
+      var r = s;
+      if (r.length) {
+        r = encodeURIComponent(r);
+        r = r.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+      }
+      return r;
+    };
+    var __write = function (key, value, options) {
+      if (options === void 0) { options = {}; }
+      //options = __extend({ path: '/' }, options);
+      var now = __now();
       var domain = options.domain;
-      var path = options.path;
+      var path = options.path || "/";
+      var maxAge = options.maxAge;
       var expires = options.expires;
       var secure = options.secure;
-      var valueStr;
-
-      if (value === undefined || value === null) {
-        expires = -1;
-        valueStr = "";
-      } else {
-        valueStr = __str(value);
+      var expirationDate = null;
+      var cookieDelete = false;
+      //Domain
+      if (domain !== undefined) {
+        domain = "." + domain;
       }
-
-      if (typeof key !== "string") {
-        throw new TypeError("key must be string");
+      //Expiration
+      if (expires !== undefined) {
+        expirationDate = new Date(+expires);
       }
-
-      if (typeof expires === 'number' && expires >= 0) {
-        var expiredAt = new Date();
-        expiredAt.setMilliseconds(expiredAt.getMilliseconds() + expires);
-        expires = expiredAt;
+      else if (maxAge !== undefined) {
+        expirationDate = new Date(now);
+        expirationDate.setMilliseconds(expirationDate.getMilliseconds() + maxAge);
       }
-
-      /*
-       try {
-       var result = JSON.stringify(value);
-       if (/^[\{\[]/.test(result)) {
-       value = result;
-       }
-       } catch (e) {}*/
-
-      var valueEncoded = encodeURIComponent(valueStr);
-      valueEncoded = valueEncoded.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
-
-      var keyEncoded = encodeURIComponent(__str(key));
-      keyEncoded = keyEncoded.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
-      keyEncoded = keyEncoded.replace(/[\(\)]/g, escape);
-
-      var s = "" + keyEncoded + '=' + valueEncoded;
-      if (expires) {
-        s += '; expires=' + expires.toUTCString();
+      cookieDelete = +now >= +expirationDate;
+      //Encode
+      var s = "";
+      s += __encodeKey(__str(key));
+      s += '=' + (cookieDelete ? "" : __encodeValue(__str(value)));
+      if (expirationDate) {
+        s += '; expires=' + expirationDate.toUTCString();
       }
       if (path) {
         s += '; path=' + path;
@@ -114,103 +99,66 @@ define([], function () {
       if (secure) {
         s += '; secure';
       }
-
-      return (__document.cookie = s);
-    }
-
-    function clear() {
-      __document.cookie = __cookiesStr = "";
-      __cookies = {};
-      __cookiesKeys = [];
-    }
-
-    function size() {
-      return keys().length;
-    }
-
-    function _pull() {
-      var cookieArray, cookie, i, index, name;
-      var currentCookieString = __document.cookie || '';
-
-      if (currentCookieString !== __cookiesStr) {
-        __cookiesStr = currentCookieString;
-        cookieArray = __cookiesStr.split('; ');
-        __cookies = {};
-
-        for (i = 0; i < cookieArray.length; i++) {
-          cookie = cookieArray[i];
-          index = cookie.indexOf('=');
-          if (index > 0) { //ignore nameless cookies
-            name = __decode(cookie.substring(0, index));
-            // the first value that is seen for a cookie is the most
-            // specific one.  values for the same cookie name that
-            // follow are for less specific paths.
-            if (__cookies[name] === undefined) {
-              __cookies[name] = __decode(cookie.substring(index + 1));
-            }
+      var cookieOld = __document.cookie;
+      __document.cookie = s;
+      return (cookieOld !== __document.cookie);
+    };
+    return __write;
+  }());
+  var __cookieClear = function () {
+    document.cookie = "";
+  };
+  //Compat
+  if (ES_COMPAT <= 3) {
+    __now = __now || function () {
+        return (new Date()).getTime();
+      };
+    __keys = __keys || function (o) {
+        var keys = [];
+        for (var key in o) {
+          if (o.hasOwnProperty(key)) {
+            keys.push(key);
           }
         }
-        __cookiesKeys = __keys(__cookies);
-      }
-    }
-
-    //exports
-    return {
-      keys: keys,
-      read: read,
-      write: write,
-      clear: clear,
-      size: size
-    };
-  }());
-
-
-  /**
-   * CookieStorage class
-   */
-  var CookieStorage = (function (_super) {
-
+        return keys;
+      };
+    __defineGetter = __defineGetter || function (o, name, getter) {
+        o.__defineGetter__(name, getter);
+      };
+  }
+  var CookieStorage = (function () {
     function CookieStorage() {
-      _super.call(this);
-      __defineGetter(this, "length", _cookie.size);
+      this.length = 0;
+      this.remainingSpace = Infinity;
+      __defineGetter(this, "length", function () {
+        return __keys(__cookieRead()).length;
+      });
     }
-
-    CookieStorage.prototype = Object.create(_super.prototype);
-
-    CookieStorage.prototype.constructor = CookieStorage;
-
-    CookieStorage.prototype.length = 0;
-
-    CookieStorage.prototype.clear = function clear() {
-      _cookie.clear();
-    };
-
-    CookieStorage.prototype.key = function key(index) {
+    CookieStorage.prototype.key = function (index) {
       index = index >>> 0;
-      var returnValue;
+      var returnValue = null;
       if (index >= 0) {
-        var keys = _cookie.keys();
-        returnValue = keys[index];
+        var keys = __keys(__cookieRead());
+        if (index < keys.length) {
+          returnValue = keys[index];
+        }
       }
       return returnValue;
     };
-
-    CookieStorage.prototype.getItem = function getItem(key) {
-      var data = _cookie.read();
-      return data[key];
+    CookieStorage.prototype.getItem = function (k) {
+      return __cookieRead()[k];
     };
-
-    CookieStorage.prototype.setItem = function getItem(key, value, opt_options) {
-      _cookie.write(key, value, opt_options !== undefined ? opt_options : {});
+    CookieStorage.prototype.setItem = function (k, v, options) {
+      __cookieWrite(k, v, options);
     };
-
-    CookieStorage.prototype.removeItem = function removeItem(key, opt_options) {
-      _cookie.write(key, null, opt_options);
+    CookieStorage.prototype.removeItem = function (k) {
+      __cookieWrite(k, null, { maxAge: -1 });
     };
-
+    CookieStorage.prototype.clear = function () {
+      __cookieClear();
+    };
     return CookieStorage;
-  }(Object));
-
+  })();
   var cookieStorage = new CookieStorage();
   return cookieStorage;
 });
