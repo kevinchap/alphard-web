@@ -16,13 +16,13 @@ define(["require", "exports"], function (require, exports) {
     var __cookiesStr = '';
     var __decode = decodeURIComponent;
     var __read = function () {
-      var cookieArray, cookie, i, index, name;
+      var cookieArray, cookie, index, name;
       var currentCookieString = __document.cookie || '';
       if (currentCookieString !== __cookiesStr) {
         __cookiesStr = currentCookieString;
         cookieArray = __cookiesStr.split('; ');
         __cookies = {};
-        for (i = 0; i < cookieArray.length; i++) {
+        for (var i = 0, l = cookieArray.length; i < l; i++) {
           cookie = cookieArray[i];
           index = cookie.indexOf('=');
           if (index > 0) {
@@ -124,8 +124,6 @@ define(["require", "exports"], function (require, exports) {
   }
   var CookieStorage = (function () {
     function CookieStorage() {
-      this.length = 0;
-      this.remainingSpace = Infinity;
       __defineGetter(this, "length", function () {
         return __keys(__cookieRead()).length;
       });
