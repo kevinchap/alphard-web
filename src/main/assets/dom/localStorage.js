@@ -5,9 +5,9 @@ define(["dom/memoryStorage"], function (memoryStorage) {
   var __global = typeof window !== "undefined" ? window : (function () {
     return this;
   }());
-  var __supported = (function () {
+  var __storage = __global.sessionStorage;
+  var __check = function (storage) {
     var testKey = 'storageTest' + Math.random();
-    var storage = __global.localStorage;
     var returnValue = false;
     try {
       //Safari in private mode can throw error
@@ -17,8 +17,16 @@ define(["dom/memoryStorage"], function (memoryStorage) {
     } catch (e) {
     }
     return returnValue;
-  }());
-  var MemoryStorage = memoryStorage.constructor;
-  var localStorage = __supported ? __global.localStorage : new MemoryStorage();
+  };
+  var __supported = __check(__storage);
+  var LocalStorage = (function (_super) {
+    function LocalStorage() {
+      _super.call(this);
+    }
+    LocalStorage.prototype = Object.create(_super.prototype);
+    LocalStorage.prototype.constructor = LocalStorage;
+    return LocalStorage;
+  }(memoryStorage.constructor));
+  var localStorage = __supported ? __storage : new LocalStorage();
   return localStorage;
 });
