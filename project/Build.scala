@@ -12,7 +12,7 @@ import sbt._
 object Build
   extends Build {
   lazy val root =
-    bytegroundProject("web-util")
+    bytegroundProject("web-util", isRoot = true)
       .enablePlugins(
         SbtNpm,
         SbtLess,
