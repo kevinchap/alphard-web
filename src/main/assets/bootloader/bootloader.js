@@ -155,6 +155,7 @@
       return Math.max(min, Math.min(max, value));
     }
 
+    /*
     function __rand(min, max) {
       return Math.random() * (max - min) + min;
     }
@@ -162,6 +163,7 @@
     function __body() {
       return (document.body || document.getElementsByTagName("body")[0]);
     }
+    */
 
     __init__();
     //exports

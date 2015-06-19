@@ -12,7 +12,7 @@ import sbt._
 object Build
   extends Build {
   lazy val root =
-    bytegroundProject("web-util")
+    bytegroundProject("web-util", isRoot = true)
       .enablePlugins(
         SbtNpm,
         SbtLess,
@@ -26,7 +26,7 @@ object Build
           "org.webjars" % "requirejs" % "2.1.15",
           "org.webjars" % "angularjs" % "1.3.10",
           "org.webjars" % "q" % "1.0.1",
-          "org.webjars" % "bootstrap" % "3.3.1",
+          "org.webjars" % "bootstrap" % "3.3.4",
           "org.webjars" % "flag-icon-css" % "0.6.3"
         )
       ).settings(
