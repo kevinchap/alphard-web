@@ -6,6 +6,6 @@ resolvers += "ByTeGround Maven Public Releases Repository" at "http://repository
 
 resolvers += Resolver.url("ByTeGround Ivy Public Releases Repository", url("http://repository.byteground.com/ivy/public/releases"))(Resolver.ivyStylePatterns)
 
-addSbtPlugin("com.byteground" %% "byteground-sbt-community-settings" % "3.23.0")
+addSbtPlugin("com.byteground" %% "byteground-sbt-community-settings" % "3.24.0")
 
 addSbtPlugin("com.typesafe.sbt" %% "sbt-less" % "1.0.4")
