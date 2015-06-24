@@ -49,7 +49,7 @@ define([], function () {
      * DOMError class
      */
     var DOMError = (function (_super) {
-      var __protoOf = Object.getPrototypeOf || function (o) { return o.__proto__; };
+      var __protoOf = Object.getPrototypeOf || function (o) { return o.__proto__; }; // jshint ignore:line
       var __parent = (function () {
         var proto;
         try {
