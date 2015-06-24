@@ -19,6 +19,23 @@ define([], function () {
     //Node.DOCUMENT_FRAGMENT_NODE == 11 ( node document fragment )
     //Node.NOTATION_NODE == 12 ( node notation )
 
+    var NodeType;
+    (function (NodeType) {
+      NodeType[NodeType.ELEMENT_NODE = 1] = "ELEMENT_NODE";
+      NodeType[NodeType.ATTRIBUTE_NODE = 2] = "ATTRIBUTE_NODE";
+      NodeType[NodeType.TEXT_NODE = 3] = "TEXT_NODE";
+      NodeType[NodeType.CDATA_SECTION_NODE = 4] = "CDATA_SECTION_NODE";
+      NodeType[NodeType.ENTITY_REFERENCE_NODE = 5] = "ENTITY_REFERENCE_NODE";
+      NodeType[NodeType.ENTITY_NODE = 6] = "ENTITY_NODE";
+      NodeType[NodeType.PROCESSING_INSTRUCTION_NODE = 7] = "PROCESSING_INSTRUCTION_NODE";
+      NodeType[NodeType.COMMENT_NODE = 8] = "COMMENT_NODE";
+      NodeType[NodeType.DOCUMENT_NODE = 9] = "DOCUMENT_NODE";
+      NodeType[NodeType.DOCUMENT_TYPE_NODE = 10] = "DOCUMENT_TYPE_NODE";
+      NodeType[NodeType.DOCUMENT_FRAGMENT_NODE = 11] = "DOCUMENT_FRAGMENT_NODE";
+      NodeType[NodeType.NOTATION_NODE = 12] = "NOTATION_NODE";
+    }(NodeType || (NodeType = {})));
+    node.NodeType = NodeType;
+
     var DOMErrorCode;
     (function (DOMErrorCode) {
       DOMErrorCode[DOMErrorCode.INDEX_SIZE_ERR = 1] = "INDEX_SIZE_ERR";
@@ -44,6 +61,7 @@ define([], function () {
       DOMErrorCode[DOMErrorCode.INVALID_NODE_TYPE_ERR = 24] = "INVALID_NODE_TYPE_ERR";
       DOMErrorCode[DOMErrorCode.DATA_CLONE_ERR = 25] = "DATA_CLONE_ERR";
     }(DOMErrorCode || (DOMErrorCode = {})));
+    node.DOMErrorCode = DOMErrorCode;
 
     /**
      * DOMError class
@@ -83,7 +101,7 @@ define([], function () {
       DOMError.prototype.constructor = DOMError;
 
       DOMError.prototype.toString = function toString() {
-        return this.name + ": DOM Exception " + this.code;
+        return this.name + " : DOM Exception " + this.code;
       };
 
       return DOMError;
@@ -105,9 +123,9 @@ define([], function () {
     var __isElementOrDocument = function (o) {
       var nodeType = o.nodeType;
       return (
-        nodeType === 1 || //element
-        nodeType === 11 || //doc fragment
-        nodeType === 9 // document node
+        nodeType === NodeType.ELEMENT_NODE || //element
+        nodeType === NodeType.DOCUMENT_NODE || // document node
+        nodeType === NodeType.DOCUMENT_FRAGMENT_NODE//doc fragment
       );
     };
     var __setText = function (element, text) {
@@ -120,9 +138,9 @@ define([], function () {
       var nodeType = element.nodeType;
 
       if (
-        nodeType === 1 ||
-        nodeType === 9 ||
-        nodeType === 11
+        nodeType === NodeType.ELEMENT_NODE ||
+        nodeType === NodeType.DOCUMENT_NODE ||
+        nodeType === NodeType.DOCUMENT_FRAGMENT_NODE
       ) {
         // Use textContent for elements
         // innerText usage removed for consistency of new lines (jQuery #11153)
@@ -135,8 +153,8 @@ define([], function () {
           }
         }
       } else if (
-        nodeType === 3 ||
-        nodeType === 4
+        nodeType === NodeType.TEXT_NODE ||
+        nodeType === NodeType.CDATA_SECTION_NODE
       ) {
         returnValue = element.nodeValue;
       }
@@ -214,27 +232,27 @@ define([], function () {
       var parentNode;
 
       switch (positionValue) {
-        case 1: //BEFORE
+        case Position.BEFORE:
           parentNode = refNode.parentNode;
           if (parentNode) {
             parentNode.insertBefore(node, refNode);
             returnValue = true;
           }
           break;
-        case 2: //AFTER
+        case Position.AFTER:
           parentNode = refNode.parentNode;
           if (parentNode) {
             parentNode.insertBefore(node, refNode.nextSibling);
             returnValue = true;
           }
           break;
-        case 3: //FIRST
+        case Position.FIRST:
           refNode.insertBefore(node, refNode.firstChild);
           break;
-        case 4: //LAST
+        case Position.LAST:
           refNode.appendChild(node);
           break;
-        case 5: //REPLACE
+        case Position.REPLACE:
           parentNode = refNode.parentNode;
           if (parentNode) {
             parentNode.replaceChild(node, refNode);
