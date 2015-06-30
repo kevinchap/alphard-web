@@ -7,14 +7,14 @@ define(["module", "angular"], function (module, angular) {
   var __isFinite = isFinite;
   var __log = Math.log;
   var __floor = Math.floor;
-  var __pow1024 = (function () {
+  var __pow1000 = (function () {
     var __cache = {};
     return function (n) {
       var returnValue = NaN;
       if (n >= 0) {
         returnValue = __cache[n];
         if (returnValue === undefined) {
-          returnValue = __cache[n] = __pow(1024, n);
+          returnValue = __cache[n] = __pow(1000, n);
         }
       }
       return returnValue;
@@ -34,7 +34,7 @@ define(["module", "angular"], function (module, angular) {
 
   //functions
   (function (ByteUnit) {
-    var LN1024 = __log(1024);
+    var LN1000 = __log(1000);
 
     /**
      *
@@ -90,7 +90,7 @@ define(["module", "angular"], function (module, angular) {
         opt_precision = 1;
       }
       if (opt_unit === undefined) {
-        pow = __floor(__log(n) / LN1024);//find biggest unit
+        pow = __floor(__log(n) / LN1000);//find biggest unit
       } else {
         pow = parse(opt_unit);
       }
@@ -100,7 +100,7 @@ define(["module", "angular"], function (module, angular) {
       }
 
       return (
-        (n / __pow1024(pow)).toFixed(opt_precision) +
+        (n / __pow1000(pow)).toFixed(opt_precision) +
         ' ' +
         stringify(pow)
       );
