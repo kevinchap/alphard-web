@@ -34,6 +34,7 @@ define(['module', 'angular'], function (module, angular) {
         }
       }
 
+      this.anonymousId = this.anonymousId;
       this.timeStart = this.timeStart || __now(self);
     }
 
@@ -228,7 +229,7 @@ define(['module', 'angular'], function (module, angular) {
             var eventType = attr('on') || _inferEventType($element[0]);
 
             function attr(name) {
-              return $$name + name.charAt(0).toUpperCase() + name.slice(1);
+              return $attrs[$$name + name.charAt(0).toUpperCase() + name.slice(1)];
             }
 
             function trackName() {
@@ -268,7 +269,7 @@ define(['module', 'angular'], function (module, angular) {
             }
 
             function onDestroy($event) {
-              $element.bind(eventType, onEvent);
+              $element.unbind(eventType, onEvent);
             }
           };
         }
