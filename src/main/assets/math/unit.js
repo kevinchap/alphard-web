@@ -10,6 +10,11 @@ define(["module"], function (module) {
   var __pow = Math.pow;
   var __keys = Object.keys;
   var __isString = function (o) { return typeof o === "string"; };
+  var __equals = function (l, r) {
+    return (l === r) ||
+      (l && l.equals ? l.equals(r) : false) ||
+      (r && r.equals ? r.equals(l) : false);
+  };
   var __assertTypeOf = function (o, t) {
     if (typeof o !== t) {
       throw new TypeError(o + " must be instanceof " + t);
@@ -74,13 +79,20 @@ define(["module"], function (module) {
 
       Quantity.base = function (name) {
         __assertTypeOf(name, "string");
+        if (name.length === 0) {
+          throw new TypeError(name + " must be non-empty");
+        }
+
+        if (KEYS.indexOf(name) === -1) {
+          KEYS.push(name);
+          Quantity.prototype[name] = 0;
+        }
+
         var q = {};
         q[name] = 1;
         var h = Quantity.hash(q);
         var instance = __instance[h];
         if (!instance) {
-          Quantity.prototype[name] = 0;
-          KEYS.push(name);
           instance = __instance[h] = new Quantity(q, SECRET);
         }
         return instance;
@@ -113,6 +125,7 @@ define(["module"], function (module) {
 
       Quantity.Empty = Quantity.for(new Quantity(null, SECRET));
       Quantity.Length = Quantity.base("Length");
+      Quantity.Time = Quantity.base("Time");
       Quantity.Mass = Quantity.base("Mass");
       Quantity.Current = Quantity.base("Current");
       Quantity.Temperature = Quantity.base("Temperature");
@@ -120,6 +133,10 @@ define(["module"], function (module) {
       Quantity.AmountOfSubstance = Quantity.base("AmountOfSubstance");
       Quantity.Force = Quantity.base("Force");
       Quantity.Bit = Quantity.base("Bit");
+
+      Quantity.prototype.equals = function (o) {
+        return this === o;
+      };
 
       //Util
       var __mul = function (dest, src, inv) {
@@ -130,13 +147,13 @@ define(["module"], function (module) {
         if (inv) {
           while (i < l) {
             quantity = quantities[i];
-            src[quantity] -= src[quantity];
+            dest[quantity] = (dest[quantity] || 0) - src[quantity];
             i += 1;
           }
         } else {
           while (i < l) {
             quantity = quantities[i];
-            src[quantity] += src[quantity];
+            dest[quantity] = (dest[quantity] || 0) + src[quantity];
             i += 1;
           }
         }
@@ -151,10 +168,9 @@ define(["module"], function (module) {
     }(Object));
     unit.Quantity = Quantity;
 
-
     /*
      //SI
-     unit.Empty = new Unit("", "");
+     unit.Empty = new Unit("", "", Quantity.Empty);
      unit.Length = new Unit("m", "meter", Quantity.Length);
      unit.Time = new Unit("s", "second", Quantity.Time);
      unit.Mass = new Unit("kg", "kilogram", Quantity.Mass);
@@ -173,7 +189,6 @@ define(["module"], function (module) {
      unit.Energy = Unit.compose([unit.Force, unit.Length]);// J
      unit.Power = Unit.compose([unit.Energy, unit.Energy], [unit.Time]); //J/s, W
      unit.Pressure = Unit.compose([unit.Force], [unit.Surface])// N/m2, Pa
-
 
      unit.mm = unit.Length.factor(unit.milli);
      unit.cm = unit.Length.factor(unit.centi);
@@ -377,7 +392,7 @@ define(["module"], function (module) {
                                   // best prefix but leave it as initially provided.
                                   // fixPrefix is set true by the method Unit.to
         } else {
-          return new Amount(value, opt_unit);
+          return new Measure(value, opt_unit);
         }
       }
 
@@ -387,8 +402,8 @@ define(["module"], function (module) {
 
       Measure.prototype.equals = function equals(other) {
         return (
-          (this.quantity === other.quantity) &&
-          (this.value === other.value)
+          __equals(this.quantity, other.quantity) &&
+          __equals(this.value, other.value)
         );
       };
 
@@ -450,8 +465,6 @@ define(["module"], function (module) {
 
     var PREFIX = {};
     var UNIT = {};
-
-
 
     function prefix(category, name, opt_value, opt_scientific) {
       var reg = PREFIX[category] || (PREFIX[category] = {});
