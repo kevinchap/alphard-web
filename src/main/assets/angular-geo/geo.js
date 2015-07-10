@@ -5,7 +5,7 @@ define(["module", "angular"], function (module, angular) {
    * angle module
    */
   var angle = (function () {
-    var __str = function (o) { return "" + o };
+    var __str = function (o) { return "" + o; };
     var __isNaN = function (o) { return o !== o; };
 
     var DD = "DD";//decimal degrees
