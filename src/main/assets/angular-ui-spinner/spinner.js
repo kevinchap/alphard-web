@@ -52,7 +52,7 @@ define(["module", "angular"], function (module, angular) {
      */
     .provider("spinnerTemplate", [function () {
 
-      this.$get = ["$cacheFactory", "$compile", "$http", "$q", "$templateCache",
+      this.$get = ["$cacheFactory", "$compile", "$http", "$q", "$templateCache", "$templateRequest",
       function ($cacheFactory, $compile, $http, $q, $templateCache) {
         var $compiledCache = $cacheFactory("spinnerTemplate");
         var $empty = $q.when("");
@@ -75,11 +75,7 @@ define(["module", "angular"], function (module, angular) {
          */
         function get(variant) {
           var u = url(variant);
-          return isDefined(u) ? $http
-            .get(u, { cache: $templateCache })
-            .then(function (response) {
-              return response.data || "";
-            }) : $empty;
+          return isDefined(u) ? $templateRequest(u) : $empty;
         }
 
         /**
