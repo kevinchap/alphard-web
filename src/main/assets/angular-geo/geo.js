@@ -5,6 +5,8 @@ define(["module", "angular"], function (module, angular) {
    * angle module
    */
   var angle = (function () {
+    var __str = function (o) { return "" + o; };
+    var __isNaN = function (o) { return o !== o; };
 
     var DD = "DD";//decimal degrees
     var DMM = "DMM";//degree decimal minute
@@ -13,7 +15,7 @@ define(["module", "angular"], function (module, angular) {
     function stringify(dd, opt_format) {
       var format = opt_format || DD;
       var fixedLength = 5;
-      var returnValue = dd;
+      var returnValue;
       switch (format) {
         case DD:
           //do nothing
@@ -33,23 +35,21 @@ define(["module", "angular"], function (module, angular) {
 
     function _stringifyDDToDMM(dd, fixedLength) {
       var ddAbs = dd < 0 ? -dd : dd;
-      return isNaN(dd) ? String(dd) : [
-        0 | dd,
-        ' ',
-        (ddAbs % 1 * 60).toFixed(fixedLength)
-      ].join('');
+      return __isNaN(dd) ? __str(dd) : "" +
+        (0 | dd) +
+        ' ' +
+        (ddAbs % 1 * 60).toFixed(fixedLength);
     }
 
     function _stringifyDDToDMS(dd, fixedLength) {
       var ddAbs = dd < 0 ? -dd : dd;
-      return isNaN(dd) ? String(dd) : [
-        0 | dd,
-        '°',
-        0 | ddAbs % 1 * 60,
-        "'",
-        (ddAbs * 60 % 1 * 60).toFixed(fixedLength - 4),
-        '"'
-      ].join('');
+      return __isNaN(dd) ? __str(dd) : "" +
+        0 | dd +
+        '°' +
+        0 | ddAbs % 1 * 60 +
+        "'" +
+        (ddAbs * 60 % 1 * 60).toFixed(fixedLength - 4) +
+        '"';
     }
 
     
@@ -64,6 +64,7 @@ define(["module", "angular"], function (module, angular) {
 
   var __abs = Math.abs;
   var __isArray = angular.isArray;
+  var __isObject = angular.isObject;
   var __stringify = angle.stringify;
 
   
@@ -82,24 +83,29 @@ define(["module", "angular"], function (module, angular) {
       };
     }])
 
-    .filter("geocoord", ["$filter", function ($filter) {
+    .filter("geoCoord", ["$filter", function ($filter) {
       var geoLon = $filter("geoLon");
       var geoLat = $filter("geoLat");
 
       return function (coord, opt_format) {
-        var longitude, latitude;
-        if (coord && ('latitude' in coord)) {
-          latitude = coord.latitude;
-          longitude = coord.longitude;
-        } else if (__isArray(coord)) {
-          //[longitude, latitude] when array (cf GeoJSON)
-          latitude = coord[1];
-          longitude = coord[0];
-        } else {
-          latitude = NaN;
-          longitude = NaN;
+        var returnValue = "";
+        if (coord !== undefined && coord !== null) {
+          var longitude, latitude;
+          if (__isObject(coord) && ('latitude' in coord)) {
+            latitude = coord.latitude;
+            longitude = coord.longitude;
+          } else if (__isArray(coord)) {
+            //[longitude, latitude] when array (cf GeoJSON)
+            latitude = coord[1];
+            longitude = coord[0];
+          } else {
+            latitude = NaN;
+            longitude = NaN;
+          }
+          returnValue = geoLat(latitude, opt_format) + ' ' + geoLon(longitude, opt_format);
         }
-        return geoLat(latitude, opt_format) + ' ' + geoLon(longitude, opt_format);
+
+        return returnValue;
       };
     }]);
 });

@@ -5,7 +5,7 @@ define(["dom/memoryStorage"], function (memoryStorage) {
   var __global = typeof window !== "undefined" ? window : (function () {
     return this;
   }());
-  var __storage = __global.sessionStorage;
+  var __storage = __global.localStorage;
   var __check = function (storage) {
     var testKey = 'storageTest' + Math.random();
     var returnValue = false;
