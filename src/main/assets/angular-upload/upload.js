@@ -91,10 +91,10 @@ define(["module", "angular"], function (module, angular) {
           }, config);
 
           var httpPromise = $http(httpConfig);
-          httpPromise.progress = function (fn) {
+          /*httpPromise.progress = function (fn) {
             httpConfig.progress = fn;
             return httpPromise;
-          };
+          };*/
           /*
            httpPromise.abort = function () {
            if (httpConfig.__XHR) {
