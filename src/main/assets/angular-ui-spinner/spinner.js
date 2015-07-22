@@ -53,7 +53,7 @@ define(["module", "angular"], function (module, angular) {
     .provider("spinnerTemplate", [function () {
 
       this.$get = ["$cacheFactory", "$compile", "$http", "$q", "$templateCache", "$templateRequest",
-      function ($cacheFactory, $compile, $http, $q, $templateCache) {
+      function ($cacheFactory, $compile, $http, $q, $templateCache, $templateRequest) {
         var $compiledCache = $cacheFactory("spinnerTemplate");
         var $empty = $q.when("");
 
