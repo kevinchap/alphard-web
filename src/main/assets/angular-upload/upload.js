@@ -138,7 +138,7 @@ define(["module", "angular"], function (module, angular) {
 
           promise.progress = function (f) {
             this.then(null, null, f);
-            return promise;
+            return this;
           };
 
           promise.success = function (f) {
