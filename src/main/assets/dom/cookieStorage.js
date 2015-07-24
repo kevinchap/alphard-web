@@ -73,8 +73,7 @@ define(["require", "exports"], function (require, exports) {
       //Expiration
       if (expires !== undefined) {
         expirationDate = new Date(+expires);
-      }
-      else if (maxAge !== undefined) {
+      } else if (maxAge !== undefined) {
         expirationDate = new Date(now);
         expirationDate.setMilliseconds(expirationDate.getMilliseconds() + maxAge);
       }
@@ -104,6 +103,18 @@ define(["require", "exports"], function (require, exports) {
   var __cookieClear = function () {
     document.cookie = "";
   };
+  var __extends = function (dest, var_args) {
+    for (var argi = 1, argc = arguments.length; argi < argc; argi++) {
+      var ext = arguments[argi];
+      var extKeys = __keys(ext);
+      for (var i = 0, l = extKeys.length; i < l; i++) {
+        var key = extKeys[i];
+        dest[key] = ext[key];
+      }
+    }
+    return dest;
+  };
+
   //Compat
   if (ES_COMPAT <= 3) {
     __now = __now || function () {
@@ -142,11 +153,15 @@ define(["require", "exports"], function (require, exports) {
     CookieStorage.prototype.getItem = function (k) {
       return __cookieRead()[k];
     };
-    CookieStorage.prototype.setItem = function (k, v, options) {
+    CookieStorage.prototype.setItem = function (k, v, opt_options) {
+      var optionsDefault = {};
+      var options = opt_options ? __extends({}, opt_options, optionsDefault) : optionsDefault;
       __cookieWrite(k, v, options);
     };
-    CookieStorage.prototype.removeItem = function (k) {
-      __cookieWrite(k, null, { maxAge: -1 });
+    CookieStorage.prototype.removeItem = function (k, opt_options) {
+      var optionsRemove = { maxAge: -1 };
+      var options = opt_options ? __extends({}, opt_options, optionsRemove) : optionsRemove;
+      __cookieWrite(k, null, options);
     };
     CookieStorage.prototype.clear = function () {
       __cookieClear();

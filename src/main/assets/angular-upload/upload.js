@@ -77,49 +77,85 @@ define(["module", "angular"], function (module, angular) {
 
     .provider("$uploadFormData", [function () {
 
-      this.$get = ['$http', "$window", function ($http, $window) {
+      this.$get = ["$http", "$q", "$timeout", "$window", function ($http, $q, $timeout, $window) {
+
+        if ($window.XMLHttpRequest) {
+          $window.XMLHttpRequest.prototype.setRequestHeader = (function (orig) {
+            return function (header, value) {
+              if (header === '__setXHR__') {
+                value.call(this, this);
+              } else {
+                orig.call(this, header, value);
+              }
+            };
+          }($window.XMLHttpRequest.prototype.setRequestHeader));
+        }
 
         var ArrayBuffer = $window.ArrayBuffer;
         var forEach = angular.forEach;
         var isElement = angular.isElement;
 
         function send(config) {
+          var deferred = $q.defer();
+          var promise = deferred.promise;
           var httpConfig = angular.extend({
             method: 'POST',
             headers: {},
             transformRequest: transformRequestDefault
           }, config);
+          httpConfig.headers.__setXHR__ = function () {
+            return function (xhr) {
+              if (!xhr) return;
+              httpConfig.__xhr__ = xhr;
+              if (httpConfig.xhrFn) {
+                httpConfig.xhrFn(xhr);
+              }
+              xhr.upload.addEventListener('progress', function (e) {
+                e.config = httpConfig;
+                deferred.notify(e);
+              }, false);
 
-          var httpPromise = $http(httpConfig);
-          httpPromise.progress = function (fn) {
-            httpConfig.progress = fn;
-            return httpPromise;
+              //fix for firefox not firing upload progress end, also IE8-9
+              xhr.upload.addEventListener('load', function (e) {
+                if (e.lengthComputable) {
+                  e.config = httpConfig;
+                  deferred.notify(e);
+                }
+              }, false);
+            };
           };
-          /*
-           httpPromise.abort = function () {
-           if (httpConfig.__XHR) {
-           $timeout(function() {
-           httpConfig.__XHR.abort();
-           });
-           }
-           return httpPromise;
-           };
-           httpPromise.xhr = function (fn) {
-           httpConfig.xhrFn = fn;
-           return httpPromise;
-           };
-           httpPromise.then = (function (promise, origThen) {
-           return function(s, e, p) {
-           httpConfig.progress = p || httpConfig.progress;
-           var result = origThen.apply(httpConfig, [s, e, p]);
-           result.abort = httpConfig.abort;
-           result.progress = httpConfig.progress;
-           result.xhr = httpConfig.xhr;
-           return result;
-           };
-           })(httpPromise, httpPromise.then);*/
+          $http(httpConfig)
+            .then(deferred.resolve, deferred.reject);
 
-          return httpPromise;
+          promise.abort = function () {
+            if (httpConfig.__xhr__) {
+              $timeout(function () {
+                httpConfig.__xhr__.abort();
+              });
+            }
+            return this;
+          };
+
+          promise.progress = function (f) {
+            this.then(null, null, f);
+            return this;
+          };
+
+          promise.success = function (f) {
+            this.then(function (response) {
+              f(response.data, response.status, response.headers, config);
+            });
+            return this;
+          };
+
+          promise.error = function (f) {
+            this.then(null, function (response) {
+              f(response.data, response.status, response.headers, config);
+            });
+            return this;
+          };
+
+          return promise;
         }
 
         function transformRequestDefault(data, headersGetter) {
