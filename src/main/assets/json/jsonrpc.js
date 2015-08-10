@@ -11,12 +11,14 @@ define([], function () {
   /**
    * jsonrpc module
    */
-  var jsonrpc = (function () {
+  var jsonrpc;
+  (function (jsonrpc) {
     var ostring = Object.prototype.toString;
-    var _isString = function (o) { return ostring.call(o) === '[object String]' };
-    var _isInteger = function (o) { return o === o|0; };
-    var _isArray = Array.isArray || function (o) { return ostring.call(o) === '[object Array]'; };
-    var _assertIn = function (o, name) { (name in o) || __throw(new TypeError(name + ' is required')); };
+    var __isString = function (o) { return ostring.call(o) === '[object String]' };
+    var __isInteger = function (o) { return o === o|0; };
+    var __isArray = Array.isArray || function (o) { return ostring.call(o) === '[object Array]'; };
+    var __throw = function (e) { throw e; };
+    var __assertIn = function (o, name) { (name in o) || __throw(new TypeError(name + ' is required')); };
 
 
     /**
@@ -27,7 +29,7 @@ define([], function () {
       var jsonData, error, result, jsonResponse;
 
       //check valid json
-      if (_isString(stringOrObject)) {
+      if (__isString(stringOrObject)) {
         try {
           jsonData = JSON.parse(stringOrObject);
         } catch (e) {
@@ -37,7 +39,7 @@ define([], function () {
       }
 
       if (!jsonResponse) {
-        if (_isArray(jsonData)) {
+        if (__isArray(jsonData)) {
           jsonResponse = new Array(jsonData.length);
           for (var i = 0, l = stringOrObject.length; i < l; ++i) {
             jsonResponse[i] = _toResponse(stringOrObject[i]);
@@ -48,6 +50,7 @@ define([], function () {
       }
       return jsonResponse;
     }
+    jsonrpc.parseResponse = parseResponse;
 
     function _toResponse(json) {
       var response;
@@ -96,10 +99,10 @@ define([], function () {
           this.code = code;
           this.data = opt_data;
 
-          if (!_isString(this.message)) {
+          if (!__isString(this.message)) {
             throw new TypeError('[message] must be an string');
           }
-          if (!_isInteger(this.code)) {
+          if (!__isInteger(this.code)) {
             throw new TypeError('[code] must be an integer');
           }
           //__stack(this, this.constructor);
@@ -111,8 +114,8 @@ define([], function () {
       JSONRPCError.displayName = "JSONRPCError";
 
       JSONRPCError.fromObject = function fromObject(o) {
-        _assertIn(o, 'message');
-        _assertIn(o, 'code');
+        __assertIn(o, 'message');
+        __assertIn(o, 'code');
         return new JSONRPCError(o.message, o.code, o.data);
       };
 
@@ -148,7 +151,7 @@ define([], function () {
 
       return JSONRPCError;
     }(Error));
-
+    jsonrpc.Error = JSONRPCError;
 
     /**
      * JSONRPCObject class
@@ -163,7 +166,7 @@ define([], function () {
           _super.call(this);
           if (opt_id) {
             this.id = opt_id;
-            if (!_isString(opt_id) && !_isInteger(opt_id)) {
+            if (!__isString(opt_id) && !__isInteger(opt_id)) {
               throw new TypeError('[id] must be an string or integer');
             }
           }
@@ -280,6 +283,7 @@ define([], function () {
 
       return JSONRPCRequest;
     }(JSONRPCObject));
+    jsonrpc.Request = Request;
 
     /**
      * JSONRPCResponse class
@@ -301,9 +305,9 @@ define([], function () {
       JSONRPCResponse.displayName = "JSONRPCResponse";
 
       JSONRPCResponse.fromObject = function fromObject(o) {
-        _assertIn(o, 'id');
+        __assertIn(o, 'id');
         if (!("result" in o)) {
-          _assertIn(o, 'error');
+          __assertIn(o, 'error');
         }
 
         var
@@ -336,15 +340,9 @@ define([], function () {
 
       return JSONRPCResponse;
     }(JSONRPCObject));
+    jsonrpc.Response = JSONRPCResponse;
 
-    //exports
-    return {
-      parseResponse: parseResponse,
-      Error: JSONRPCError,
-      Request: JSONRPCRequest,
-      Response: JSONRPCResponse
-    };
-  }());
+  }(jsonrpc || (jsonrpc = {})));
 
   return jsonrpc;
 });

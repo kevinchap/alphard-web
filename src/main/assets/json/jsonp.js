@@ -27,7 +27,8 @@ define([], function () {
   /**
    * jsonp module
    */
-  var jsonp = (function () {
+  var jsonp;
+  (function (jsonp) {
 
     /**
      * JSONPError class
@@ -56,6 +57,7 @@ define([], function () {
 
       return JSONPError;
     }(Error));
+    jsonp.Error = JSONPError;
 
     /**
      * JSONPRequest class
@@ -199,14 +201,9 @@ define([], function () {
       }
       return JSONPRequest;
     }(Object));
+    jsonp.Request = JSONPRequest;
 
-
-    //exports
-    return {
-      Error: JSONPError,
-      Request: JSONPRequest
-    };
-  }());
+  }(jsonp || (jsonp = {})));
 
   return jsonp;
 });
