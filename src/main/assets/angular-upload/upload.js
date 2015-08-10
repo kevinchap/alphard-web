@@ -2,6 +2,173 @@ define(["module", "angular"], function (module, angular) {
   "use strict";
 
   //@see https://github.com/leon/angular-upload
+  /**
+   * upload module
+   */
+  var upload;
+  (function (upload) {
+    var __toArray = function (o) {
+      var i, l;
+      var returnValue = o;
+      if (o !== null && o !== undefined) {
+        if (o.slice) {
+          returnValue = o.slice();
+        } else if (o.item) {
+          returnValue = [];
+          for (i = 0, l = o.length; i < l; i++) {
+            returnValue.push(o.item(i));
+          }
+        } else {
+          returnValue = [];
+          for (i = 0, l = o.length; i < l; i++) {
+            returnValue.push(o[i]);
+          }
+        }
+      }
+      return returnValue;
+    };
+
+    /**
+     * FileCommon class
+     */
+    var FileCommon = (function (_super) {
+
+      function FileCommon($element) {
+        _super.call(this);
+        //var self = this;
+        var _events = {};
+
+        this.bind = function (eventName, f) {
+          $element.bind(eventName, f);
+          var fns = _events[eventName] || (_events[eventName] = []);
+          fns.push(f);
+          return this;
+        };
+
+        this.isMultiple = function () {
+          var multiple = $element.attr("multiple");
+          return multiple !== undefined && multiple !== "false";
+        };
+
+        $element.bind("$destroy", function () {
+          for (var eventName in _events) {
+            var fns = _events[eventName];
+            for (var i = 0, l = fns.length; i < l; i++) {
+              $element.unbind(eventName, fns[i]);
+            }
+          }
+        });
+      }
+
+      return FileCommon;
+    }(Object));
+
+    /**
+     * FileSelect class
+     */
+    var FileSelect = (function (_super) {
+
+      function FileSelect($element) {
+        _super.call(this, $element);
+        var self = this;
+
+        this.onFileSelect = null;
+
+        this.onChange = function ($event) {
+          var $files = __toArray($event.target.files);
+          if (self.onFileSelect) {
+            self.onFileSelect({
+              $files: $files,
+              $event: $event
+            });
+          }
+        };
+
+        this.bind("change", this.onChange);
+      }
+      FileSelect.$inject = ["$element"];
+      return FileSelect;
+    }(FileCommon));
+    upload.FileSelect = FileSelect;
+
+    /**
+     * FileDrop class
+     */
+    var FileDrop = (function (_super) {
+      var DROP = "drop";
+      var DRAGOVER = "dragover";
+      var DRAGLEAVE = "dragleave";
+      var __eventPreventAndStop = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      var __eventDataTransfer = function (event) {
+        return event.dataTransfer ? event.dataTransfer : event.originalEvent.dataTransfer; // jQuery fix;
+      };
+      var __contains = function (a, element) {
+        var returnValue = false;
+        if (a) {
+          if (a.indexOf) {
+            returnValue = a.indexOf(element) !== -1;
+          } else if (a.contains) {
+            returnValue = a.contains(element);
+          }
+        }
+        return returnValue;
+      };
+
+
+
+      function FileDrop($element) {
+        _super.call(this, $element);
+        var self = this;
+
+        this.onFileDrop = null;
+
+        this.onDrop = function ($event) {
+          var transfer = __eventDataTransfer($event);
+
+          if (transfer) {
+            __eventPreventAndStop($event);
+            var $files = __toArray(transfer.files);
+            if (self.onFileDrop) {
+              self.onFileDrop({
+                $event: $event,
+                $files: $files
+              });
+            }
+          }
+        };
+
+        this.onDragOver = function ($event) {
+          var transfer = __eventDataTransfer($event);
+          if (transfer) {
+            if (__contains(transfer.types, "Files")) {
+              transfer.dropEffect = 'copy';
+              __eventPreventAndStop($event);
+            }
+          }
+        };
+
+        this.onDragLeave = function ($event) {
+          if ($event.currentTarget === $element[0]) {
+            __eventPreventAndStop($event);
+          }
+        };
+
+        this
+          .bind(DROP, this.onDrop)
+          .bind(DRAGOVER, this.onDragOver)
+          .bind(DRAGLEAVE, this.onDragLeave);
+      }
+      FileDrop.$inject = ["$element"];
+
+      return FileDrop;
+    }(FileCommon));
+    upload.FileDrop = FileDrop;
+
+  }(upload || (upload = {})));
+
 
   return angular
     .module(module.id, [])
@@ -406,63 +573,75 @@ define(["module", "angular"], function (module, angular) {
     }])
 
   /**
+   * ngFileSelect directive
+   *
    * Usage:
-   *   <input type="file" ng-file-select="callback($event, $files)">
+   *
+   *   <input type="file"
+   *          ng-file-select="callback($event, $files)"
+   *          [multiple]>
    */
-    .directive("ngFileSelect", ['$parse', '$timeout', function ($parse, $timeout) {
-      var FILE = "file";
-      var $$name = 'ngFileSelect';
-
+    .directive("ngFileSelect", ["$log", "$parse", function ($log, $parse) {
       return {
-        restrict: 'A',
+        controller: upload.FileSelect,
+        controllerAs: "ngFileSelect",
+        require: ["ngFileSelect"],
+        restrict: "A",
         compile: function () {
 
-          return function link($scope, $element, $attrs) {
-            var element = $element[0];
-            var onFileSelect = $parse($attrs[$$name]);
-            //var log = logger($element[0]);
+          return function link($scope, $element, $attrs, $ctrls) {
+            var ngFileSelect = $ctrls[0];
+            var onFileSelect = $parse($attrs.ngFileSelect);
 
             //check input type
-            if ($attrs.type !== FILE) {
-              console.warn(element,  ' must be an input[type=' + FILE + ']');
+            if ($attrs.type !== "file") {
+              $log.warn($element[0],  ' must be an input[type=file]');
             }
 
-            (function init() {
-              //events
-              $element.bind('change', onChange);
-              $element.bind('click', onClick);
-              $scope.$on("$destroy", onDestroy);
-            }());
-
-            function onDestroy() {
-              $element.unbind('change', onChange);
-              $element.unbind('click', onClick);
-            }
-
-            function onChange(event) {
-              var files = [];
-              var fileList = event.target.files;
-              if (fileList !== null && fileList !== undefined) {
-                for (var i = 0, l = fileList.length; i < l; i++) {
-                  files.push(fileList.item(i));
-                }
-              }
-              $timeout(function () {
-                onFileSelect($scope, {
-                  $files: files,
-                  $event: event
-                });
-              }, 0);
-            }
-
-            function onClick() {
-              element.value = null;
-            }
+            ngFileSelect.onFileSelect = function (context) {
+              onFileSelect($scope, context);
+              $element.prop("value", null);
+            };
           };
         }
       };
     }])
 
+  /**
+   * ngFileDrop directive
+   *
+   * Usage:
+   *
+   * <tag ng-file-drop="callback($event, $files)"
+   *      [multiple]></tag>
+   */
+    .directive("ngFileDrop", ["$parse", function ($parse) {
+
+      return {
+        controller: upload.FileDrop,
+        controllerAs: "ngFileDrop",
+        require: ["ngFileDrop"],
+        restrict: "EA",
+        compile: function () {
+          return function link($scope, $element, $attrs, $ctrls) {
+            var ngFileDrop = $ctrls[0];
+            var onFileDrop = $parse($attrs.ngFileDrop);
+
+            ngFileDrop.onFileDrop = function (context) {
+              onFileDrop($scope, context);
+            };
+          };
+        }
+      };
+    }])
+
+  /**
+   * ngFileUpload directive
+   *
+   * Usage:
+   *
+   *   <input type="file">
+   */
     .directive("ngFileUpload", ["$uploadFactory", function ($uploadFactory) {
       var $$name = 'ngFileUpload';
       var $$block = 'ng-file-upload';
