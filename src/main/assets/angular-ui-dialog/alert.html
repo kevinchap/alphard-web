@@ -1,0 +1,39 @@
+<div class="modal-header">
+  <button type="button"
+          class="close"
+          ng-click="$alert.ok()">
+    <i class="icon-close"></i>
+  </button>
+  <h4 class="modal-title">
+    <span class="fa-stack">
+      <i class="fa fa-circle-o fa-stack-2x"></i>
+      <i class="fa fa-exclamation fa-stack-1x"></i>
+    </span>
+    <span translate="dialog_alert_title"
+          translate-default="Alert">
+      Alert
+    </span>
+
+    <button type="button"
+            class="close"
+            aria-label="Close"
+            ng-click="$alert.cancel();">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </h4>
+</div>
+<div class="modal-body modal-confirm">
+  <p>{{$alert.message}}</p>
+</div>
+<div class="modal-footer">
+  <button type="button"
+          class="btn btn-primary"
+          ng-disabled="$alert.isLocked"
+          ng-click="$alert.ok()" >
+    <i class="fa fa-fw fa-check"></i>
+    <span translate="dialog_ok"
+          translate-default="OK">
+      OK
+    </span>
+  </button>
+</div>
