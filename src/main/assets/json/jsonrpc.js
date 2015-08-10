@@ -14,11 +14,30 @@ define([], function () {
   var jsonrpc;
   (function (jsonrpc) {
     var ostring = Object.prototype.toString;
-    var __isString = function (o) { return ostring.call(o) === '[object String]' };
-    var __isInteger = function (o) { return o === o|0; };
-    var __isArray = Array.isArray || function (o) { return ostring.call(o) === '[object Array]'; };
-    var __throw = function (e) { throw e; };
-    var __assertIn = function (o, name) { (name in o) || __throw(new TypeError(name + ' is required')); };
+    var __isString = function (o) {
+      return ostring.call(o) === '[object String]'
+    };
+    var __isInteger = function (o) {
+      return o === o | 0;
+    };
+    var __isArray = Array.isArray || function (o) {
+        return ostring.call(o) === '[object Array]';
+      };
+    var __create = Object.create || function (proto) {
+      function F() {}
+      F.prototype = proto;
+      var ctor = proto.constructor;
+      proto.constructor = F;
+      var o = new F();
+      proto.constructor = ctor;
+      return o;
+    };
+    var __throw = function (e) {
+      throw e;
+    };
+    var __assertIn = function (o, name) {
+      (name in o) || __throw(new TypeError(name + ' is required'));
+    };
 
 
     /**
@@ -50,6 +69,7 @@ define([], function () {
       }
       return jsonResponse;
     }
+
     jsonrpc.parseResponse = parseResponse;
 
     function _toResponse(json) {
@@ -256,7 +276,7 @@ define([], function () {
 
       JSONRPCRequest.displayName = "JSONRPCRequest";
 
-      JSONRPCRequest.prototype = Object.create(_super.prototype);
+      JSONRPCRequest.prototype = __create(_super.prototype);
 
       JSONRPCRequest.prototype.constructor = JSONRPCRequest;
 
@@ -283,7 +303,7 @@ define([], function () {
 
       return JSONRPCRequest;
     }(JSONRPCObject));
-    jsonrpc.Request = Request;
+    jsonrpc.Request = JSONRPCRequest;
 
     /**
      * JSONRPCResponse class
@@ -311,9 +331,9 @@ define([], function () {
         }
 
         var
-        response = new JSONRPCResponse(o.id),
-        error    = o.error,
-        result   = o.result;
+          response = new JSONRPCResponse(o.id),
+          error = o.error,
+          result = o.result;
 
         if (error) {
           response.error = JSONRPCError.fromObject(error);
@@ -324,7 +344,7 @@ define([], function () {
         return response;
       };
 
-      JSONRPCResponse.prototype = Object.create(_super.prototype);
+      JSONRPCResponse.prototype = __create(_super.prototype);
 
       JSONRPCResponse.prototype.constructor = JSONRPCResponse;
 
