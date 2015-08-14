@@ -99,11 +99,11 @@ define([], function () {
        * @param {string=} opt_parameterName
        */
       JSONPRequest.prototype.open = function open(url, opt_parameterName) {
-        this._url = url;
-
-        if (opt_parameterName) {
-          this._parameterName = opt_parameterName;
+        if (opt_parameterName === undefined) {
+          opt_parameterName = "callback";
         }
+        this._url = url;
+        this._parameterName = opt_parameterName;
         return this;
       };
 
