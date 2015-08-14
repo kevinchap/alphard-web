@@ -246,7 +246,7 @@ define(["module", "angular"], function (module, angular) {
          * Open an alert dialog
          *
          * @param {string} message
-         * @param {function (): void} opt_callback
+         * @param {function (): void=} opt_callback
          * @returns {Promise<boolean>}
          */
         function $alert(message, opt_callback) {
@@ -263,7 +263,7 @@ define(["module", "angular"], function (module, angular) {
          * Open a confirm dialog
          *
          * @param {string} message
-         * @param {function(boolean): void} opt_callback
+         * @param {function(boolean): void=} opt_callback
          * @returns {Promise<boolean>}
          */
         function $confirm(message, opt_callback) {
@@ -281,7 +281,7 @@ define(["module", "angular"], function (module, angular) {
          *
          * @param {string} text
          * @param {string=} opt_defaultText
-         * @param {function(string): void} opt_callback
+         * @param {function(string): void=} opt_callback
          * @returns {Promise<string>}
          */
         function $prompt(text, opt_defaultText, opt_callback) {
