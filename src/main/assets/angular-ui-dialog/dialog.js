@@ -217,11 +217,11 @@ define(["module", "angular"], function (module, angular) {
 
         function openModal(type, args, opt_callback) {
           var typeName = DialogType[type];
-
+          var typeNameLower = typeName.toLowerCase();
           return $modal
             .open({
-              templateUrl: __dirname + '/' + typeName.toLowerCase() + '.html',
-              controllerAs: "$" + typeName.toLowerCase(),
+              templateUrl: __dirname + '/' + typeNameLower + '.html',
+              controllerAs: "$" + typeNameLower,
               controller: "Dialog" + typeName + "Controller",
               animation: settings.animation,
               backdrop: settings.backdrop,
@@ -247,7 +247,7 @@ define(["module", "angular"], function (module, angular) {
          *
          * @param {string} message
          * @param {function (): void} opt_callback
-         * @returns {*}
+         * @returns {Promise<boolean>}
          */
         function $alert(message, opt_callback) {
           var type = DialogType.Alert;
@@ -264,7 +264,7 @@ define(["module", "angular"], function (module, angular) {
          *
          * @param {string} message
          * @param {function(boolean): void} opt_callback
-         * @returns {*}
+         * @returns {Promise<boolean>}
          */
         function $confirm(message, opt_callback) {
           var type = DialogType.Confirm;
@@ -282,6 +282,7 @@ define(["module", "angular"], function (module, angular) {
          * @param {string} text
          * @param {string=} opt_defaultText
          * @param {function(string): void} opt_callback
+         * @returns {Promise<string>}
          */
         function $prompt(text, opt_defaultText, opt_callback) {
           var type = DialogType.Prompt;
@@ -349,7 +350,7 @@ define(["module", "angular"], function (module, angular) {
    *   return $q.when(true);
    * })
    * .then(function (result) {
-   *   // result: true|false correspond to the button pressed
+   *   // result: string correspond to the button pressed
    * })
    */
     .provider("$prompt", [function () {
