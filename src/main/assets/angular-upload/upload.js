@@ -599,8 +599,10 @@ define(["module", "angular"], function (module, angular) {
             }
 
             ngFileSelect.onFileSelect = function (context) {
-              onFileSelect($scope, context);
-              $element.prop("value", null);
+              $scope.$apply(function () {
+                onFileSelect($scope, context);
+                $element.prop("value", null);
+              });
             };
           };
         }
@@ -628,7 +630,9 @@ define(["module", "angular"], function (module, angular) {
             var onFileDrop = $parse($attrs.ngFileDrop);
 
             ngFileDrop.onFileDrop = function (context) {
-              onFileDrop($scope, context);
+              $scope.$apply(function () {
+                onFileDrop($scope, context);
+              });
             };
           };
         }
