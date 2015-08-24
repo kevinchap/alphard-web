@@ -17,17 +17,12 @@ define(["module"], function (module) {
       __global.mozSetImmediate ||
       __global.webkitSetImmediate ||
       function (f, var_args) {
-        var delayedFn = f;
-        if (arguments.length >= 2) {
-          var args = [];
-          for (var i = 3, l = arguments.length; i < l; i++) {
-            args[i] = arguments[i];
-          }
-          delayedFn = function () {
-            f.apply(null, args);
-          };
-        }
-        return __setTimeout(delayedFn, 0);
+        var $s = 2, $l = arguments.length, $rest = new Array($l - $s);
+        for (var $i = $s; $i < $l; ++$i) $rest[$i - $s] = arguments[$i];
+
+        return __setTimeout($rest.length === 0 ? f : function () {
+          f.apply(thisp, $rest);
+        }, 0);
       };
     var __clearImmediate = __global.clearImmediate ||
       __global.msClearImmediate ||
@@ -72,45 +67,52 @@ define(["module"], function (module) {
 
       return DeltaTimer;
     }(Object));
-    
 
+
+    /**
+     *
+     * @param {function()} f
+     * @param {number} delay
+     * @returns {number}
+     */
     function setDelta(f, delay) {
       var t = new DeltaTimer(f, delay);
       var id = t.timerId;
       __deltaTimers[id] = t;
       return id;
     }
+
     timer.setDelta = setDelta;
 
+    /**
+     *
+     * @param {number} id
+     */
     function clearDelta(id) {
       if (__deltaTimers[id]) {
         __deltaTimers[id].cancel();
         __deltaTimers[id] = null;
       }
     }
+
     timer.clearDelta = clearDelta;
 
     /**
      *
-     * @param {function} f
+     * @param {function()} f
      * @param {number} delay
      * @param {...any} var_args
      * @returns {number}
      */
     function setTimeout(f, delay, var_args) {
-      var delayedFn = f;
-      var argc = arguments.length;
-      if (argc >= 3) {
-        var args = [];
-        for (var i = 3; i < argc; i++) {
-          args[i] = arguments[i];
-        }
-        delayedFn = function () {
-          f.apply(null, args);
-        };
-      }
-      return __setTimeout(delayedFn, delay);
+      var $s = 3, $l = arguments.length, $rest = new Array($l - $s);
+      for (var $i = $s; $i < $l; ++$i) $rest[$i - $s] = arguments[$i];
+
+      return __setTimeout($rest.length === 0 ? f : function () {
+        f.apply(null, $rest);
+      }, delay);
     }
+
     timer.setTimeout = setTimeout;
 
     /**
@@ -121,17 +123,25 @@ define(["module"], function (module) {
     function clearTimeout(id) {
       __clearTimeout(id);
     }
+
     timer.clearTimeout = clearTimeout;
 
     /**
      *
-     * @param {function} f
+     * @param {function()} f
      * @param {number} delay
+     * @param {...any} var_args
      * @returns {number}
      */
-    function setInterval(f, delay) {
-      return __setInterval(f, delay);
+    function setInterval(f, delay, var_args) {
+      var $s = 3, $l = arguments.length, $rest = new Array($l - $s);
+      for (var $i = $s; $i < $l; ++$i) $rest[$i - $s] = arguments[$i];
+
+      return __setInterval($rest.length === 0 ? f : function () {
+        f.apply(null, $rest);
+      }, delay);
     }
+
     timer.setInterval = setInterval;
 
     /**
@@ -142,6 +152,7 @@ define(["module"], function (module) {
     function clearInterval(id) {
       __clearInterval(id);
     }
+
     timer.clearInterval = clearInterval;
 
     /**
@@ -150,8 +161,14 @@ define(["module"], function (module) {
      * @returns {number}
      */
     function setImmediate(f) {
-      return __setImmediate(f);
+      var $s = 2, $l = arguments.length, $rest = new Array($l - $s);
+      for (var $i = $s; $i < $l; ++$i) $rest[$i - $s] = arguments[$i];
+
+      return __setImmediate($rest.length === 0 ? f : function () {
+        f.apply(null, $rest);
+      });
     }
+
     timer.setImmediate = setImmediate;
 
     /**
@@ -163,6 +180,7 @@ define(["module"], function (module) {
     function clearImmediate(id) {
       __clearImmediate(id);
     }
+
     timer.clearImmediate = clearImmediate;
 
   }(timer || (timer = {})));
