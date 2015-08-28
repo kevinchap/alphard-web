@@ -23,11 +23,22 @@ define([
 
   return angular
     .module(module.id, [])
-    .provider("$webStorage", function $webStorageProvider() {
-      this.$get = ['$log', '$rootScope', '$window', function ($log, $rootScope, $window) {
+    .provider("$webStorage", function () {
+      var $webStorageProvider = this;
+
+      $webStorageProvider.LOCAL = 'local';
+      $webStorageProvider.MEMORY = 'memory';
+      $webStorageProvider.SESSION = 'session';
+      $webStorageProvider.COOKIE = 'cookie';
+
+      $webStorageProvider.$get = ['$log', '$rootScope', '$window', function ($log, $rootScope, $window) {
+        function $storageEventName(name) {
+          return "$" + name + ".change";
+        }
+
         function $storage(name, storage) {
           var $$name = '$' + name;
-          var $$eventName = $$name + ".change";
+          var $$eventName = $storageEventName(name);
 
           function _debug(var_args) {
             if (DEBUG) {
@@ -81,10 +92,10 @@ define([
         }
 
         //string identifier for storage
-        $webStorage.LOCAL = 'local';
-        $webStorage.MEMORY = 'memory';
-        $webStorage.SESSION = 'session';
-        $webStorage.COOKIE = 'cookie';
+        $webStorage.LOCAL = $webStorageProvider.LOCAL;
+        $webStorage.MEMORY = $webStorageProvider.MEMORY;
+        $webStorage.SESSION = $webStorageProvider.SESSION;
+        $webStorage.COOKIE = $webStorageProvider.COOKIE;
 
         return $webStorage;
       }];

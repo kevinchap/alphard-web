@@ -156,20 +156,20 @@ define(["module", "angular"], function (module, angular) {
       this.$get = ["$injector", "$log", "$q", "$timeout", "$window", function ($injector, $log, $q, $timeout, $window) {
         var $$dialog = {};
 
+        var $injectorOpt = function (name) {
+          return $injector.has(name) ? $injector.get(name) : null;
+        };
+
         //translate is optional
-        var $translate = $injectorOptional("$translate") || function (k) {
-          return k;
+        var $translate = $injectorOpt("$translate") || function (k) {
+          return $q.when(k);
         };
 
         //Modal is optional dependency
-        var $modal = $injectorOptional("$modal");
+        var $modal = $injectorOpt("$modal");
 
         if (!$modal) {
           $log.info("$modal not found");
-        }
-
-        function $injectorOptional(name) {
-          return $injector.has(name) ? $injector.get(name) : null;
         }
 
         function openNative(type, args, opt_callback) {
@@ -217,11 +217,11 @@ define(["module", "angular"], function (module, angular) {
 
         function openModal(type, args, opt_callback) {
           var typeName = DialogType[type];
-
+          var typeNameLower = typeName.toLowerCase();
           return $modal
             .open({
-              templateUrl: __dirname + '/' + typeName.toLowerCase() + '.html',
-              controllerAs: "$" + typeName.toLowerCase(),
+              templateUrl: __dirname + '/' + typeNameLower + '.html',
+              controllerAs: "$" + typeNameLower,
               controller: "Dialog" + typeName + "Controller",
               animation: settings.animation,
               backdrop: settings.backdrop,
@@ -246,16 +246,13 @@ define(["module", "angular"], function (module, angular) {
          * Open an alert dialog
          *
          * @param {string} message
-         * @param {function (): void} opt_callback
-         * @returns {*}
+         * @param {function (): void=} opt_callback
+         * @returns {Promise<boolean>}
          */
         function $alert(message, opt_callback) {
           var type = DialogType.Alert;
           var args = [ message ];
-          return ($modal ?
-              openModal(type, args, opt_callback) :
-              openNative(type, args, opt_callback)
-          );
+          return ($modal ? openModal : openNative)(type, args, opt_callback);
         }
         $$dialog.$alert = $alert;
 
@@ -263,16 +260,13 @@ define(["module", "angular"], function (module, angular) {
          * Open a confirm dialog
          *
          * @param {string} message
-         * @param {function(boolean): void} opt_callback
-         * @returns {*}
+         * @param {function(boolean): void=} opt_callback
+         * @returns {Promise<boolean>}
          */
         function $confirm(message, opt_callback) {
           var type = DialogType.Confirm;
           var args = [ message ];
-          return ($modal ?
-              openModal(type, args, opt_callback) :
-              openNative(type, args, opt_callback)
-          );
+          return ($modal ? openModal : openNative)(type, args, opt_callback);
         }
         $$dialog.$confirm = $confirm;
 
@@ -281,15 +275,13 @@ define(["module", "angular"], function (module, angular) {
          *
          * @param {string} text
          * @param {string=} opt_defaultText
-         * @param {function(string): void} opt_callback
+         * @param {function(string): void=} opt_callback
+         * @returns {Promise<string>}
          */
         function $prompt(text, opt_defaultText, opt_callback) {
           var type = DialogType.Prompt;
           var args = [ text, opt_defaultText ];
-          return ($modal ?
-              openModal(type, args, opt_callback) :
-              openNative(type, args, opt_callback)
-          );
+          return ($modal ? openModal : openNative)(type, args, opt_callback);
         }
         $$dialog.$prompt = $prompt;
 
@@ -349,7 +341,7 @@ define(["module", "angular"], function (module, angular) {
    *   return $q.when(true);
    * })
    * .then(function (result) {
-   *   // result: true|false correspond to the button pressed
+   *   // result: string correspond to the button pressed
    * })
    */
     .provider("$prompt", [function () {

@@ -36,7 +36,7 @@ define(["module", "angular"], function (module, angular) {
     function _stringifyDDToDMM(dd, fixedLength) {
       var ddAbs = dd < 0 ? -dd : dd;
       return __isNaN(dd) ? __str(dd) : "" +
-        (0 | dd) +
+        __str(0 | dd) +
         ' ' +
         (ddAbs % 1 * 60).toFixed(fixedLength);
     }
@@ -44,9 +44,9 @@ define(["module", "angular"], function (module, angular) {
     function _stringifyDDToDMS(dd, fixedLength) {
       var ddAbs = dd < 0 ? -dd : dd;
       return __isNaN(dd) ? __str(dd) : "" +
-        0 | dd +
+        __str(0 | dd) +
         '°' +
-        0 | ddAbs % 1 * 60 +
+        __str(0 | ddAbs % 1 * 60) +
         "'" +
         (ddAbs * 60 % 1 * 60).toFixed(fixedLength - 4) +
         '"';
