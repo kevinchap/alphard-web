@@ -62,28 +62,56 @@ define(["module", "angular"], function (module, angular) {
     };
   }());
 
-  var __abs = Math.abs;
-  var __isArray = angular.isArray;
-  var __isObject = angular.isObject;
-  var __stringify = angle.stringify;
-
-  
   return angular
     .module(module.id, [])
 
+  /**
+   * geoLon(longitude, format)
+   *
+   * @param {number} longitude
+   * @param {string} format DD|DM|DMS
+   *
+   * Usage:
+   *   {{ longitude |geoLon:format }}
+   */
     .filter("geoLon", [function () {
+      var __abs = Math.abs;
+      var __stringify = angle.stringify;
       return function (coord, opt_format) {
         return __stringify(__abs(coord), opt_format) + (coord > 0 ? "E" : "W");
       };
     }])
 
+  /**
+   * geoLat(latitude, format)
+   *
+   * @param {number} latitude
+   * @param {string} format DD|DM|DMS
+   *
+   * Usage:
+   *   {{ latitude |geoLat:format }}
+   */
     .filter("geoLat", [function () {
+      var __abs = Math.abs;
+      var __stringify = angle.stringify;
       return function (coord, opt_format) {
         return __stringify(__abs(coord), opt_format) + (coord > 0 ? "N" : "S");
       };
     }])
 
+  /**
+   * geoCoord(coord, format)
+   *
+   * @param {[number, number]|{longitude:number, latitude:number}} coord
+   * @param {string} format DD|DM|DMS
+   *
+   * Usage:
+   *   {{ [ longitude, latitude ] |geoCoord:format }}
+   *   {{ { longitude: ..., latitude: ... } |geoCoord:format }}
+   */
     .filter("geoCoord", ["$filter", function ($filter) {
+      var __isArray = angular.isArray;
+      var __isObject = angular.isObject;
       var geoLon = $filter("geoLon");
       var geoLat = $filter("geoLat");
 
