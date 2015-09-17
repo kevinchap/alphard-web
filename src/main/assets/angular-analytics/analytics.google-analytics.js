@@ -45,9 +45,9 @@ function (module, angular, ngAnalytics, ga) {
       }
     }
 
-    GoogleAnalytics.prototype = Object.create(_super.prototype);
+    //GoogleAnalytics.prototype = Object.create(_super.prototype);
 
-    GoogleAnalytics.prototype.constructor = GoogleAnalytics;
+    //GoogleAnalytics.prototype.constructor = GoogleAnalytics;
 
     GoogleAnalytics.prototype.debug = false;
 

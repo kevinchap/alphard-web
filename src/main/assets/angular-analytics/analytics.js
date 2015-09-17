@@ -35,12 +35,12 @@ define(['module', 'angular'], function (module, angular) {
       }
 
       this.anonymousId = this.anonymousId;
-      this.timeStart = this.timeStart || __now(self);
+      this.timeStart = this.timeStart || __now(this);
     }
 
-    Analytics.prototype = Object.create(_super.prototype);
+    //Analytics.prototype = Object.create(_super.prototype);
 
-    Analytics.prototype.constructor = Analytics;
+    //Analytics.prototype.constructor = Analytics;
 
     Analytics.prototype.name = "$analytics";
 
