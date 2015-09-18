@@ -595,7 +595,7 @@ define(["module", "angular"], function (module, angular) {
 
             //check input type
             if ($attrs.type !== "file") {
-              $log.warn($element[0],  ' must be an input[type=file]');
+              $log.warn($element[0], ' must be an input[type=file]');
             }
 
             ngFileSelect.onFileSelect = function (context) {
