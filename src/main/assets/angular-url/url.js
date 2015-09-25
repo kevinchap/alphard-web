@@ -30,7 +30,7 @@ define(["module", "angular"], function (module, angular) {
     .provider("$url", [function () {
       var $provider = this;
       var __isFunction = angular.isFunction;
-      var __strNullable = function (o) { return o === undefined || o === null ? o : "" + o; };
+      var __strNullable = function (o) { return o === undefined || o === null ? "" : "" + o; };
       var filters = [];
       var filterc = 0;
 
