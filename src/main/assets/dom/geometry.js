@@ -2,9 +2,9 @@ define([], function () {
   "use strict";
 
   /**
-   * geom module
+   * geometry module
    */
-  var geom = (function (_exports) {
+  var geometry = (function (_exports) {
     var divElement = document.createElement("div");
     var computed = !!divElement.currentStyle ?
       function (element) {
@@ -400,5 +400,5 @@ define([], function () {
   }({}));
 
 
-  return geom;
+  return geometry;
 });
