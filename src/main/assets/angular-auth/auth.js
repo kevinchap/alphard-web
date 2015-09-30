@@ -14,8 +14,12 @@
  *   })
  *
  */
-define(['module', 'angular', 'angular-session'], function (module, angular, ngSession) {
+define(['module', 'angular', 'angular-session'], function (module) {
   'use strict';
+
+  //Import
+  var angular = require("angular");
+  var ngSession = require("angular-session");
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
@@ -256,9 +260,9 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         //watch creation
         $session.$onCreate(function ($event, sessionData) {
-          var $auth = _sessionStorage(sessionData.data);
-          if ($auth.isLogged) {
-            _dispatchEvent($$eventLogin, $auth.id, $auth.user);
+          var $authData = sessionData.data[STORAGE_KEY];
+          if ($authData && $authData.isLogged) {
+            _dispatchEvent($$eventLogin, $authData.id, $authData.user);
           }
         });
 
@@ -273,8 +277,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         //watch expiration
         $session.$onExpire(function ($event, reason, sessionData) {
-          var $auth = _sessionStorage(sessionData.data);
-          if ($auth && $auth.isLogged) {
+          var $authData = sessionData.data[STORAGE_KEY];
+          if ($authData && $authData.isLogged) {
             _dispatchEvent($$eventLogout, reason);
           }
         });
@@ -291,9 +295,12 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         //
 
         //util
-        function _sessionStorage(opt_data) {
-          var s = opt_data || $session.$data();
-          return s[STORAGE_KEY] || (s[STORAGE_KEY] = {});
+        function _sessionStorage() {
+          var returnValue = $session.getItem(STORAGE_KEY);
+          if (!returnValue) {
+            $session.setItem(STORAGE_KEY, returnValue = {});
+          }
+          return returnValue;
         }
 
         function _addEventListener(eventName, fn) {
