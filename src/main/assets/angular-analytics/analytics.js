@@ -12,8 +12,11 @@
  *   })
  *
  */
-define(['module', 'angular'], function (module, angular) {
+define(['module', 'angular'], function (module) {
   'use strict';
+
+  //Import
+  var angular = require("angular");
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
