@@ -2,6 +2,7 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
+  var LIBRARY = "angular";
 
   function debug(var_args) {
     if (moduleConfig.debug) {
@@ -80,32 +81,32 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
       //add sportagraph library
       var dataTypes = {
         // dataType            : // chartTypes
-        'singular': ['wall'],
-        'categorical': ['wall'],
-        'cat-interval': ['wall'],
-        'cat-ordinal': ['wall'],
-        'chronological': ['wall'],
-        'cat-chronological': ['wall']
-        // 'nominal'           : [],
-        // 'extraction'        : []
+        'singular': [],
+        'categorical': [],
+        'cat-interval': [],
+        'cat-ordinal': [],
+        'chronological': [],
+        'cat-chronological': [],
+        'nominal' : [],
+        'extraction' : []
       };
 
       this.$get = ["$compile", "$keen", function ($compile, $keen) {
         var isRegistered = false;
 
-        function artifact(artifactName, template) {
-          var $ = angular.element;
+        function artifact(artifactName, template, opt_dataTypes) {
+          var $templateCompiled = null;
+
+          function _element(self) {
+            return angular.element(self.el());
+          }
 
           function _ngTemplate(self) {
-            return self._templateCompiled || (self._templateCompiled = $compile(template));
+            return $templateCompiled || ($templateCompiled = $compile(template));
           }
 
           function _ngScope(self) {
-            var scope = self._scope;
-            if (!scope) {
-              scope = self._scope = $(self.el()).scope().$new();
-            }
-            return scope;
+            return self._scope || (self._scope = _element(self).scope().$new());
           }
 
           artifacts[artifactName] = {
@@ -113,22 +114,20 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
             },
 
             update: function () {
-              var $scope = _ngScope(this);
-              $scope.$title = this.title();
-              $scope.$data = this.data();
+              var self = this;
+              var $scope = _ngScope(self);
+              $scope.$title = self.title();
+              $scope.$data = self.data();
               $scope.$applyAsync();
             },
 
             render: function () {
               var self = this;
               var $scope = _ngScope(self);
-              var $templateCompiled = _ngTemplate(self);
-              $templateCompiled($scope, function ($clonedElement) {
+              _ngTemplate(self)($scope, function ($clonedElement) {
                 //append
-                self.view._artifacts[artifactName] = $clonedElement;
-                $(self.el())
-                  //.html("")
-                  .append($clonedElement);
+                self.view._artifacts[artifactName] = $clonedElement[0];
+                _element(self).append($clonedElement);
               });
               this.update();
             },
@@ -137,11 +136,20 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
               var artifacts = this.view._artifacts;
               var artifact = artifacts[artifactName];
               if (artifact) {
-                artifact.remove();
+                angular.element(artifact).remove();
                 artifacts[artifactName] = null;
               }
             }
           };
+          if (opt_dataTypes) {
+            for (var i = 0, l = opt_dataTypes.length; i < l; i++) {
+              var dataType = opt_dataTypes[i];
+              var chartTypes = dataTypes[dataType] || (dataTypes[dataType] = []);
+              if (chartTypes.indexOf(artifactName) < 0) {
+                chartTypes.push(artifactName);
+              }
+            }
+          }
         }
 
         function create() {
@@ -153,7 +161,7 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
           if (!isRegistered) {
             isRegistered = true;
             $keen.Dataviz.register(
-              "angular",
+              LIBRARY,
               artifacts,
               {
                 capabilities: dataTypes
@@ -203,63 +211,57 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
           chart.el($element[0]);
 
           chart.view.loader = {
-            library: 'angular',
+            library: LIBRARY,
             chartType: 'spinner'
           };
 
           self.refreshCommon = function () {
-            if (chart) {
-              chart
-                .chartType(self.type)
-                .chartOptions(self.options())
-                .title(self.title)
-                .library(self.library);
-            }
+            chart
+              .chartType(self.type)
+              .chartOptions(self.options())
+              .title(self.title)
+              .library(self.library);
           };
 
           self.refreshData = function (dataOrPromise) {
             self.refreshCommon();
-            if (chart) {
-              chart.prepare();
-              var currentRev = ++_rev;
-              if (dataOrPromise) {
-                $q
-                  .when(dataOrPromise)
-                  .then(function (data) {
-                    if (currentRev === _rev) {
-                      chart.parseRawData(data).render();
-                    }
-                  });
-              }
+            chart.prepare();
+            var currentRev = ++_rev;
+            if (dataOrPromise) {
+              $q
+                .when(dataOrPromise)
+                .then(function (data) {
+                  if (currentRev === _rev) {
+                    chart.parseRawData(data).render();
+                  }
+                });
             }
           };
 
           self.refreshQuery = function (query) {
             self.refreshCommon();
-            if (chart) {
-              chart.prepare();
-              var currentRev = ++_rev;
-              $keenClient.run(query, function (error, result) {
-                if (currentRev === _rev) {
-                  if (error) {
-                    chart.error(error.message);
-                  } else {
-                    chart.parseRequest(this).render();
-                  }
+            chart.prepare();
+            var currentRev = ++_rev;
+            $keenClient.run(query, function (error, result) {
+              if (currentRev === _rev) {
+                if (error) {
+                  chart.error(error.message);
+                } else {
+                  chart.parseRequest(this).render();
                 }
-              });
-            }
+              }
+            });
           };
 
           $scope.$watchGroup([
-              function () { return self.type; },
-              function () { return self.title; },
-              function () { return self.library; },
-              self.options
-            ],
-            function () {
-              self.refreshCommon();
-            });
+            function () { return self.type; },
+            function () { return self.title; },
+            function () { return self.library; },
+            self.options
+          ],
+          function () {
+            self.refreshCommon();
+          });
 
           $scope.$watchGroup([self.data, self.query], function (val) {
             var data = val[0];
