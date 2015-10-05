@@ -1,24 +1,17 @@
 define([
   'module',
-  'require',
   'angular',
   'dom/cookieStorage',
   'dom/localStorage',
   'dom/memoryStorage',
   'dom/sessionStorage'
-], function (module, require) {
+], function (module, angular, cookieStorage, localStorage, memoryStorage, sessionStorage) {
   'use strict';
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
   var DEBUG = moduleConfig.debug;
 
-  //Imports
-  var angular = require("angular");
-  var cookieStorage = require("dom/cookieStorage");
-  var localStorage = require("dom/localStorage");
-  var memoryStorage = require("dom/memoryStorage");
-  var sessionStorage = require("dom/sessionStorage");
 
   function $webStorageProvider(name, storage) {
     return function () {

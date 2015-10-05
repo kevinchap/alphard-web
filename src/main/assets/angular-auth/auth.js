@@ -1,5 +1,5 @@
 /**
- * Inspired by https://segment.com/docs/libraries/analytics.js/
+ *
  *
  * Configuration:
  *   require.config({
@@ -14,12 +14,8 @@
  *   })
  *
  */
-define(['module', 'angular', 'angular-session'], function (module) {
+define(['module', 'angular', 'angular-session'], function (module, angular, ngSession) {
   'use strict';
-
-  //Import
-  var angular = require("angular");
-  var ngSession = require("angular-session");
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};

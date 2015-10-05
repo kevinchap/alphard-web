@@ -21,7 +21,6 @@ define(['module'], function (module) {
   'use strict';
 
   var moduleConfig = (module.config && module.config()) || {};
-  var DEBUG = !!moduleConfig.debug;
   var ANGULAR_NAME = moduleConfig.angular || 'angular';
 
   /**
@@ -72,7 +71,7 @@ define(['module'], function (module) {
         } else {
           var deps = moduleDefinition.deps || [];
           var init = moduleDefinition.init || (function () {
-            console.warn('no factory defined for ng module ' + name + '!');
+            console.warn('no factory defined for ng module ' + name + '!', moduleDefinition);
             return function () { };
           }());
           var bootstrap = moduleDefinition.bootstrap || false;
@@ -133,7 +132,6 @@ define(['module'], function (module) {
         o.service &&
         o.value &&
         o.constant &&
-        o.animation &&
         o.controller &&
         o.filter &&
         o.directive &&
@@ -144,6 +142,7 @@ define(['module'], function (module) {
 
     //exports
     return {
+      name: "ng",
       load: load
     };
   }());

@@ -1,21 +1,14 @@
 define([
   'module',
-  'require',
   'angular',
   'angular-webstorage',
   'angular-time'
 ],
-function (module) {
+function (module, angular, ngWebStorage, ngTime) {
   'use strict';
-
-  //Imports
-  var angular = require("angular");
-  var ngWebStorage = require("angular-webstorage");
-  var ngTime = require("angular-time");
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
-
 
   /**
    * SessionGeneratorId class
