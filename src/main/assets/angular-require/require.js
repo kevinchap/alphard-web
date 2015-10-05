@@ -24,11 +24,9 @@ define(["module", "require", "angular", "text"], function (module, require, angu
       var replace = $templateRequestRequireProvider.config().replace;
       debug("$templateRequestRequire", replace ? "enabled" : "disabled");
       if (replace) {
-        /*
         $provide.decorator("$templateRequest", ["$templateRequestRequire", function ($templateRequestRequire) {
           return $templateRequestRequire;//override
         }]);
-        */
       }
     }])
 

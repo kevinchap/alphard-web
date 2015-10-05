@@ -89,6 +89,43 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
   return angular
     .module(module.id, [ ngSession.name ])
 
+  /**
+   *
+   * Usage:
+   *
+   *   cache = $userCacheFactory("toto")
+   */
+    .provider("$userCacheFactory", [function () {
+      //var $$eventAuthLogout = "$auth.logout";
+      var settings = {
+        prefix: "user/"
+      };
+
+      this.config = function (options) {
+        angular.extend(settings, options);
+      };
+
+      this.$get = ["$auth", "$cacheFactory", function ($auth, $cacheFactory) {
+
+        function $userCacheFactory(name, opt_options) {
+          var cache = $cacheFactory(settings.prefix + name, opt_options);
+          var _removeAll = function () { cache.removeAll(); };
+          var _offLogout = $auth.$onLogout(_removeAll);
+          cache.destroy = (function (destroy) {
+            return function () {
+              _offLogout();//unregister
+              _offLogout = null;
+              destroy.call(cache);
+            };
+          }(cache.destroy));
+
+          return cache;
+        }
+        return $userCacheFactory;
+      }];
+
+    }])
+
     /**
      *
      * Usage:
@@ -101,26 +138,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
      *   value = $userCache.get("foo");//undefined
      */
     .provider("$userCache", function () {
-      this.$get = ["$auth", "$cacheFactory", function ($auth, $cacheFactory) {
-        var $userCache = $cacheFactory("$userCache");
-        var _removeAll = function () { $userCache.removeAll(); };
-        var _offLogin = $auth.$onLogin(_removeAll);
-        var _offLogout = $auth.$onLogout(_removeAll);
-
-        $userCache.destroy = (function (_super) {
-          function destroy() {
-            _offLogin();
-            _offLogout();
-            //free reference
-            _offLogin = null;
-            _offLogout = null;
-            _super.call($userCache);
-          }
-          return destroy;
-        }($userCache.destroy));
-
-
-        return $userCache;
+      this.$get = ["$userCacheFactory", function ($userCacheFactory) {
+        return $userCacheFactory("$userCache");
       }];
     })
 
