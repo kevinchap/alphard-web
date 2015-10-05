@@ -142,7 +142,6 @@ define(['module'], function (module) {
 
     //exports
     return {
-      name: "ng",
       load: load
     };
   }());
