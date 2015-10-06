@@ -1,4 +1,4 @@
-define(['json/jsonschema', 'q'], function (jsonschema, Q) {
+define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
   'use strict';
 
   var

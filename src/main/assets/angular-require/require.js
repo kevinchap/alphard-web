@@ -3,7 +3,6 @@ define(["module", "require", "angular", "text"], function (module, require, angu
 
   var moduleConfig = (module.config && module.config()) || {};
   moduleConfig.debug = true;
-
   function debug(var_args) {
     if (moduleConfig.debug) {
       var args = ['[' + module.id + ']'];
@@ -67,6 +66,22 @@ define(["module", "require", "angular", "text"], function (module, require, angu
           return $q(function (resolve, reject) {
             $templateRequestRequire.totalPendingRequests += 1;
 
+            function done() {
+              $templateRequestRequire.totalPendingRequests -= 1;
+            }
+
+            function handleError(e) {
+              done();
+              debug("$templateRequestRequire(", url, ignoreRequestError, ") -> FAIL", e);
+              if (!ignoreRequestError) {
+                throw e;
+                /*throw $compileMinErr('tpload',
+                 'Failed to load template: {0} (HTTP status: {1} {2})',
+                 tpl, resp.status, resp.statusText);*/
+              }
+              reject(e);
+            }
+
             if (!isString(url)) {
               url = $sce.getTrustedResourceUrl(url);
             }
@@ -76,24 +91,17 @@ define(["module", "require", "angular", "text"], function (module, require, angu
               debug("$templateRequestRequire(", url, ignoreRequestError, ") -> OK (cache)");
               resolve(templateContent);
             } else {
-              $require([ "text!" + url ],
-                function (content) {
+              try {
+                $require([ "text!" + url ], function (content) {
                   debug("$templateRequestRequire(", url, ignoreRequestError, ") -> OK");
                   $templateCache.put(url, content);
-                  $templateRequestRequire.totalPendingRequests -= 1;
+                  done();
                   resolve(content);
-                },
-                function (error) {
-                  $templateRequestRequire.totalPendingRequests -= 1;
-                  debug("$templateRequestRequire(", url, ignoreRequestError, ") -> Error", error);
-                  if (!ignoreRequestError) {
-                    throw error;
-                    /*throw $compileMinErr('tpload',
-                     'Failed to load template: {0} (HTTP status: {1} {2})',
-                     tpl, resp.status, resp.statusText);*/
-                  }
-                  reject(error);
-                });
+                }, handleError);
+              } catch (e) {
+                handleError(e);
+              }
+
             }
           });
         }
