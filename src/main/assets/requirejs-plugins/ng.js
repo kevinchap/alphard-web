@@ -39,6 +39,12 @@ define(['module'], function (module) {
       parentRequire([ANGULAR_NAME, name], function (angular, moduleDefinition) {
         var percent = 0;
 
+        function _getNgModule(name) {
+          try {
+            return angular.module(name);
+          } catch (e) { }
+        }
+
         function callback(result) {
           if (moduleDefinition.onload) {
             moduleDefinition.onload(result);
@@ -68,6 +74,9 @@ define(['module'], function (module) {
         if (_isAngularModule(moduleDefinition)) {
           progressFn(1)();
           callback(moduleDefinition);
+        } else if (typeof moduleDefinition === "string" && _getNgModule(moduleDefinition)) {
+          progressFn(1)();
+          callback(_getNgModule(moduleDefinition));
         } else {
           var deps = moduleDefinition.deps || [];
           var init = moduleDefinition.init || (function () {
@@ -139,6 +148,8 @@ define(['module'], function (module) {
         o.run &&
         o.name;
     }
+
+
 
     //exports
     return {
