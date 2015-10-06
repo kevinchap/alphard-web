@@ -46,22 +46,23 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
     .provider("$keenFactory", [function () {
       this.$get = [function () {
         return function $keenFactory(opt_settings) {
-          return new Keen(angular.extend({}, moduleConfig, opt_settings || {}));
+          return new Keen(opt_settings || {});
         };
       }];
     }])
 
     .provider("$keenClient", [function () {
-      var settings = {
-        /*projectId: moduleConfig.projectId,
+      var settings = angular.extend({}, moduleConfig);
+      /*{
+        projectId: moduleConfig.projectId,
         masterKey: moduleConfig.masterKey,
         readKey: moduleConfig.readKey,
         writeKey: moduleConfig.writeKey,
         requestType: moduleConfig.requestType,
         host: moduleConfig.host,
         protocol: moduleConfig.protocol,
-        globalProperties: moduleConfig.globalProperties*/
-      };
+        globalProperties: moduleConfig.globalProperties
+      };*/
 
       this.config = function config(data) {
         angular.extend(settings, data);
