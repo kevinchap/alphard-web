@@ -2,7 +2,7 @@ define(["module", "require", "angular", "text"], function (module, require, angu
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
-  moduleConfig.debug = true;
+
   function debug(var_args) {
     if (moduleConfig.debug) {
       var args = ['[' + module.id + ']'];
