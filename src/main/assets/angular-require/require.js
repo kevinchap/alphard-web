@@ -34,8 +34,34 @@ define(["module", "require", "angular", "text"], function (module, require, angu
    */
     .provider("$require", [function () {
 
-      this.$get = [function () {
-        return require;
+      this.$get = ["$q", function ($q) {
+        var isArray = angular.isArray;
+
+        function $require(nameOrArray, opt_callback, opt_errback) {
+          var returnValue;
+          if (isArray(nameOrArray)) {
+            returnValue = $q(function (resolve, reject) {
+              require(nameOrArray,
+                function () {
+                  resolve([].slice.call(arguments));
+                  if (opt_callback) {
+                    opt_callback.apply(this, arguments);
+                  }
+                },
+                function (e) {
+                  reject(e);
+                  if (opt_errback) {
+                    opt_callback.apply(this, arguments);
+                  }
+                });
+            });
+          } else {
+            returnValue = require(nameOrArray);
+          }
+          return returnValue;
+        }
+
+        return $require;
       }];
 
     }])

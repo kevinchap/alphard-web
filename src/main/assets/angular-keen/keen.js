@@ -77,6 +77,7 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
    * Usage:
    *   $keenDataviz.artifact("myName", "<div>...</div>")
    */
+      /*
     .provider("$keenDataviz", [function () {
       var artifacts = {};
       //add sportagraph library
@@ -175,7 +176,7 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
           create: create
         };
       }];
-    }])
+    }])*/
 
   /**
    * Usage:
@@ -187,7 +188,7 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
    *             [title="My Title"]>
    * </keen-chart>
    */
-    .directive('keenChart', [function () {
+    /*.directive('keenChart', [function () {
       return {
         restrict: 'EA',
         scope: {
@@ -282,7 +283,7 @@ define(["module", "angular", "keen"], function (module, angular, Keen) {
           return self;
         }]
       };
-    }])
+    }])*/
 
   /**
    * Usage:
