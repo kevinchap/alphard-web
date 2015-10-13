@@ -23,6 +23,14 @@ define(function () {
       };
     }
 
+    /**
+     * Plugin loading definition
+     *
+     * @param {string} name
+     * @param {function} parentRequire
+     * @param {function} onLoad
+     * @param {object} config
+     */
     function load(name, parentRequire, onLoad, config) {
       var parsed = parseName(name);
 
