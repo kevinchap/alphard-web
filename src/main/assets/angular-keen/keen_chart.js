@@ -30,10 +30,11 @@ define(["module", "angular"], function (module, angular) {
         var isRegistered = false;
 
         function artifact(artifactName, template, opt_dataTypes) {
+          var $ = angular.element;
           var $templateCompiled = null;
 
           function _element(self) {
-            return angular.element(self.el());
+            return $(self.el());
           }
 
           function _ngTemplate(self) {
@@ -71,7 +72,7 @@ define(["module", "angular"], function (module, angular) {
               var artifacts = this.view._artifacts;
               var artifact = artifacts[artifactName];
               if (artifact) {
-                angular.element(artifact).remove();
+                $(artifact).remove();
                 artifacts[artifactName] = null;
               }
             }
@@ -197,6 +198,7 @@ define(["module", "angular"], function (module, angular) {
                 } else {
                   chart.parseRequest(this).render();
                 }
+                $scope.$apply();
               }
             });
           };
@@ -223,8 +225,10 @@ define(["module", "angular"], function (module, angular) {
 
             if (query) {
               self.refreshQuery(query);
-            } else {
+            } else if (data) {
               self.refreshData(data);
+            } else {
+              //no data nor query
             }
           });
 
