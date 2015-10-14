@@ -1,11 +1,11 @@
-define(["module", "angular"], function (module, angular) {
+define(["module", "angular", "angular-keen/keen"], function (module, angular, ngKeen) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
   var LIBRARY = "angular";
 
   return angular
-    .module(module.id, [])
+    .module(module.id, [ ngKeen.name ])
 
   /**
    * Usage:
