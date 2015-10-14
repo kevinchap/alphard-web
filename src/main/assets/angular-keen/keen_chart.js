@@ -198,7 +198,7 @@ define(["module", "angular"], function (module, angular) {
                 } else {
                   chart.parseRequest(this).render();
                 }
-                $scope.$apply();
+                $scope.$applyAsync();
               }
             });
           };
