@@ -449,6 +449,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         promise;
 
         debug(toString(request) + ' envelope=' + smd.envelope + ' transport=' + smd.transport);
+
         promise = Q['try'](function () {
             //1. envelope
             request = _delegate(self, 'onRequestInit', request) || request;
@@ -831,7 +832,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
     });
 
     //====================JSONRPC ENVELOPE=====================
-    envelope["JSON-RPC-2.0"] = toAsyncFn(function (request) {
+    envelope["JSONRPC20"] = toAsyncFn(function (request) {
 
       return new Promise(function (resolve, reject) {
         _require([ 'json/jsonrpc' ], function (jsonrpc) {
