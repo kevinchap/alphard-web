@@ -726,12 +726,12 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         this.services = data.services || {};
         _serviceInherits(this, data);
         _serviceInherits(this, SMD_DEFAULT);
-        _serviceSMD(this, 0);
+        _serviceSMD(this);
 
-        //default values
-        this.SMDVersion = this.SMDVersion;
-        //root.id = root.id;
-        this.description = this.description;
+        this.SMDVersion = data.SMDVersion;
+        //this.id = data.id;
+        this.description = data.description;
+        //this.name = data.name;
       }
 
       SMD.prototype.SMDVersion = "2.0";
@@ -768,18 +768,13 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         return service;
       }
 
-      function _serviceSMD(root, d) {
+      function _serviceSMD(root) {
         var services = root.services, service, serviceName;
-
-        if (d >= 10) return;
         if (services) {
           for (serviceName in services) {
             if (services.hasOwnProperty(serviceName)) {
               service = services[serviceName];
               JSONSchema.validate(SMD_SCHEMA, service, { "throws": true });
-
-              service.name = service.name || (root.name ? root.name + "." + serviceName : serviceName);
-              _serviceSMD(_serviceInherits(service, root), d + 1);
             }
           }
         }
@@ -792,13 +787,13 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
 
   }(rpc || (rpc = {})));
 
-
-
   ///////////////////////ENVELOPE///////////////////////////
+
   (function (envelope) {
     /*jshint sub:true*/
 
     //====================URL ENVELOPE=====================
+
     envelope["URL"] = toAsyncFn(function (request) {
       var smd = request.smd;
 
@@ -812,6 +807,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
     });
 
     //=====================JSON ENVELOPE======================
+
     envelope["JSON"] = toAsyncFn(function (request) {
 
       var
@@ -832,6 +828,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
     });
 
     //====================JSONRPC ENVELOPE=====================
+
     envelope["JSONRPC20"] = toAsyncFn(function (request) {
 
       return new Promise(function (resolve, reject) {
@@ -884,6 +881,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
   }(rpc.envelope));
 
   ///////////////////////TRANSPORT///////////////////////////
+
   (function (transport) {
     /*jshint sub:true*/
 
