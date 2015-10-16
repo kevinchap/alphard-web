@@ -692,9 +692,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         transport: "POST",
         contentType: "application/json",
         target: baseURL,
-        jsonpCallbackParameter: "callback",
-        parametersType: 'auto'// this is a custom parameter (= not in spec)
-        /*parameters: []*/
+        jsonpCallbackParameter: "callback"
       };
       var SMD_SCHEMA = {
         "type": "object",
@@ -705,7 +703,6 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
           "target": { "type": "string", "optional": true },
           "jsonpCallbackParameter": { "type": "string", "optional": true },
           "services": { "type": "object", "optional": true },
-          "parametersType": { "type": "string", "optional": true, "enum" : ["object", "array", "auto"] },
           "parameters": {
             "type": "array",
             "optional": true,
@@ -764,7 +761,6 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         if (service.parameters || parent.parameters) {
           service.parameters = (parent.parameters || []).concat(service.parameters || []);
         }
-        service.parametersType = service.parametersType || parent.parametersType;
         return service;
       }
 
@@ -812,7 +808,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
 
       var
       smd        = request.smd,
-      jsonObject = _parametersToJSON(request.parameters, smd.parametersType);
+      jsonObject = _parametersToJSON(request.parameters);
 
       return Q.resolve({
         jsonpCallbackParameter: smd.jsonpCallbackParameter,
@@ -839,7 +835,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
           JSONRPCError = jsonrpc.Error,
           jsonRequest = new JSONRPCRequest(
             smd.name,
-            _parametersToJSON(request.parameters, smd.parametersType),
+            _parametersToJSON(request.parameters),
             request.id
           );
 
@@ -872,7 +868,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
       switch (mode) {
         case "object": return p.toObject();
         case "array": return p.toArray();
-        default: return p.isArray ? p.toArray() : p.toObject();
+        default: return p.toObject();
       }
     }
 
