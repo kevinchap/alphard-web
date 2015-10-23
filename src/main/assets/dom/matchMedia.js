@@ -1,7 +1,7 @@
 define([], function () {
   "use strict";
 
-  var global = window;
+  var global = typeof window !== "undefined" ? window : global;
   var matchMediaPolyfill = (function () {
     // For browsers that support matchMedium api such as IE 9 and webkit
     var styleMedia = (
@@ -17,7 +17,7 @@ define([], function () {
         script.parentNode.insertBefore(styleElement, script);
 
         // 'style.currentStyle' is used by IE <= 8 and 'window.getComputedStyle' for all other browsers
-        info = ('getComputedStyle' in global) && global.getComputedStyle(style, null) || style.currentStyle;
+        info = computedStyle(styleElement);
         return {
           matchMedium: function (media) {
             var text = '@media ' + media + '{ #matchmediajs-test { width: 1px; } }';
@@ -35,6 +35,10 @@ define([], function () {
         };
       }())
     );
+
+    function computedStyle(element) {
+      return ('getComputedStyle' in global) && global.getComputedStyle(element, null) || element.currentStyle;
+    }
 
     function matchMediaPolyfill(media) {
       media = media || 'all';
