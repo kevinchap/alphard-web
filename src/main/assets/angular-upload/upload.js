@@ -123,6 +123,8 @@ define(["module", "angular"], function (module, angular) {
         _super.call(this, $element);
         var self = this;
 
+        this.activeClass = null;// active class when drag over
+
         this.onFileDrop = null;
 
         this.onDrop = function ($event) {
@@ -145,6 +147,9 @@ define(["module", "angular"], function (module, angular) {
           if (transfer) {
             if (__contains(transfer.types, "Files")) {
               transfer.dropEffect = 'copy';
+              if (this.activeClass) {
+                $element.addClass(this.activeClass);
+              }
               __eventPreventAndStop($event);
             }
           }
@@ -152,14 +157,17 @@ define(["module", "angular"], function (module, angular) {
 
         this.onDragLeave = function ($event) {
           if ($event.currentTarget === $element[0]) {
+            if (this.activeClass) {
+              $element.removeClass(this.activeClass);
+            }
             __eventPreventAndStop($event);
           }
         };
 
         this
-          .bind(DROP, this.onDrop)
-          .bind(DRAGOVER, this.onDragOver)
-          .bind(DRAGLEAVE, this.onDragLeave);
+          .bind(DROP, function ($event) { self.onDrop($event); })
+          .bind(DRAGOVER, function ($event) { self.onDragOver($event); })
+          .bind(DRAGLEAVE, function ($event) { self.onDragLeave($event); });
       }
       FileDrop.$inject = ["$element"];
 
@@ -629,6 +637,9 @@ define(["module", "angular"], function (module, angular) {
           return function link($scope, $element, $attrs, $ctrls) {
             var ngFileDrop = $ctrls[0];
             var onFileDrop = $parse($attrs.ngFileDrop);
+
+            $element.addClass("ng-file-drop");
+            ngFileDrop.activeClass = "ng-file-drop--active";
 
             ngFileDrop.onFileDrop = function (context) {
               $scope.$apply(function () {
