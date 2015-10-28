@@ -123,6 +123,7 @@ define(["module", "angular"], function (module, angular) {
         _super.call(this, $element);
         var self = this;
 
+
         this.activeClass = null;// active class when drag over
 
         this.onFileDrop = null;
@@ -132,6 +133,7 @@ define(["module", "angular"], function (module, angular) {
 
           if (transfer) {
             __eventPreventAndStop($event);
+            this.$setActive(false);
             var $files = __toArray(transfer.files);
             if (self.onFileDrop) {
               self.onFileDrop({
@@ -147,9 +149,7 @@ define(["module", "angular"], function (module, angular) {
           if (transfer) {
             if (__contains(transfer.types, "Files")) {
               transfer.dropEffect = 'copy';
-              if (this.activeClass) {
-                $element.addClass(this.activeClass);
-              }
+              this.$setActive(true);
               __eventPreventAndStop($event);
             }
           }
@@ -157,10 +157,14 @@ define(["module", "angular"], function (module, angular) {
 
         this.onDragLeave = function ($event) {
           if ($event.currentTarget === $element[0]) {
-            if (this.activeClass) {
-              $element.removeClass(this.activeClass);
-            }
+            this.$setActive(false);
             __eventPreventAndStop($event);
+          }
+        };
+
+        this.$setActive = function (v) {
+          if (this.activeClass) {
+            $element.toggleClass(this.activeClass, v);
           }
         };
 
