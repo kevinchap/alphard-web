@@ -1,5 +1,6 @@
 define([
-  "async!" + (function () {
+  "goog!" + (function () {
+
     function forEach(o, f) {
       if (o) {
         for (var prop in o) {
@@ -8,6 +9,12 @@ define([
           }
         }
       }
+    }
+
+    function peek(o, name, defaultValue) {
+      var v = o[name] !== undefined ? o[name] : defaultValue;
+      delete o[name];
+      return v;
     }
 
     function merge(var_args) {
@@ -25,37 +32,33 @@ define([
       return dest;
     }
 
-    function peek(o, name, defaultValue) {
-      var v = o[name] !== undefined ? o[name] : defaultValue;
-      delete o[name];
-      return v;
-    }
-
-    var config = requirejs.s.contexts._.config.config;
-    var options = merge({
+    var moduleConfig = requirejs.s.contexts._.config.config["google/maps"] || {};
+    moduleConfig = merge({
       china: false,
-      v: '3.17',
+      version: '3.17',
       libraries: '',
       language: 'en',
       sensor: false
-    }, config["google/maps"]);
-
-    var url = peek(options, 'china') ?
-      "http://maps.google.cn/maps/api/js" :
-      "https://maps.googleapis.com/maps/api/js";
-    url += "?";
+    }, moduleConfig);
+    var version = peek(moduleConfig, "version", "3.17");
+    var other_params = "";
     var first = true;
-    forEach(options, function (k, v) {
+    forEach(moduleConfig, function (k, v) {
       if (v !== undefined && v !== '') {
         if (first) {
           first = false;
         } else {
-          url += "&";
+          other_params += "&";
         }
-        url += k + "=" + v;
+        other_params += k + "=" + v;
       }
     });
-    return url;
+
+    return [
+      "maps",
+      version,
+      'other_params:' + other_params + ''
+    ].join(",");
   }())
 ], function () {
   "use strict";

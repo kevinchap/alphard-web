@@ -1,5 +1,5 @@
 /**
- * Inspired by https://segment.com/docs/libraries/analytics.js/
+ *
  *
  * Configuration:
  *   require.config({
@@ -89,6 +89,43 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
   return angular
     .module(module.id, [ ngSession.name ])
 
+  /**
+   *
+   * Usage:
+   *
+   *   cache = $userCacheFactory("toto")
+   */
+    .provider("$userCacheFactory", [function () {
+      //var $$eventAuthLogout = "$auth.logout";
+      var settings = {
+        prefix: "user/"
+      };
+
+      this.config = function (options) {
+        angular.extend(settings, options);
+      };
+
+      this.$get = ["$auth", "$cacheFactory", function ($auth, $cacheFactory) {
+
+        function $userCacheFactory(name, opt_options) {
+          var cache = $cacheFactory(settings.prefix + name, opt_options);
+          var _removeAll = function () { cache.removeAll(); };
+          var _offLogout = $auth.$onLogout(_removeAll);
+          cache.destroy = (function (destroy) {
+            return function () {
+              _offLogout();//unregister
+              _offLogout = null;
+              destroy.call(cache);
+            };
+          }(cache.destroy));
+
+          return cache;
+        }
+        return $userCacheFactory;
+      }];
+
+    }])
+
     /**
      *
      * Usage:
@@ -101,26 +138,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
      *   value = $userCache.get("foo");//undefined
      */
     .provider("$userCache", function () {
-      this.$get = ["$auth", "$cacheFactory", function ($auth, $cacheFactory) {
-        var $userCache = $cacheFactory("$userCache");
-        var _removeAll = function () { $userCache.removeAll(); };
-        var _offLogin = $auth.$onLogin(_removeAll);
-        var _offLogout = $auth.$onLogout(_removeAll);
-
-        $userCache.destroy = (function (_super) {
-          function destroy() {
-            _offLogin();
-            _offLogout();
-            //free reference
-            _offLogin = null;
-            _offLogout = null;
-            _super.call($userCache);
-          }
-          return destroy;
-        }($userCache.destroy));
-
-
-        return $userCache;
+      this.$get = ["$userCacheFactory", function ($userCacheFactory) {
+        return $userCacheFactory("$userCache");
       }];
     })
 
@@ -256,9 +275,9 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         //watch creation
         $session.$onCreate(function ($event, sessionData) {
-          var $auth = _sessionStorage(sessionData.data);
-          if ($auth.isLogged) {
-            _dispatchEvent($$eventLogin, $auth.id, $auth.user);
+          var $authData = sessionData.data[STORAGE_KEY];
+          if ($authData && $authData.isLogged) {
+            _dispatchEvent($$eventLogin, $authData.id, $authData.user);
           }
         });
 
@@ -273,8 +292,8 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
 
         //watch expiration
         $session.$onExpire(function ($event, reason, sessionData) {
-          var $auth = _sessionStorage(sessionData.data);
-          if ($auth && $auth.isLogged) {
+          var $authData = sessionData.data[STORAGE_KEY];
+          if ($authData && $authData.isLogged) {
             _dispatchEvent($$eventLogout, reason);
           }
         });
@@ -291,9 +310,12 @@ define(['module', 'angular', 'angular-session'], function (module, angular, ngSe
         //
 
         //util
-        function _sessionStorage(opt_data) {
-          var s = opt_data || $session.$data();
-          return s[STORAGE_KEY] || (s[STORAGE_KEY] = {});
+        function _sessionStorage() {
+          var returnValue = $session.getItem(STORAGE_KEY);
+          if (!returnValue) {
+            $session.setItem(STORAGE_KEY, returnValue = {});
+          }
+          return returnValue;
         }
 
         function _addEventListener(eventName, fn) {

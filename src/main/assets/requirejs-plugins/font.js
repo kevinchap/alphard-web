@@ -13,18 +13,32 @@ define(['module', 'css'], function (module, css) {
 
   //RequireJS module config
   var moduleConfig = (module.config && module.config()) || {};
+  var HTTPS = "https:";
+  var HTTP = "http:";
 
   /**
    * font module
    */
-  var font = (function () {
+  var font;
+  (function (font) {
     //example: font!google,families:[Tangerine,Cantarell,Yanone Kaffeesatz:700]
-    var
-    reParts   = /^([^,]+),([^\|]+)\|?/,
-    reProps   = /([\w-]+)\s*:\s*(?:(\[[^\]]+\])|([^,]+)),?/g, //match "foo:bar" and "lorem:[ipsum,dolor]" capturing name as $1 and val as $2 or $3
-    reArray   = /^\[([^\]]+)\]$/, //match "[foo,bar]" capturing "foo,bar";
-    providers = {};
+    var reParts   = /^([^,]+),([^\|]+)\|?/;
+    var providers = {};
 
+    function _parseName(name) {
+      var
+        data    = {},
+        vendors = name.split('|'),
+        vendorc = vendors.length,
+        match;
+
+      while (vendorc--) {
+        match = reParts.exec(vendors[vendorc]);
+        data[ match[1] ] = _parseProperties(match[2]);
+        data[ match[1] ].module = name;
+      }
+      return data;
+    }
 
     function provider(name, impl) {
       if (arguments.length > 1) {
@@ -34,6 +48,7 @@ define(['module', 'css'], function (module, css) {
         return providers[name];
       }
     }
+    font.provider = provider;
 
     /**
      * @param {string} name
@@ -89,6 +104,7 @@ define(['module', 'css'], function (module, css) {
         }
       }
     }
+    font.get = get;
 
     /**
      * @param {string} name
@@ -103,74 +119,61 @@ define(['module', 'css'], function (module, css) {
         get(name, onLoad, onLoad.error);
       }
     }
+    font.load = load;
 
     //util
-    function _typecastVal(val) {
-      switch (val) {
-        case 'null': return null;
-        case 'false': return false;
-        case 'true': return true;
-        case '':
-        case "''":
-        case '""':
-          return '';
-        default:
-          if (reArray.test(val)) {
-            val = val.replace(reArray, '$1').split(',');
-          } else if (!isNaN(val)) {
-            //isNaN('') == false
-            val = +val;
-          }
-      }
-      return val;
-    }
+    var _parseProperties = (function () {
+      var reArray   = /^\[([^\]]+)\]$/; //match "[foo,bar]" capturing "foo,bar";
+      var reProps = /([\w-]+)\s*:\s*(?:(\[[^\]]+\])|([^,]+)),?/g; //match "foo:bar" and "lorem:[ipsum,dolor]" capturing name as $1 and val as $2 or $3
 
-    function _parseProperties(str) {
-      var match, obj = {};
-      while (true) {
-        match = reProps.exec(str);
-        if (match) {
-          obj[ match[1] ] = _typecastVal(match[2] || match[3]);
-        } else {
-          break;
+      function _typecastVal(val) {
+        switch (val) {
+          case 'null': return null;
+          case 'false': return false;
+          case 'true': return true;
+          case '':
+          case "''":
+          case '""':
+            return '';
+          default:
+            if (reArray.test(val)) {
+              val = val.replace(reArray, '$1').split(',');
+            } else if (!isNaN(val)) {
+              //isNaN('') == false
+              val = +val;
+            }
         }
+        return val;
       }
-      return obj;
-    }
 
-    function _parseName(name) {
-      var
-      data    = {},
-      vendors = name.split('|'),
-      vendorc = vendors.length,
-      match;
-
-      while (vendorc--) {
-        match = reParts.exec(vendors[vendorc]);
-        data[ match[1] ] = _parseProperties(match[2]);
-        data[ match[1] ].module = name;
+      function _parseProperties(str) {
+        var match, obj = {};
+        while (true) {
+          match = reProps.exec(str);
+          if (match) {
+            obj[ match[1] ] = _typecastVal(match[2] || match[3]);
+          } else {
+            break;
+          }
+        }
+        return obj;
       }
-      return data;
-    }
 
-    //exports
-    return {
-      provider: provider,
-      get: get,
-      load: load
-    };
-  }());
+      return _parseProperties;
+    }());
+
+
+  }(font || (font = {})));
 
   //init
   font.provider('google', {
     load: function load(data, opt_callback) {
-      var
-      families = data.families,
-      familiec = families.length,
-      url      = '',
-      i = 0;
+      var families = data.families;
+      var familiec = families.length;
+      var url = '';
+      var i = 0;
 
-      url += (location.protocol === "https:" ? "https:" : "http:");
+      url += (location.protocol === HTTPS ? HTTPS : HTTP);
       url += "//fonts.googleapis.com/css?";
 
       if (families) {
@@ -193,7 +196,7 @@ define(['module', 'css'], function (module, css) {
       var url  = "";
       //url += (location.protocol === "https:" ? "https:" : "http:");
       url += "//netdna.bootstrapcdn.com/font-awesome";
-      url += "/" + (data.version || '4.2.0');//version
+      url += "/" + (data.version || "4.4.0");//version
       url += "/css/font-awesome.min.css";
       _cssLoad(data.module, css.normalize(url), opt_callback);
     }

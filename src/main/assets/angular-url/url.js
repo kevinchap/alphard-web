@@ -4,6 +4,7 @@ define(["module", "angular"], function (module, angular) {
   //RequireJS configuration
   var config = (module.config && module.config()) || {};
   var DEBUG = config.debug;
+  var a = document.createElement("a");
 
   function debug(var_args) {
     if (DEBUG) {
@@ -14,7 +15,59 @@ define(["module", "angular"], function (module, angular) {
       console.debug.apply(console, args);
     }
   }
+
+  function parseURL(s) {
+    a.href = s;
+    return {
+      protocol: a.protocol,
+      hostname: a.hostname,
+      host: a.host,
+      port: a.port,
+      pathname: a.pathname,
+      search: a.search,
+      hash: a.hash
+    };
+  }
+
   debug("config", config);
+
+  /**
+   * URLFilter class
+   */
+  var URLFilter = (function (_super) {
+    var __isFunction = angular.isFunction;
+    var __strNullable = function (o) { return o === undefined || o === null ? "" : "" + o; };
+
+    function URLFilter(opt_filters) {
+      _super.call(this);
+      this.filters = opt_filters ? opt_filters.slice() : [];
+    }
+
+    //URLFilter.prototype = Object.create(_super.prototype);
+
+    //URLFilter.prototype.constructor = URLFilter;
+
+    URLFilter.prototype.format = function (u) {
+      var returnValue = u;
+      var filters = this.filters;
+      for (var i = 0, filterc = filters.length; i < filterc; i++) {
+        returnValue = filters[i](returnValue);
+      }
+      returnValue = __strNullable(returnValue);
+      debug("format(", u, ") ->", returnValue);
+      return returnValue;
+    };
+
+    URLFilter.prototype.push = function (f) {
+      if (!__isFunction(f)) {
+        throw new TypeError(f + " must be a function");
+      }
+      this.filters.push(f);
+      return this;
+    };
+
+    return URLFilter;
+  }(Object));
 
   return angular
     .module(module.id, [])
@@ -28,23 +81,14 @@ define(["module", "angular"], function (module, angular) {
      * $url('/path'); //-> path?foo=bar
      */
     .provider("$url", [function () {
-      var $provider = this;
-      var __isFunction = angular.isFunction;
-      var __strNullable = function (o) { return o === undefined || o === null ? "" : "" + o; };
-      var filters = [];
-      var filterc = 0;
+      var $urlFilter = new URLFilter();
 
-      $provider.push = function (f) {
-        if (!__isFunction(f)) {
-          throw new TypeError(f + " must be a function");
-        }
-        filters.push(f);
-        filterc++;
-        return $provider;
+      this.push = function (f) {
+        $urlFilter.push(f);
+        return this;
       };
 
-      $provider.$get = [function () {
-        var a = document.createElement('a');
+      this.$get = [function () {
 
         /**
          * Format/Decorate url `r`
@@ -53,7 +97,7 @@ define(["module", "angular"], function (module, angular) {
          * @returns {string}
          */
         function $url(r) {
-          return $url.format(r);
+          return $urlFilter.format(r);
         }
 
         /**
@@ -63,13 +107,7 @@ define(["module", "angular"], function (module, angular) {
          * @returns {string}
          */
         $url.format = function (u) {
-          var returnValue = u;
-          for (var i = 0; i < filterc; i++) {
-            returnValue = filters[i](returnValue);
-          }
-          returnValue = __strNullable(returnValue);
-          debug("format(", u, ") ->", returnValue);
-          return returnValue;
+          return $urlFilter.format(u);
         };
 
         /**
@@ -79,16 +117,7 @@ define(["module", "angular"], function (module, angular) {
          * @returns {{protocol: string, hostname: string, host: string, port: string, pathname: string, search: *, hash: string}}
          */
         $url.parse = function (s) {
-          a.href = s;
-          return {
-            protocol: a.protocol,
-            hostname: a.hostname,
-            host: a.host,
-            port: a.port,
-            pathname: a.pathname,
-            search: a.search,
-            hash: a.hash
-          };
+          return parseURL(s);
         };
 
         /**
@@ -97,7 +126,7 @@ define(["module", "angular"], function (module, angular) {
          * @param {function(s: string): string} f
          */
         $url.push = function (f) {
-          $provider.push(f);
+          $urlFilter.push(f);
         };
         return $url;
       }];
@@ -116,7 +145,7 @@ define(["module", "angular"], function (module, angular) {
      */
     .filter("url", ["$url", function ($url) {
       return function url(s) {
-        return $url(s);
+        return $url.format(s);
       };
     }])
 
@@ -128,6 +157,8 @@ define(["module", "angular"], function (module, angular) {
      *
      */
     .directive("img", ["$url", function ($url) {
+      var urlFormat = $url.format;
+
       return {
         priority: 100, // it needs to run after the attributes are interpolated
         link: function ($scope, $element, $attrs) {
@@ -136,7 +167,7 @@ define(["module", "angular"], function (module, angular) {
           $attrs.$observe('src', function (src) {
             if (src !== srcOld) {
               srcOld = src;
-              var srcFiltered = $url(src);
+              var srcFiltered = urlFormat(src);
               if (srcFiltered !== src) {
                 debug($element[0], "src=", srcFiltered);
                 $attrs.$set('src', srcFiltered);

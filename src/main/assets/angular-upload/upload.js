@@ -123,6 +123,9 @@ define(["module", "angular"], function (module, angular) {
         _super.call(this, $element);
         var self = this;
 
+
+        this.activeClass = null;// active class when drag over
+
         this.onFileDrop = null;
 
         this.onDrop = function ($event) {
@@ -130,6 +133,7 @@ define(["module", "angular"], function (module, angular) {
 
           if (transfer) {
             __eventPreventAndStop($event);
+            this.$setActive(false);
             var $files = __toArray(transfer.files);
             if (self.onFileDrop) {
               self.onFileDrop({
@@ -145,6 +149,7 @@ define(["module", "angular"], function (module, angular) {
           if (transfer) {
             if (__contains(transfer.types, "Files")) {
               transfer.dropEffect = 'copy';
+              this.$setActive(true);
               __eventPreventAndStop($event);
             }
           }
@@ -152,14 +157,21 @@ define(["module", "angular"], function (module, angular) {
 
         this.onDragLeave = function ($event) {
           if ($event.currentTarget === $element[0]) {
+            this.$setActive(false);
             __eventPreventAndStop($event);
           }
         };
 
+        this.$setActive = function (v) {
+          if (this.activeClass) {
+            $element.toggleClass(this.activeClass, v);
+          }
+        };
+
         this
-          .bind(DROP, this.onDrop)
-          .bind(DRAGOVER, this.onDragOver)
-          .bind(DRAGLEAVE, this.onDragLeave);
+          .bind(DROP, function ($event) { self.onDrop($event); })
+          .bind(DRAGOVER, function ($event) { self.onDragOver($event); })
+          .bind(DRAGLEAVE, function ($event) { self.onDragLeave($event); });
       }
       FileDrop.$inject = ["$element"];
 
@@ -199,6 +211,7 @@ define(["module", "angular"], function (module, angular) {
       this.$get = ['$log', '$uploadFormData', '$uploadIFrame', '$window',
         function ($log, $uploadFormData, $uploadIFrame, $window) {
 
+
           function upload(adapter) {
             adapter = adapter || "auto";
             var support = upload.support;
@@ -228,7 +241,7 @@ define(["module", "angular"], function (module, angular) {
                 '|(Windows Phone (OS 7|8\\.0))|(XBLWP)|(ZuneWP)|(WPDesktop)' +
                 '|(w(eb)?OSBrowser)|(webOS)' +
                 '|(Kindle/(1\\.0|2\\.[05]|3\\.0))'
-              ).test($window.navigator.userAgent) || $('<input type="file">').prop('disabled')
+              ).test($window.navigator.userAgent) || angular.element('<input type="file">').prop('disabled')
             ),
 
             // The FileReader API is not actually used, but works as feature detection,
@@ -407,8 +420,8 @@ define(["module", "angular"], function (module, angular) {
             var
               method = config.method.toUpperCase() || 'POST',
               iframeName = uniqueName(),
-              $iframe = $('<iframe name="' + iframeName + '" src="javascript:false;"></iframe>'),
-              $form = $('<form></form>'),
+              $iframe = angular.element('<iframe name="' + iframeName + '" src="javascript:false;"></iframe>'),
+              $form = angular.element('<form></form>'),
               files = [],
               fileClones = [],
               deferred = $q.defer(),
@@ -459,7 +472,7 @@ define(["module", "angular"], function (module, angular) {
                   // when trying to access cross-domain iframe contents:
                   try {
                     doc = this.contentWindow ? this.contentWindow.document : this.contentDocument;
-                    response = $(doc.body).text();
+                    response = angular.element(doc.body).text();
                   } catch (e) {
                     return onError(e);
                   }
@@ -474,7 +487,7 @@ define(["module", "angular"], function (module, angular) {
 
                   // Fix for IE endless progress bar activity bug
                   // (happens on form submits to iframe targets):
-                  $form.append($('<iframe src="javascript:false;"></iframe>'));
+                  $form.append(angular.element('<iframe src="javascript:false;"></iframe>'));
 
                   // Convert response into JSON
                   try {
@@ -494,7 +507,7 @@ define(["module", "angular"], function (module, angular) {
               // Add all existing data as hidden variables
               forEach(config.data, function (value, name) {
                 $form.append(
-                  $('<input type="hidden" />').attr('name', name).val(value)
+                  angular.element('<input type="hidden" />').attr('name', name).val(value)
                 );
               });
 
@@ -629,6 +642,9 @@ define(["module", "angular"], function (module, angular) {
             var ngFileDrop = $ctrls[0];
             var onFileDrop = $parse($attrs.ngFileDrop);
 
+            $element.addClass("ng-file-drop");
+            ngFileDrop.activeClass = "ng-file-drop--active";
+
             ngFileDrop.onFileDrop = function (context) {
               $scope.$apply(function () {
                 onFileDrop($scope, context);
@@ -649,7 +665,6 @@ define(["module", "angular"], function (module, angular) {
     .directive("ngFileUpload", ["$uploadFactory", function ($uploadFactory) {
       var $$name = 'ngFileUpload';
       var $$block = 'ng-file-upload';
-      var $ = angular.element;
 
       return {
         restrict: 'EA',
@@ -665,7 +680,7 @@ define(["module", "angular"], function (module, angular) {
           $element.addClass($$block);
 
           return function link($scope, $element) {
-            var $fileInput = $('<input type="file" />');
+            var $fileInput = angular.element('<input type="file" />');
             var $upload = $uploadFactory(adapter());
 
             function opts(name) {

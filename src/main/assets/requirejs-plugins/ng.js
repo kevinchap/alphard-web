@@ -21,7 +21,6 @@ define(['module'], function (module) {
   'use strict';
 
   var moduleConfig = (module.config && module.config()) || {};
-  var DEBUG = !!moduleConfig.debug;
   var ANGULAR_NAME = moduleConfig.angular || 'angular';
 
   /**
@@ -39,6 +38,12 @@ define(['module'], function (module) {
     function load(name, parentRequire, onLoad, config) {
       parentRequire([ANGULAR_NAME, name], function (angular, moduleDefinition) {
         var percent = 0;
+
+        function _getNgModule(name) {
+          try {
+            return angular.module(name);
+          } catch (e) { }
+        }
 
         function callback(result) {
           if (moduleDefinition.onload) {
@@ -69,10 +74,13 @@ define(['module'], function (module) {
         if (_isAngularModule(moduleDefinition)) {
           progressFn(1)();
           callback(moduleDefinition);
+        } else if (typeof moduleDefinition === "string" && _getNgModule(moduleDefinition)) {
+          progressFn(1)();
+          callback(_getNgModule(moduleDefinition));
         } else {
           var deps = moduleDefinition.deps || [];
           var init = moduleDefinition.init || (function () {
-            console.warn('no factory defined for ng module ' + name + '!');
+            console.warn('no factory defined for ng module ' + name + '!', moduleDefinition);
             return function () { };
           }());
           var bootstrap = moduleDefinition.bootstrap || false;
@@ -133,7 +141,6 @@ define(['module'], function (module) {
         o.service &&
         o.value &&
         o.constant &&
-        o.animation &&
         o.controller &&
         o.filter &&
         o.directive &&
@@ -141,6 +148,8 @@ define(['module'], function (module) {
         o.run &&
         o.name;
     }
+
+
 
     //exports
     return {

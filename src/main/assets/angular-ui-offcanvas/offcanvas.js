@@ -64,7 +64,6 @@ define(['module', 'angular'], function (module, angular) {
         }
       };
 
-
     }])
 
     .directive("offcanvas", function offcanvas() {
@@ -93,38 +92,33 @@ define(['module', 'angular'], function (module, angular) {
       return {
         require: '^offcanvas',
         restrict: 'EA',
-        compile: function () {
-          return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = bem(offcanvas.$$class, "__")("content");
+        controller: ["$scope", "$element", function ($scope, $element) {
+          var $offcanvas = $element.controller("offcanvas");
+          var $$class = bem($offcanvas.$$class, "__")("content");
+          var isVisible = $offcanvas.isVisible;
 
-            function isVisible() {
-              return offcanvas.isVisible();
-            }
+          function close() {
+            $offcanvas.setVisible($offcanvas.NONE);
+          }
 
-            function close() {
-              offcanvas.setVisible(offcanvas.NONE);
-            }
-
-            function onDestroy() {
-              $element.bind("mousedown", onMouseDown);
-            }
-
-            function onMouseDown($event) {
-              if (isVisible()) {
-                close();
-              }
-              $scope.$apply();
-            }
-
+          function onDestroy() {
             $element.bind("mousedown", onMouseDown);
-            $scope.$on("$destroy", onDestroy);
-            $scope.$watch(
-              function () {
-                $element.addClass($$class);
-                $element.attr(DISABLED, isVisible());
-              });
-          };
-        }
+          }
+
+          function onMouseDown($event) {
+            if (isVisible()) {
+              close();
+            }
+            $scope.$apply();
+          }
+
+          $element.bind("mousedown", onMouseDown);
+          $scope.$on("$destroy", onDestroy);
+          $scope.$watch(function () {
+            $element.addClass($$class);
+            $element.attr(DISABLED, isVisible());
+          });
+        }]
       };
     })
 
@@ -133,21 +127,20 @@ define(['module', 'angular'], function (module, angular) {
       return {
         require: '^offcanvas',
         restrict: 'EA',
-        compile: function () {
-          return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = bem(offcanvas.$$class, "__")(direction);
-            var isVisible = offcanvas.isVisible;
+        controller: ["$scope", "$element", function ($scope, $element) {
+          var $offcanvas = $element.controller("offcanvas");
+          var $$class = bem($offcanvas.$$class, "__")(direction);
+          var isVisible = $offcanvas.isVisible;
 
-            $scope.$watch(function () {
-              $element.addClass($$class);
-              if (isVisible(direction)) {
-                $element.attr(PUSHED, "");
-              } else {
-                $element.removeAttr(PUSHED);
-              }
-            });
-          };
-        }
+          $scope.$watch(function () {
+            $element.addClass($$class);
+            if (isVisible(direction)) {
+              $element.attr(PUSHED, "");
+            } else {
+              $element.removeAttr(PUSHED);
+            }
+          });
+        }]
       };
     })
 
@@ -156,22 +149,20 @@ define(['module', 'angular'], function (module, angular) {
       return {
         require: '^offcanvas',
         restrict: 'EA',
-        compile: function () {
-          return function link($scope, $element, $attrs, offcanvas) {
-            var $$class = bem(offcanvas.$$class, "__")(direction);
-            var isVisible = offcanvas.isVisible;
+        controller: ["$scope", "$element", function ($scope, $element) {
+          var $offcanvas = $element.controller("offcanvas");
+          var $$class = bem($offcanvas.$$class, "__")(direction);
+          var isVisible = $offcanvas.isVisible;
 
-            $scope.$watch(function () {
-              $element.addClass($$class);
-
-              if (isVisible(direction)) {
-                $element.attr(PUSHED, "");
-              } else {
-                $element.removeAttr(PUSHED);
-              }
-            });
-          };
-        }
+          $scope.$watch(function () {
+            $element.addClass($$class);
+            if (isVisible(direction)) {
+              $element.attr(PUSHED, "");
+            } else {
+              $element.removeAttr(PUSHED);
+            }
+          });
+        }]
       };
     });
 });

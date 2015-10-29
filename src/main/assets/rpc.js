@@ -1,4 +1,4 @@
-define(['json/jsonschema', 'q'], function (jsonschema, Q) {
+define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
   'use strict';
 
   var
@@ -449,6 +449,7 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
         promise;
 
         debug(toString(request) + ' envelope=' + smd.envelope + ' transport=' + smd.transport);
+
         promise = Q['try'](function () {
             //1. envelope
             request = _delegate(self, 'onRequestInit', request) || request;
@@ -691,9 +692,7 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
         transport: "POST",
         contentType: "application/json",
         target: baseURL,
-        jsonpCallbackParameter: "callback",
-        parametersType: 'auto'// this is a custom parameter (= not in spec)
-        /*parameters: []*/
+        jsonpCallbackParameter: "callback"
       };
       var SMD_SCHEMA = {
         "type": "object",
@@ -704,7 +703,6 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
           "target": { "type": "string", "optional": true },
           "jsonpCallbackParameter": { "type": "string", "optional": true },
           "services": { "type": "object", "optional": true },
-          "parametersType": { "type": "string", "optional": true, "enum" : ["object", "array", "auto"] },
           "parameters": {
             "type": "array",
             "optional": true,
@@ -725,12 +723,12 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
         this.services = data.services || {};
         _serviceInherits(this, data);
         _serviceInherits(this, SMD_DEFAULT);
-        _serviceSMD(this, 0);
+        _serviceSMD(this);
 
-        //default values
-        this.SMDVersion = this.SMDVersion;
-        //root.id = root.id;
-        this.description = this.description;
+        this.SMDVersion = data.SMDVersion;
+        //this.id = data.id;
+        this.description = data.description;
+        //this.name = data.name;
       }
 
       SMD.prototype.SMDVersion = "2.0";
@@ -763,22 +761,16 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
         if (service.parameters || parent.parameters) {
           service.parameters = (parent.parameters || []).concat(service.parameters || []);
         }
-        service.parametersType = service.parametersType || parent.parametersType;
         return service;
       }
 
-      function _serviceSMD(root, d) {
+      function _serviceSMD(root) {
         var services = root.services, service, serviceName;
-
-        if (d >= 10) return;
         if (services) {
           for (serviceName in services) {
             if (services.hasOwnProperty(serviceName)) {
               service = services[serviceName];
               JSONSchema.validate(SMD_SCHEMA, service, { "throws": true });
-
-              service.name = service.name || (root.name ? root.name + "." + serviceName : serviceName);
-              _serviceSMD(_serviceInherits(service, root), d + 1);
             }
           }
         }
@@ -791,13 +783,13 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
 
   }(rpc || (rpc = {})));
 
-
-
   ///////////////////////ENVELOPE///////////////////////////
+
   (function (envelope) {
     /*jshint sub:true*/
 
     //====================URL ENVELOPE=====================
+
     envelope["URL"] = toAsyncFn(function (request) {
       var smd = request.smd;
 
@@ -811,11 +803,12 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
     });
 
     //=====================JSON ENVELOPE======================
+
     envelope["JSON"] = toAsyncFn(function (request) {
 
       var
       smd        = request.smd,
-      jsonObject = _parametersToJSON(request.parameters, smd.parametersType);
+      jsonObject = _parametersToJSON(request.parameters);
 
       return Q.resolve({
         jsonpCallbackParameter: smd.jsonpCallbackParameter,
@@ -831,7 +824,8 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
     });
 
     //====================JSONRPC ENVELOPE=====================
-    envelope["JSON-RPC-2.0"] = toAsyncFn(function (request) {
+
+    envelope["JSONRPC20"] = toAsyncFn(function (request) {
 
       return new Promise(function (resolve, reject) {
         _require([ 'json/jsonrpc' ], function (jsonrpc) {
@@ -841,7 +835,7 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
           JSONRPCError = jsonrpc.Error,
           jsonRequest = new JSONRPCRequest(
             smd.name,
-            _parametersToJSON(request.parameters, smd.parametersType),
+            _parametersToJSON(request.parameters),
             request.id
           );
 
@@ -874,7 +868,7 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
       switch (mode) {
         case "object": return p.toObject();
         case "array": return p.toArray();
-        default: return p.isArray ? p.toArray() : p.toObject();
+        default: return p.toObject();
       }
     }
 
@@ -883,6 +877,7 @@ define(['json/jsonschema', 'q'], function (jsonschema, Q) {
   }(rpc.envelope));
 
   ///////////////////////TRANSPORT///////////////////////////
+
   (function (transport) {
     /*jshint sub:true*/
 
