@@ -590,31 +590,57 @@ define(["module", "angular"], function (module, angular) {
    *
    * Usage:
    *
-   *   <input type="file"
-   *          ng-file-select="callback($event, $files)"
-   *          [multiple]>
+   *  <input type="file"
+   *         ng-file-select="callback($event, $files)"
+   *         [multiple]>
+   *   - OR -
+   *  <button ng-file-select="callback($event, $files)">
+   *
+   *  </button>
    */
-    .directive("ngFileSelect", ["$log", "$parse", function ($log, $parse) {
+    .directive("ngFileSelect", ["$compile", "$log", "$parse", function ($compile, $log, $parse) {
+      var MULTIPLE = "multiple";
       return {
-        controller: upload.FileSelect,
-        controllerAs: "ngFileSelect",
-        require: ["ngFileSelect"],
+        //controller: upload.FileSelect,
+        //controllerAs: "ngFileSelect",
+        //require: ["ngFileSelect"],
         restrict: "A",
         compile: function () {
 
-          return function link($scope, $element, $attrs, $ctrls) {
-            var ngFileSelect = $ctrls[0];
+          return function link($scope, $element, $attrs) {
+            var $inputElement = $element;
+            var nodeName = $element[0].nodeName;
             var onFileSelect = $parse($attrs.ngFileSelect);
 
-            //check input type
-            if ($attrs.type !== "file") {
-              $log.warn($element[0], ' must be an input[type=file]');
+            $element.addClass("ng-file-select");
+
+            if (nodeName !== "INPUT") {
+              //$inputScope = $scope.$new();
+              $inputElement = $compile('<input type="file" ng-click="$event.stopPropagation();">')($scope);
+              $element.append($inputElement);
+
+              $scope.$watch(
+                function () { return $element[0].hasAttribute(MULTIPLE); },
+                function (multiple) {
+console.warn(MULTIPLE, multiple);
+                  if (multiple) {
+                    $inputElement.attr(MULTIPLE, "multiple");
+                  } else {
+                    $inputElement.removeAttr(MULTIPLE);
+                  }
+                });
+            } else {
+              //check input type
+              if ($attrs.type !== "file") {
+                $log.warn($element[0], ' must be an input[type=file]');
+              }
             }
 
+            var ngFileSelect = new upload.FileSelect($inputElement);
             ngFileSelect.onFileSelect = function (context) {
               $scope.$apply(function () {
                 onFileSelect($scope, context);
-                $element.prop("value", null);
+                $inputElement.prop("value", null);
               });
             };
           };
@@ -631,6 +657,8 @@ define(["module", "angular"], function (module, angular) {
    *      [multiple]></tag>
    */
     .directive("ngFileDrop", ["$parse", function ($parse) {
+      var $$name = 'ngFileDrop';
+      var $$block = 'ng-file-upload';
 
       return {
         controller: upload.FileDrop,
@@ -640,10 +668,10 @@ define(["module", "angular"], function (module, angular) {
         compile: function () {
           return function link($scope, $element, $attrs, $ctrls) {
             var ngFileDrop = $ctrls[0];
-            var onFileDrop = $parse($attrs.ngFileDrop);
+            var onFileDrop = $parse($attrs[$$name]);
 
-            $element.addClass("ng-file-drop");
-            ngFileDrop.activeClass = "ng-file-drop--active";
+            $element.addClass($$block);
+            ngFileDrop.activeClass = $$block + "--active";
 
             ngFileDrop.onFileDrop = function (context) {
               $scope.$apply(function () {
