@@ -657,12 +657,12 @@ define(["module", "angular"], function (module, angular) {
    */
     .directive("ngFileDrop", ["$parse", function ($parse) {
       var $$name = 'ngFileDrop';
-      var $$block = 'ng-file-upload';
+      var $$block = 'ng-file-drop';
 
       return {
         controller: upload.FileDrop,
-        controllerAs: "ngFileDrop",
-        require: ["ngFileDrop"],
+        controllerAs: $$name,
+        require: [$$name],
         restrict: "EA",
         compile: function () {
           return function link($scope, $element, $attrs, $ctrls) {
