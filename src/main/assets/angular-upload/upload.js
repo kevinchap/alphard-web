@@ -622,7 +622,6 @@ define(["module", "angular"], function (module, angular) {
               $scope.$watch(
                 function () { return $element[0].hasAttribute(MULTIPLE); },
                 function (multiple) {
-console.warn(MULTIPLE, multiple);
                   if (multiple) {
                     $inputElement.attr(MULTIPLE, "multiple");
                   } else {
