@@ -350,6 +350,53 @@ define(["module", "angular"], function (module, angular) {
         return $$dialog.$prompt;
       }];
 
+    }])
+
+    /**
+     * <tag ng-click-confirm="callback($event)"
+     *      [ng-click-confirm-message="My message"]>
+     * </tag>
+     *
+     */
+    .directive("ngClickConfirm", ["$parse", "$confirm", "$q", function ($parse, $confirm, $q) {
+      var $$name = "ngClickConfirm";
+      var $$eventName = "click";
+      return {
+        restrict: 'A',
+        compile: function($element, $attrs) {
+          var fn = $parse($attrs[$$name], /* interceptorFn */ null, /* expensiveChecks */ true);
+          return function ngEventHandler($scope, $element, $attrs) {
+
+            function getMessage() {
+              return $attrs[$$name + "Message"];
+            }
+
+            function apply(f) {
+              if ($scope.$root.$$phase) {
+                $scope.$evalAsync(f);
+              } else {
+                $scope.$apply(f);
+              }
+            }
+
+            $element.on($$eventName, function ($event) {
+              $confirm(getMessage(), function (confirmed) {
+                if (confirmed) {
+                  return $q(function (resolve, reject) {
+                    apply(function () {
+                      try {
+                        resolve(fn($scope, { $event: $event }));
+                      } catch (e) {
+                        reject(e);
+                      }
+                    });
+                  });
+                }
+              });
+            });
+          };
+        }
+      };
     }]);
 });
 
