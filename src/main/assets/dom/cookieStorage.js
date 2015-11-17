@@ -156,15 +156,15 @@ define(["require", "exports"], function (require, exports) {
     CookieStorage.prototype.setItem = function (k, v, opt_options) {
       var optionsDefault = {};
       var options = opt_options ? __extends({}, opt_options, optionsDefault) : optionsDefault;
-      __cookieWrite(k, v, options);
+      return __cookieWrite(k, v, options);
     };
     CookieStorage.prototype.removeItem = function (k, opt_options) {
       var optionsRemove = { maxAge: -1 };
       var options = opt_options ? __extends({}, opt_options, optionsRemove) : optionsRemove;
-      __cookieWrite(k, null, options);
+      return __cookieWrite(k, null, options);
     };
     CookieStorage.prototype.clear = function () {
-      __cookieClear();
+      return __cookieClear();
     };
     return CookieStorage;
   })();
