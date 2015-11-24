@@ -367,6 +367,10 @@ define(["module", "angular"], function (module, angular) {
           var fn = $parse($attrs[$$name], /* interceptorFn */ null, /* expensiveChecks */ true);
           return function ngEventHandler($scope, $element, $attrs) {
 
+            function isDisabled() {
+              return $element.attr("disabled");
+            }
+
             function getMessage() {
               return $attrs[$$name + "Message"];
             }
@@ -380,19 +384,21 @@ define(["module", "angular"], function (module, angular) {
             }
 
             $element.on($$eventName, function ($event) {
-              $confirm(getMessage(), function (confirmed) {
-                if (confirmed) {
-                  return $q(function (resolve, reject) {
-                    apply(function () {
-                      try {
-                        resolve(fn($scope, { $event: $event }));
-                      } catch (e) {
-                        reject(e);
-                      }
+              if (!isDisabled()) {
+                $confirm(getMessage(), function (confirmed) {
+                  if (confirmed) {
+                    return $q(function (resolve, reject) {
+                      apply(function () {
+                        try {
+                          resolve(fn($scope, { $event: $event }));
+                        } catch (e) {
+                          reject(e);
+                        }
+                      });
                     });
-                  });
-                }
-              });
+                  }
+                });
+              }
             });
           };
         }
