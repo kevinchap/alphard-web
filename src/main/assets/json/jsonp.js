@@ -167,8 +167,9 @@ define([], function () {
         var done = false;
         var script = doc.createElement('script');
 
-        script.src = url;
-        script.async = true;
+        script.setAttribute("src", url);
+        script.setAttribute("type", "text/javascript");
+        script.setAttribute("async", "");
 
         script.onload = script.onreadystatechange = function () {
           var readyState = this.readyState;
