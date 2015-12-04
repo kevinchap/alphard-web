@@ -18,7 +18,8 @@
             class="close"
             aria-label="Close"
             ng-click="$confirm.cancel();">
-      <span aria-hidden="true">&times;</span>
+      <i class="fa fa-remove"
+         aria-hidden="true"></i>
     </button>
   </h4>
 </div>
@@ -30,7 +31,7 @@
           class="btn btn-primary"
           ng-disabled="$confirm.isLocked"
           ng-click="$confirm.ok()" >
-    <i class="fa fa-fw fa-check"></i>
+    <i class="fa fa-fw" ng-class="{ 'fa-circle-o-notch fa-spin': $confirm.isLocked, 'fa-check': !$confirm.isLocked }"></i>
     <span translate="dialog_ok"
           translate-default="OK">
       OK
