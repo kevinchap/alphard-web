@@ -1,0 +1,19 @@
+@import "_mixins.less";
+
+.layout, .layout-column, .layout-row {
+  #flex > .display(flex);
+  box-sizing: border-box;
+}
+
+.layout-row {
+  #flex > .direction(row);
+}
+
+.layout-column {
+  #flex > .direction(column);
+}
+
+.flex {
+  #flex > .flex(1);
+  box-sizing: border-box;
+}
