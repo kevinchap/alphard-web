@@ -131,3 +131,57 @@
     align-self: @align;
   }
 }
+
+// Backcompat
+// --------------------------------------------------
+.flex-display(@display: flex) {
+  #flex > .display(@display);
+}
+
+.flex-flex(@columns: initial) {
+  #flex > .flex(@columns);
+}
+
+.flex-direction(@direction: row) {
+  #flex > .direction(@direction);
+}
+
+.flex-wrap(@wrap: nowrap) {
+  #flex > .wrap(@wrap);
+}
+
+.flex-flow(@flow) {
+  #flex > .flow(@flow);
+}
+
+.flex-order(@order: 0) {
+  #flex > .order(@order);
+}
+
+.flex-grow(@grow: 0) {
+  #flex > .grow(@grow);
+}
+
+.flex-shrink(@shrink: 1) {
+  #flex > .shrink(@shrink);
+}
+
+.flex-basis(@width: auto) {
+  #flex > .shrink(@width);
+}
+
+.flex-justify-content(@justify: flex-start) {
+  #flex > .shrink(@width);
+}
+
+.flex-align-content(@align: stretch) {
+  #flex > .shrink(@align);
+}
+
+.flex-align-items(@align: stretch) {
+  #flex > .shrink(@align);
+}
+
+.flex-align-self(@align: auto) {
+  #flex > .shrink(@align);
+}

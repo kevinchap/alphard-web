@@ -36,3 +36,18 @@
     }
   }
 }
+
+// Backcompat
+// --------------------------------------------------
+.ratio-base() {
+  #ratio > .base();
+}
+.ratio(@width, @height) {
+  #ratio > .ratio(@width, @height);
+}
+.ratio-attr-base(@attr) {
+  #ratio > .ratiobase-attr(@attr);
+}
+.ratio-attr(@attr, @width, @height) {
+  #ratio > .ratio-attr(@attr, @width, @height);
+}
