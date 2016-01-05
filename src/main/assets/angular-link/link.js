@@ -42,29 +42,36 @@ define(["module", "angular"], function (module, angular) {
           return handler;
         }
 
-        function ngLink($scope, $element, $attrs) {
-          var rel = $element.attr("rel");
-          var handler = getHandler(rel);
-
-          if (handler) {
-            handler($scope, $element, $attrs);
-          }
-        }
-
         function Void() {
 
         }
 
-        return ngLink;
+        return {
+          getHandler: getHandler
+        };
       }];
     })
 
     .directive("link", ["$link", function ($link) {
       return {
+        //priority: 100,
         terminal: true,
         restrict: "E",
         link: function ($scope, $element, $attrs) {
-          $link($scope, $element, $attrs);
+
+          $scope.$watchGroup([
+            function () { return $element.attr("rel"); },
+            function () { return $element.attr("href"); }
+          ], function (d) {
+            var rel = d[0];
+            if (rel) {
+              var handler = $link.getHandler(rel);
+              if (handler) {
+                handler($scope, $element, $attrs);
+              }
+            }
+          });
+
         }
       };
     }]);
