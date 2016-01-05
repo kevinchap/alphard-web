@@ -5,102 +5,66 @@
  *   .font-icon("my-icon", 14px, 1)
  * }
  * .icon-lib-foo {
- *   .font-icon-content("b");
+ *   .font-icon-char("b");
  * }
  */
 // Font icon mixins
 // --------------------------------------------------
-#font-icon {
 
-  .font(@font-family, @font-size: @font-icon-size, @line-height: @font-icon-line-height) {
-    @font-style: normal;
-    @font-variant: normal;
-    @font-weight: normal;
-
-    display: inline-block;
-    font: @font-style @font-variant @font-weight @font-size/@line-height @font-family;
-    font-size: inherit;
-    text-transform: none;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  .char(@char) {
-    &:before {
-      content: @char;
-    }
-  }
-
-  .rotate(@deg: 5deg) {
-    .-transform(rotate(@deg));
-  }
-
-  .scale(@ratio-x, @ratio-y) {
-    .-transform(scale(@ratio-x, @ratio-y));
-  }
-
-  .fixed-width() {
-    width: (18em / 14);
-    text-align: center;
-  }
-
-  .flip-horizontal() {
-    .-font-icon-transform(scale(-1, 1));
-  }
-
-  .flip-vertical() {
-    .-font-icon-transform(scale(1, -1));
-  }
-
-  .stack(@size) {
-    position: relative;
-    display: inline-block;
-    width: @size;
-    height: @size;
-    line-height: @size;
-    vertical-align: middle;
-  }
-
-  .-transform(...) {
-    -webkit-transform: @arguments;
-    -moz-transform: @arguments;
-    -o-transform: @arguments;
-    -ms-transform: @arguments;
-    transform: @arguments;
-  }
-}
-
-// Backcompat
-// --------------------------------------------------
 .font-icon(@font-family, @font-size: @font-icon-size, @line-height: @font-icon-line-height) {
-  #font-icon > .font(@font-family, @font-size, @line-height);
+  @font-style: normal;
+  @font-variant: normal;
+  @font-weight: normal;
+
+  display: inline-block;
+  font: @font-style @font-variant @font-weight @font-size/@line-height @font-family;
+  font-size: inherit;
+  text-transform: none;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .font-icon-char(@char) {
-  #font-icon > .char(@char);
+  &:before {
+    content: @char;
+  }
 }
 
 .font-icon-rotate(@deg: 5deg) {
-  #font-icon > .rotate(@deg);
+  .-font-icon-transform(rotate(@deg));
 }
 
 .font-icon-scale(@ratio-x, @ratio-y) {
-  #font-icon > .scale(@ratio-x, @ratio-y);
+  .-font-icon-transform(scale(@ratio-x, @ratio-y));
 }
 
 .font-icon-fixed-width() {
-  #font-icon > .fixed-width();
+  width: (18em / 14);
+  text-align: center;
 }
 
 .font-icon-flip-horizontal() {
-  #font-icon > .flip-horizontal();
+  .-font-icon-transform(scale(-1, 1));
 }
 
 .font-icon-flip-vertical() {
-  #font-icon > .flip-vertical();
+  .-font-icon-transform(scale(1, -1));
 }
 
 .font-icon-stack(@size) {
-  #font-icon > .stack(@size);
+  position: relative;
+  display: inline-block;
+  width: @size;
+  height: @size;
+  line-height: @size;
+  vertical-align: middle;
+}
+
+.-font-icon-transform(...) {
+  -webkit-transform: @arguments;
+  -moz-transform: @arguments;
+  -o-transform: @arguments;
+  -ms-transform: @arguments;
+  transform: @arguments;
 }
