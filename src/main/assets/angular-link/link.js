@@ -1,6 +1,18 @@
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
+  var moduleConfig = (module.config && module.config()) || {};
+moduleConfig.debug = true;
+  function debug(var_args) {
+    if (moduleConfig.debug) {
+      var args = ['[' + module.id + ']'];
+      for (var i = 0, l = arguments.length; i < l; i++) {
+        args.push(arguments[i]);
+      }
+      console.debug.apply(console, args);
+    }
+  }
+
 
   return angular
     .module(module.id, [])
@@ -60,13 +72,15 @@ define(["module", "angular"], function (module, angular) {
         link: function ($scope, $element, $attrs) {
 
           $scope.$watchGroup([
-            function () { return $element.attr("rel"); },
-            function () { return $element.attr("href"); }
+            function () { return $attrs.rel; },
+            function () { return $attrs.href; }
           ], function (d) {
             var rel = d[0];
+            var href = d[1];
             if (rel) {
               var handler = $link.getHandler(rel);
               if (handler) {
+                debug("handler found for", $element[0]);
                 handler($scope, $element, $attrs);
               }
             }
