@@ -21,12 +21,17 @@ moduleConfig.debug = true;
 
       var _config = {};// {[rel: string]: string }
 
-      this.set = function (rel, f) {
-        _config[rel] = f;
-      };
-
-      this.remove = function (rel) {
-        delete _config[rel];
+      this.rel = function (rel, opt_service) {
+        if (arguments.length >= 2) {
+          if (!opt_service) {
+            delete _config[rel];
+          } else {
+            _config[rel] = opt_service;
+          }
+          return this;
+        } else {
+          return _config[rel];
+        }
       };
 
       this.$get = ["$injector", "$log", function ($injector, $log) {
@@ -37,9 +42,13 @@ moduleConfig.debug = true;
           if (rel) {
             handler = handlers[rel];
             if (!handler) {
-              var moduleId = _config[rel];
-              if (moduleId) {
-                handler = handlers[rel] = $injector.get(moduleId);
+              var moduleOrFunction = _config[rel];
+              if (moduleOrFunction) {
+                handler = angular.isString(moduleOrFunction)?
+                  $injector.get(moduleOrFunction) :
+                  $injector.invoke(moduleOrFunction);
+
+                handlers[rel] = handler;
               }
             }
           }
