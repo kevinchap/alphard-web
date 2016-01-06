@@ -30,13 +30,7 @@ moduleConfig.debug = true;
       };
 
       this.$get = ["$injector", "$log", function ($injector, $log) {
-        var handlers = {
-          "stylesheet": Void,
-          "icon": Void,
-          "apple-touch-icon": Void,
-          "shortcut icon": Void,
-          "manifest": Void
-        };
+        var handlers = {};
 
         function getHandler(rel) {
           var handler;
@@ -44,20 +38,13 @@ moduleConfig.debug = true;
             handler = handlers[rel];
             if (!handler) {
               var moduleId = _config[rel];
-              if (!moduleId) {
-                $log.warn('No handler found for <link rel="' + rel + '">');
-              } else {
+              if (moduleId) {
                 handler = handlers[rel] = $injector.get(moduleId);
               }
             }
           }
           return handler;
         }
-
-        function Void() {
-
-        }
-
         return {
           getHandler: getHandler
         };
@@ -76,7 +63,6 @@ moduleConfig.debug = true;
             function () { return $attrs.href; }
           ], function (d) {
             var rel = d[0];
-            var href = d[1];
             if (rel) {
               var handler = $link.getHandler(rel);
               if (handler) {
