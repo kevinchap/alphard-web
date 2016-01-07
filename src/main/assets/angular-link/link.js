@@ -2,7 +2,7 @@ define(["module", "angular"], function (module, angular) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
-moduleConfig.debug = true;
+
   function debug(var_args) {
     if (moduleConfig.debug) {
       var args = ['[' + module.id + ']'];
@@ -12,7 +12,6 @@ moduleConfig.debug = true;
       console.debug.apply(console, args);
     }
   }
-
 
   return angular
     .module(module.id, [])
