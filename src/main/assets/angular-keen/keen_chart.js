@@ -116,18 +116,6 @@ define(["module", "angular", "angular-keen/keen"], function (module, angular, ng
   /**
    * Usage:
    *
-   * <div keen-chart-spinner>
-   * </div>
-   */
-    .directive('keenChartSpinner', function () {
-      return {
-        replace: true,
-        template: '<spinner variant="rect"></spinner>'
-      };
-    })
-  /**
-   * Usage:
-   *
    * <keen-chart [query=""]
    *             [data=""]
    *             type=""
@@ -244,7 +232,7 @@ define(["module", "angular", "angular-keen/keen"], function (module, angular, ng
     .run(["$keenDataviz", function ($keenDataviz) {
       $keenDataviz.artifact(
         "spinner",
-        '<div keen-chart-spinner></div>'
+        '<spinner variant="rect"></spinner>'
       );
     }]);
 });
