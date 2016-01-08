@@ -1,5 +1,5 @@
-define(["module", "require", "angular", "text"], function (module, require, angular) {
-  "use strict";
+define(['module', 'require', 'angular', 'text'], function (module, require, angular) {
+  'use strict';
 
   var moduleConfig = (module.config && module.config()) || {};
 
@@ -13,28 +13,28 @@ define(["module", "require", "angular", "text"], function (module, require, angu
     }
   }
 
-  debug("config", moduleConfig);
+  debug('config', moduleConfig);
 
 
   return angular
-    .module(module.id, [ "ng" ])
+    .module(module.id, ['ng'])
 
-    .config(["$provide", "$templateRequestRequireProvider", function ($provide, $templateRequestRequireProvider) {
+    .config(['$provide', '$templateRequestRequireProvider', function ($provide, $templateRequestRequireProvider) {
       var replace = $templateRequestRequireProvider.config().replace;
-      debug("$templateRequestRequire", replace ? "enabled" : "disabled");
+      debug('$templateRequestRequire', replace ? 'enabled' : 'disabled');
       if (replace) {
-        $provide.decorator("$templateRequest", ["$templateRequestRequire", function ($templateRequestRequire) {
+        $provide.decorator('$templateRequest', ['$templateRequestRequire', function ($templateRequestRequire) {
           return $templateRequestRequire;//override
         }]);
       }
     }])
 
-  /**
-   * Generic `require` provider
-   */
-    .provider("$require", [function () {
+    /**
+     * Generic `require` provider
+     */
+    .provider('$require', [function () {
 
-      this.$get = ["$q", function ($q) {
+      this.$get = ['$q', function ($q) {
         var isArray = angular.isArray;
 
         function $require(nameOrArray, opt_callback, opt_errback) {
@@ -51,7 +51,7 @@ define(["module", "require", "angular", "text"], function (module, require, angu
                 function (e) {
                   reject(e);
                   if (opt_errback) {
-                    opt_callback.apply(this, arguments);
+                    opt_errback.apply(this, arguments);
                   }
                 });
             });
@@ -66,10 +66,10 @@ define(["module", "require", "angular", "text"], function (module, require, angu
 
     }])
 
-  /**
-   * TemplateRequest service implemented with require
-   */
-    .provider("$templateRequestRequire", [function () {
+    /**
+     * TemplateRequest service implemented with require
+     */
+    .provider('$templateRequestRequire', [function () {
       var settings = {
         debug: moduleConfig.debug,
         replace: true
@@ -83,11 +83,11 @@ define(["module", "require", "angular", "text"], function (module, require, angu
         }
       };
 
-      this.$get = ["$q", "$require", "$sce", "$templateCache", function ($q, $require, $sce, $templateCache) {
+      this.$get = ['$q', '$require', '$sce', '$templateCache', function ($q, $require, $sce, $templateCache) {
         var isString = angular.isString;
 
         function $templateRequestRequire(url, ignoreRequestError) {
-          debug("$templateRequestRequire(", url, ignoreRequestError, ")");
+          debug('$templateRequestRequire(', url, ignoreRequestError, ')');
 
           return $q(function (resolve, reject) {
             $templateRequestRequire.totalPendingRequests += 1;
@@ -98,7 +98,7 @@ define(["module", "require", "angular", "text"], function (module, require, angu
 
             function handleError(e) {
               done();
-              debug("$templateRequestRequire(", url, ignoreRequestError, ") -> FAIL", e);
+              debug('$templateRequestRequire(', url, ignoreRequestError, ') -> FAIL', e);
               if (!ignoreRequestError) {
                 throw e;
                 /*throw $compileMinErr('tpload',
@@ -114,12 +114,12 @@ define(["module", "require", "angular", "text"], function (module, require, angu
 
             var templateContent = $templateCache.get(url);
             if (isString(templateContent)) {
-              debug("$templateRequestRequire(", url, ignoreRequestError, ") -> OK (cache)");
+              debug('$templateRequestRequire(', url, ignoreRequestError, ') -> OK (cache)');
               resolve(templateContent);
             } else {
               try {
-                $require([ "text!" + url ], function (content) {
-                  debug("$templateRequestRequire(", url, ignoreRequestError, ") -> OK");
+                $require(['text!' + url], function (content) {
+                  debug('$templateRequestRequire(', url, ignoreRequestError, ') -> OK');
                   $templateCache.put(url, content);
                   done();
                   resolve(content);
