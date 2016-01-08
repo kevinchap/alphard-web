@@ -59,7 +59,7 @@ define(["module", "angular"], function (module, angular) {
       }];
     })
 
-    .directive("link", ["$link", function ($link) {
+    .directive("link", ["$link", "$exceptionHandler", function ($link, $exceptionHandler) {
       return {
         //priority: 100,
         terminal: true,
@@ -75,7 +75,11 @@ define(["module", "angular"], function (module, angular) {
               var handler = $link.getHandler(rel);
               if (handler) {
                 debug("handler found for", $element[0]);
-                handler($scope, $element, $attrs);
+                try {
+                  handler($scope, $element, $attrs);
+                } catch (e) {
+                  $exceptionHandler(e);
+                }
               }
             }
           });

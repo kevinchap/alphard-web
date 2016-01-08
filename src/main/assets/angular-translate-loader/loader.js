@@ -11,9 +11,9 @@ define(["module", "angular", "angular-translate-loader-partial"], function (modu
           return function loader($scope, $element, $attrs) {
             var href = $element.attr("href");
             if (href) {
-              var comment = ' require(css!' + href + ')';
+              //var comment = ' require(css!' + href + ')';
               require(["css!" + href]);
-              $element.replaceWith(document.createComment(comment));
+              //$element.replaceWith(document.createComment(comment));
             }
           };
         }]);
