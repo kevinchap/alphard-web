@@ -3,7 +3,6 @@ define([], function () {
 
   return function (module) {
     var config = (module.config && module.config()) || {};
-    var d = module.config.debug;
 
     var log = function (logger) {
       return function () {
@@ -24,14 +23,17 @@ define([], function () {
     var error = log(function (args) {
       return console.error.apply(console, args);
     });
-    var debug = function () {
-    };
-    if (d) {
+    var debug;
+    if (config.debug) {
       debug = log(function (args) {
         return console.debug.apply(console, args);
       });
-      debug('configuration: ', config);
+    } else {
+      debug = function () {
+      };
     }
+
+    debug('configuration: ', config);
 
     return {
       module: module,
