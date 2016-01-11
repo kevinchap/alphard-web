@@ -70,7 +70,10 @@ define([], function () {
 
       var id = 0;
       var doc = global.document;
-      var head = doc && doc.getElementsByTagName("head")[0];
+
+      function getHead() {
+        return doc.head || doc.getElementsByTagName("head")[0];
+      }
 
       /**
        * @constructor
@@ -111,7 +114,8 @@ define([], function () {
        * Send the request
        */
       JSONPRequest.prototype.send = function send() {
-        if (!doc || !head) {
+        var rootElement = getHead();
+        if (!doc || !rootElement) {
           throw new JSONPError("JSONP not supported");
         }
 
@@ -159,7 +163,8 @@ define([], function () {
             }
           }
         );
-        head.appendChild(script);
+
+        rootElement.appendChild(script);
         return this;
       };
 
@@ -170,27 +175,18 @@ define([], function () {
         script.setAttribute("src", url);
         script.setAttribute("type", "text/javascript");
         script.setAttribute("async", "");
-
-        script.onload = script.onreadystatechange = function () {
-          var readyState = this.readyState;
-          if (!done &&
-            (!readyState ||
-            readyState === "loaded" ||
-            readyState === "complete")
-          ) {
-            done = true;
-            script.onload = script.onreadystatechange = null;
-
-            onload.call(script);
-          }
-        };
-        script.onerror = function () {
+        script.onload = script.onerror = function (event) {
           if (!done) {
             done = true;
-            onerror.call(script);
+            script.onload = script.onerror = null;
+
+            if (event.type === "error") {
+              onerror.call(script, event);
+            } else {//load
+              onload.call(script, event);
+            }
           }
         };
-
         return script;
       }
 
