@@ -138,9 +138,7 @@ define([], function () {
         //2. set callback
         callbacks[attrName] = function (data) {
           delete callbacks[attrName];
-          if (self.onload) {
-            self.onload(data);
-          }
+          _notify(self, "load", data);
         };
 
         //3. launch loading (script creation etc)
@@ -156,17 +154,22 @@ define([], function () {
 
             //send error to onerror hook or throw error
             var error = new JSONPError('GET ' + url + ' (Loading error)');
-            if (self.onerror) {
-              self.onerror(error);
-            } else {
-              throw error;
-            }
+            _notify(self, "error", error);
           }
         );
 
         rootElement.appendChild(script);
         return this;
       };
+
+      function _notify(jsonpRequest, eventName, eventArgs) {
+        var methodName = "on" + eventName;
+        if (jsonpRequest[methodName]) {
+          jsonpRequest[methodName](eventArgs);
+        } else if (eventName === "error") {
+          throw eventArgs;
+        }
+      }
 
       function _createNode(url, onload, onerror) {
         var done = false;
