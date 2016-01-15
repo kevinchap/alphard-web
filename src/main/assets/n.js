@@ -97,6 +97,13 @@ define(["module", "angular"], function (module, angular) {
     var TInject = (function () {
 
       return mixin({
+        $inject: function (name, opt_optional) {
+          var $injector = this.$$injector;
+          if ($injector.has(name) || !opt_optional) {
+            return $injector.get(name);
+          }
+        },
+
         get $injector() {
           return this.$$injector;
         },
@@ -149,7 +156,9 @@ define(["module", "angular"], function (module, angular) {
         },
         set $element(val) {
           var $element = this.$$element = val;
-          this.$injector = this.$injector || $element.injector();
+          if (!this.$injector) {
+            this.$injector = $element.injector();
+          }
           //this.$scope = $element.scope();
         },
 
@@ -345,6 +354,7 @@ define(["module", "angular"], function (module, angular) {
       returnValue.link = {
         pre: function ($scope, $element) {
           var ctrl = $element.controller(name);
+          ctrl.$element = $element;
           ctrl.preLink();
         },
         post: function ($scope, $element) {
