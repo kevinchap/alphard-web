@@ -61,7 +61,8 @@ define(["module", "angular"], function (module, angular) {
           return $q.when(options[attr]);
         }))
         .then(function (d) {
-          var resolved = angular.copy(options);
+          var resolved = {};
+          angular.extend(resolved, options);
           angular.forEach(attrs, function (attr, $index) {
             resolved[attr] = d[$index] || _optionsDefault[attr];
           });
@@ -238,7 +239,7 @@ define(["module", "angular"], function (module, angular) {
               }
             }
 
-            $element.on($$eventName, function ($event) {
+            $element.bind($$eventName, function ($event) {
               if (!isDisabled()) {
                 $$dialog.$confirm({
                   textContent: getMessage(),
