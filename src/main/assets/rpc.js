@@ -924,9 +924,8 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
           request = new JSONPRequest(),
           url     = _queryJoin(
             r.target,
-            r.contentJSON ? { data: r.contentString } : r.contentString
+            r.contentJSON ? _queryString({ data: r.contentString }) : r.contentString
           );
-
           request.onload = resolve;
           request.onerror = reject;
           request.open(url, r.jsonpCallbackParameter);
@@ -974,16 +973,23 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
     }
   }
 
+  function _queryEncodeComponent(v) {
+    return encodeURIComponent(v);
+  }
 
   function _queryString(o) {
     if (typeof o === "string") return o;
-    var propertyName, s = "", isEmpty = true;
+    var propertyName, s = "", isEmpty = true, value;
     for (propertyName in o) {
-      s += (isEmpty ? "" : "&") + encodeURIComponent(propertyName);
-      s += "=" + encodeURIComponent(o[propertyName]);
-      isEmpty = false;
+      value = o[propertyName];
+      if (value !== null && value !== undefined) {
+        s += (isEmpty ? "" : "&") + _queryEncodeComponent(propertyName);
+        s += "=";
+        s += _queryEncodeComponent(o[propertyName]);
+        isEmpty = false;
+      }
     }
-    return s;
+    return s.replace(/%20/g, "+");
   }
 
   function _queryJoin(base, part) {

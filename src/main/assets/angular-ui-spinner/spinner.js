@@ -40,102 +40,6 @@ define(["module", "angular"], function (module, angular) {
     .module(module.id, [])
 
     /**
-     * Usage:
-     *
-     * spinnerTemplate
-     *   .compile("myvariant")
-     *   .then(function (compiled) {
-     *      compiled($scope, function ($ccElement) { ... });
-     *   });
-     *
-     *
-     */
-    .provider("spinnerTemplate", [function () {
-
-      this.$get = ["$cacheFactory", "$compile", "$http", "$q", "$templateCache", "$templateRequest",
-      function ($cacheFactory, $compile, $http, $q, $templateCache, $templateRequest) {
-        var $compiledCache = $cacheFactory("spinnerTemplate");
-        var $empty = $q.when("");
-
-        /**
-         * Return an url from a variant name
-         *
-         * @param {string} variant
-         * @returns {string}
-         */
-        function url(variant) {
-          return module.id + "--" + variant + ".html";
-        }
-
-        /**
-         * Return a promise of a variant template
-         *
-         * @param {string} variant
-         * @returns {Promise<string>}
-         */
-        function get(variant) {
-          var u = url(variant);
-          return isDefined(u) ? $templateRequest(u) : $empty;
-        }
-
-        /**
-         * Cache get/set variant template
-         *
-         * @param {string} variant
-         * @param {string=} opt_templateContent
-         * @returns {string}
-         */
-        function cache(variant, opt_templateContent) {
-          var u = url(variant);
-          if (isDefined(u)) {
-            if (arguments.length > 1) {
-              $templateCache.put(u, opt_templateContent);
-              return opt_templateContent;
-            } else {
-              return $templateCache.get(u);
-            }
-          }
-        }
-
-        /**
-         *
-         * @param {string} variant
-         * @returns {Promise<function>}
-         */
-        function compile(variant) {
-          var cacheKey = url(variant);
-          var compiled = $compiledCache.get(cacheKey);
-          var returnValue;
-          debug("spinnerTemplate.compile(" + variant + ")...");
-          if (!compiled) {
-            returnValue = get(variant)
-              .then(function (templateContent) {
-                compiled = templateContent ? $compile(templateContent) : null;
-                debug("spinnerTemplate.compile(" + variant + ") -> OK");
-                $compiledCache.put(cacheKey, compiled);
-                return compiled;
-              });
-          } else {
-            debug("spinnerTemplate.compile(" + variant + ") -> OK (from cache)");
-            returnValue = $q.when(compiled);
-          }
-          return returnValue;
-        }
-
-        //Default Variant templates
-        cache(VARIANT_DEFAULT, "");
-
-        return {
-          url: url,
-          compile: compile,
-          get: get,
-          cache: cache
-        };
-      }];
-
-    }])
-
-    /**
      * Spinner directive
      *
      * Usage:
@@ -146,14 +50,22 @@ define(["module", "angular"], function (module, angular) {
      *   [active="true|false"]>
      * </spinner>
      */
-    .directive("spinner", ["$compile", "spinnerTemplate", function ($compile, spinnerTemplate) {
+    .directive("spinner", ["$templateCache", function ($templateCache) {
       var $$class = "spinner";
       var $m = bem($$class, "--");
       var $$classActive = $m("active");
 
+      function _templateUrl(variant) {
+        return module.id + "--" + variant + ".html";
+      }
+
       function _readBoolean(v) {
         return v !== 'false' && v !== false;
       }
+
+      //default template
+      $templateCache.put(_templateUrl(VARIANT_DEFAULT), "");
+
       return {
         restrict: "EA",
         scope: {
@@ -162,6 +74,9 @@ define(["module", "angular"], function (module, angular) {
           active: "@",
           alt: "@"
         },
+        templateUrl: function ($element, $attrs) {
+          return _templateUrl($attrs.variant || VARIANT_DEFAULT);
+        },
         compile: function (tElement) {
           tElement
             .attr(ARIA_VALUEMIN, 0)
@@ -169,22 +84,6 @@ define(["module", "angular"], function (module, angular) {
             .attr(ROLE, 'progressbar');
 
           return function link($scope, $element, $attrs) {
-
-            function setContent() {
-              var variant = $scope.variant;
-              return spinnerTemplate
-                .compile(variant)
-                .then(function (templateCompiled) {
-                  if ($scope.variant === variant) {//safe guard
-                    $element.html('');
-                    if (templateCompiled) {
-                      templateCompiled($scope, function (clonedElement) {
-                        $element.append(clonedElement);
-                      });
-                    }
-                  }
-                });
-            }
 
             //lazyload css
             if (CSS) {
@@ -207,7 +106,7 @@ define(["module", "angular"], function (module, angular) {
                 $element.removeClass($m(variantOld));
               }
               if (variant) {
-                setContent();
+                //setContent();
                 $element.addClass($m(variant));
               }
             });

@@ -70,7 +70,10 @@ define([], function () {
 
       var id = 0;
       var doc = global.document;
-      var head = doc && doc.getElementsByTagName("head")[0];
+
+      function getHead() {
+        return doc.head || doc.getElementsByTagName("head")[0];
+      }
 
       /**
        * @constructor
@@ -111,7 +114,8 @@ define([], function () {
        * Send the request
        */
       JSONPRequest.prototype.send = function send() {
-        if (!doc || !head) {
+        var rootElement = getHead();
+        if (!doc || !rootElement) {
           throw new JSONPError("JSONP not supported");
         }
 
@@ -134,9 +138,7 @@ define([], function () {
         //2. set callback
         callbacks[attrName] = function (data) {
           delete callbacks[attrName];
-          if (self.onload) {
-            self.onload(data);
-          }
+          _notify(self, "load", data);
         };
 
         //3. launch loading (script creation etc)
@@ -152,16 +154,22 @@ define([], function () {
 
             //send error to onerror hook or throw error
             var error = new JSONPError('GET ' + url + ' (Loading error)');
-            if (self.onerror) {
-              self.onerror(error);
-            } else {
-              throw error;
-            }
+            _notify(self, "error", error);
           }
         );
-        head.appendChild(script);
+
+        rootElement.appendChild(script);
         return this;
       };
+
+      function _notify(jsonpRequest, eventName, eventArgs) {
+        var methodName = "on" + eventName;
+        if (jsonpRequest[methodName]) {
+          jsonpRequest[methodName](eventArgs);
+        } else if (eventName === "error") {
+          throw eventArgs;
+        }
+      }
 
       function _createNode(url, onload, onerror) {
         var done = false;
@@ -170,27 +178,18 @@ define([], function () {
         script.setAttribute("src", url);
         script.setAttribute("type", "text/javascript");
         script.setAttribute("async", "");
-
-        script.onload = script.onreadystatechange = function () {
-          var readyState = this.readyState;
-          if (!done &&
-            (!readyState ||
-            readyState === "loaded" ||
-            readyState === "complete")
-          ) {
-            done = true;
-            script.onload = script.onreadystatechange = null;
-
-            onload.call(script);
-          }
-        };
-        script.onerror = function () {
+        script.onload = script.onerror = function (event) {
           if (!done) {
             done = true;
-            onerror.call(script);
+            script.onload = script.onerror = null;
+
+            if (event.type === "error") {
+              onerror.call(script, event);
+            } else {//load
+              onload.call(script, event);
+            }
           }
         };
-
         return script;
       }
 

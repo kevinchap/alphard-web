@@ -2,303 +2,159 @@ define(["module", "angular"], function (module, angular) {
   "use strict";
 
   var __moduleId = module.id;
-  var __dirname = __moduleId.lastIndexOf("/") >= 0 ? __moduleId.slice(0, __moduleId.lastIndexOf("/")) : __moduleId;
 
-  var DialogType;
-  (function (DialogType) {
-    DialogType[DialogType.Alert = 0] = "Alert";
-    DialogType[DialogType.Confirm = 1] = "Confirm";
-    DialogType[DialogType.Prompt = 2] = "Prompt";
-  }(DialogType || (DialogType = {})));
 
-  /**
-   * DialogController class
-   */
-  var DialogController = (function (_super) {
+  /*
+  var $dialogAlert = {
+    title: "",
+    textContent: "",
+    htmlContent: "",
+    ok: "OK",
+    theme: "",
+    targetEvent: null
+  };
+  var $dialogConfirm = {
+    title: "",
+    textContent: "",
+    htmlContent: "",
+    ok: "OK",
+    cancel: "Cancel",
+    theme: "",
+    targetEvent: null
+  };*/
 
-    function DialogController($exceptionHandler, $modalInstance, $q, callback) {
-      var self = this;
-      _super.call(this);
+  function $$dialogDefaultProvider() {
+    var _optionsDefault = {
+      ok: "OK",
+      cancel: "Cancel"
+    };
 
-      self.isLocked = false;
+    this.$get = $get;
 
-      function __close(result) {
-        self.isLocked = false;
-        $modalInstance.close(result);
+    $get.$inject = ["$q", "$window"];
+    function $get($q, $window) {
+      var divElement = document.createElement("div");
+
+      function assertObject(o) {
+        if (!angular.isObject(o)) {
+          throw new TypeError(o + " must be an object");
+        }
+        return o;
       }
 
-      this.close = function (result) {
-        function onsuccess() {
-          __close(result);
-        }
+      function htmlStrip(html) {
+        divElement.innerHTML = html;
+        return divElement.textContent || divElement.innerText || "";
+      }
 
-        function onfailure(e) {
-          if ($exceptionHandler) {
-            $exceptionHandler(e);//handle error
-          } else {
-            throw e;
-          }
-          __close(result);
-        }
+      function resolveOptions(options) {
+        options = options || {};
+        assertObject(options);
+        var attrs = [
+          "title",
+          "textContent",
+          "htmlContent",
+          "ok",
+          "cancel"
+        ];
+        return $q.all(attrs.map(function (attr) {
+          return $q.when(options[attr]);
+        }))
+        .then(function (d) {
+          var resolved = {};
+          angular.extend(resolved, options);
+          angular.forEach(attrs, function (attr, $index) {
+            resolved[attr] = d[$index] || _optionsDefault[attr];
+          });
+          return resolved;
+        });
+      }
 
-        //Lock dialog
-        if (!self.isLocked) {
-          self.isLocked = true;
+      function whenContent(options) {
+        return resolveOptions(options)
+          .then(function (resolved) {
+            var title = resolved.title;
+            var textContent = resolved.textContent;
+            var htmlContent = resolved.htmlContent;
 
-          if (callback) {
-            try {
-              $q.when(callback(result))
-                .then(onsuccess, onfailure);
-            } catch (e) {
-              onfailure(e);
+            var content = "";
+            if (title) {
+              content += title + "\n";
             }
-          } else {
-            onsuccess();
-          }
-        }
+            if (htmlContent) {
+              content += htmlStrip(htmlContent);
+            } else if (textContent) {
+              content += textContent;
+            }
+            return {
+              content: content
+            };
+          });
+      }
+
+      function $alert(options) {
+        return whenContent(options)
+          .then(function (resolved) {
+            $window.alert(resolved.content);
+            return true;
+          });
+      }
+
+      function $confirm(options) {
+        return whenContent(options)
+          .then(function (resolved) {
+            var returnValue = $window.confirm(resolved.content);
+            return returnValue;
+          });
+      }
+
+      function $prompt(options) {
+        return whenContent(options)
+          .then(function (resolved) {
+            var text = $window.prompt(resolved.content);
+            return text;
+          });
+      }
+
+      return {
+        $options: resolveOptions,
+        $alert: $alert,
+        $confirm: $confirm,
+        $prompt: $prompt
       };
     }
+  }
 
-    return DialogController;
-  }(Object));
+  function $$dialogProvider() {
+    var _settings = {
+      adapter: "$$dialogDefault"
+    };
+    this.config = config;
+    this.$get = $get;
 
-  /**
-   * DialogAlertController class
-   */
-  var DialogAlertController = (function (_super) {
-
-    function DialogAlertController($exceptionHandler, $modalInstance, $q, message, callback) {
-      _super.call(this, $exceptionHandler, $modalInstance, $q, callback);
-
-      this.message = message;
-
-      this.ok = function ok() {
-        this.close(true);
-      };
+    function config(opt_config) {
+      angular.extend(_settings, opt_config);
     }
-    DialogAlertController.$inject = ["$exceptionHandler", "$modalInstance", "$q", "message", "callback"];
 
-    return DialogAlertController;
-  }(DialogController));
-
-  /**
-   * DialogConfirmController class
-   */
-  var DialogConfirmController = (function (_super) {
-
-    function DialogConfirmController($exceptionHandler, $modalInstance, $q, message, callback) {
-      _super.call(this, $exceptionHandler, $modalInstance, $q, callback);
-
-      this.message = message;
-
-      this.ok = function ok() {
-        this.close(true);
-      };
-
-      this.cancel = function cancel() {
-        this.close(false);
-      };
+    $get.$inject = ["$injector"];
+    function $get($injector) {
+      return $injector.get(_settings.adapter);
     }
-    DialogConfirmController.$inject = ["$exceptionHandler", "$modalInstance", "$q", "message", "callback"];
-
-    return DialogConfirmController;
-  }(DialogController));
-
-  /**
-   * DialogPromptController class
-   */
-  var DialogPromptController = (function (_super) {
-
-    function DialogPromptController($exceptionHandler, $modalInstance, $q, message, defaultValue, callback) {
-      _super.call(this, $exceptionHandler, $modalInstance, $q, callback);
-
-      this.message = message;
-      this.input = defaultValue || "";
-
-      this.ok = function ok() {
-        this.close(this.input);
-      };
-
-      this.cancel = function cancel() {
-        this.close(undefined);
-      };
-    }
-    DialogPromptController.$inject = [ "$exceptionHandler", "$modalInstance", "$q", "message", "defaultValue", "callback" ];
-
-    return DialogPromptController;
-  }(DialogController));
+  }
   
   return angular
     .module(module.id, [])
 
-    .controller("DialogAlertController", DialogAlertController)
+    .provider("$$dialogDefault", $$dialogDefaultProvider)
+    .provider("$$dialog", $$dialogProvider)
 
-    .controller("DialogConfirmController", DialogConfirmController)
-
-    .controller("DialogPromptController", DialogPromptController)
-
-  /**
-   * Dialog service (internal)
-   *
-   */
-    .provider("$$dialog", [function () {
-      var settings = {
-        animation: true,
-        backdrop: 'static',
-        keyboard: true,
-        size: 'md'
-      };
-
-      this.config = function (opt_config) {
-        angular.extend(settings, opt_config);
-      };
-
-      this.$get = ["$injector", "$log", "$q", "$timeout", "$window", function ($injector, $log, $q, $timeout, $window) {
-        var $$dialog = {};
-
-        var $injectorOpt = function (name) {
-          return $injector.has(name) ? $injector.get(name) : null;
-        };
-
-        //translate is optional
-        var $translate = $injectorOpt("$translate") || function (k) {
-          return $q.when(k);
-        };
-
-        //Modal is optional dependency
-        var $modal = $injectorOpt("$modal");
-
-        if (!$modal) {
-          $log.info("$modal not found");
-        }
-
-        function openNative(type, args, opt_callback) {
-          var openFn;
-          switch (type) {
-            case DialogType.Alert:
-              openFn = $window.alert;
-              break;
-            case DialogType.Confirm:
-              openFn = $window.confirm;
-              break;
-            case DialogType.Prompt:
-              openFn = $window.prompt;
-              break;
-            default:
-              throw new Error();
-          }
-
-          return $q(function (resolve) {
-            $timeout(function () {
-              var result = openFn.apply(null, args);
-
-              function onsuccess() {
-                resolve(result);
-              }
-
-              function onfailure(e) {
-                //$exceptionHandler(e);
-                resolve(result);
-              }
-
-              if (opt_callback) {
-                try {
-                  $q.when(opt_callback(result))
-                    .then(onsuccess, onfailure);
-                } catch (e) {
-                  onfailure(e);
-                }
-              } else {
-                onsuccess();
-              }
-            });
-          });
-        }
-
-        function openModal(type, args, opt_callback) {
-          var typeName = DialogType[type];
-          var typeNameLower = typeName.toLowerCase();
-          return $modal
-            .open({
-              templateUrl: __dirname + '/' + typeNameLower + '.html',
-              controllerAs: "$" + typeNameLower,
-              controller: "Dialog" + typeName + "Controller",
-              animation: settings.animation,
-              backdrop: settings.backdrop,
-              keyboard: settings.keyboard,
-              size: settings.size,
-              resolve: {
-                message: function () {
-                  return args[0];
-                },
-                defaultValue: function () {
-                  return args[1];
-                },
-                callback: function () {
-                  return opt_callback;
-                }
-              }
-            })
-            .result;
-        }
-
-        /**
-         * Open an alert dialog
-         *
-         * @param {string} message
-         * @param {function (): void=} opt_callback
-         * @returns {Promise<boolean>}
-         */
-        function $alert(message, opt_callback) {
-          var type = DialogType.Alert;
-          var args = [ message ];
-          return ($modal ? openModal : openNative)(type, args, opt_callback);
-        }
-        $$dialog.$alert = $alert;
-
-        /**
-         * Open a confirm dialog
-         *
-         * @param {string} message
-         * @param {function(boolean): void=} opt_callback
-         * @returns {Promise<boolean>}
-         */
-        function $confirm(message, opt_callback) {
-          var type = DialogType.Confirm;
-          var args = [ message ];
-          return ($modal ? openModal : openNative)(type, args, opt_callback);
-        }
-        $$dialog.$confirm = $confirm;
-
-        /**
-         * Open a prompt dialog
-         *
-         * @param {string} text
-         * @param {string=} opt_defaultText
-         * @param {function(string): void=} opt_callback
-         * @returns {Promise<string>}
-         */
-        function $prompt(text, opt_defaultText, opt_callback) {
-          var type = DialogType.Prompt;
-          var args = [ text, opt_defaultText ];
-          return ($modal ? openModal : openNative)(type, args, opt_callback);
-        }
-        $$dialog.$prompt = $prompt;
-
-        return $$dialog;
-      }];
-
-    }])
 
   /**
    * Alert service
    *
    * Usage:
    *
-   * $alert("foo bar", function (result) {
-   *   //Processing (dialog is not closed)
-   *   return $q.when(true);
-   * })
+   * $alert("foo bar")
    * .then(function () {
    *   //Called when dialog is closed
    * })
@@ -358,7 +214,7 @@ define(["module", "angular"], function (module, angular) {
      * </tag>
      *
      */
-    .directive("ngClickConfirm", ["$parse", "$confirm", "$q", function ($parse, $confirm, $q) {
+    .directive("ngClickConfirm", ["$parse", "$$dialog", "$q", function ($parse, $$dialog, $q) {
       var $$name = "ngClickConfirm";
       var $$eventName = "click";
       return {
@@ -383,9 +239,13 @@ define(["module", "angular"], function (module, angular) {
               }
             }
 
-            $element.on($$eventName, function ($event) {
+            $element.bind($$eventName, function ($event) {
               if (!isDisabled()) {
-                $confirm(getMessage(), function (confirmed) {
+                $$dialog.$confirm({
+                  textContent: getMessage(),
+                  targetEvent: $event
+                })
+                .then(function (confirmed) {
                   if (confirmed) {
                     return $q(function (resolve, reject) {
                       apply(function () {
