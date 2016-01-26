@@ -164,13 +164,12 @@ define(["module", "angular"], function (module, angular) {
             $scope.$apply(function () {
               ngFileSelect($scope, {
                 $files: $files,
+                $file: $files[0],//first file in case on non multiple
                 $event: $event
               });
               $inputElement.prop("value", null);
             });
           }
-
-
 
           function onDestroy() {
             if ($inputElementChild) {
