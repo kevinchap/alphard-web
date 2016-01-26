@@ -107,7 +107,7 @@ define(["module", "angular"], function (module, angular) {
                 multiple,
                 function (multiple) {
                   if (multiple) {
-                    $inputElement.attr(MULTIPLE, "");
+                    $inputElement.attr(MULTIPLE, MULTIPLE);
                   } else {
                     $inputElement.removeAttr(MULTIPLE);
                   }
@@ -127,7 +127,10 @@ define(["module", "angular"], function (module, angular) {
           }
 
           function multiple() {
-            return MULTIPLE in $attrs;
+            return (
+              (MULTIPLE in $attrs) ||
+              (("ngMultiple" in $attrs) && $scope.$eval($attrs.ngMultiple))
+            );
           }
 
           function onChange($event) {
