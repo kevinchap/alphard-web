@@ -17,7 +17,10 @@ define(["module", "angular"], function (module, angular) {
    *
    *  <input type="file"
    *         ng-file-select="callback($event, $files)"
-   *         [multiple]>
+   *         [multiple]
+   *         [disabled]
+   *         [ng-multiple="fn()"]
+   *         [ng-disabled="..."]>
    *   - OR -
    *  <button ng-file-select="callback($event, $files)">
    *
@@ -27,6 +30,7 @@ define(["module", "angular"], function (module, angular) {
   function NgFileSelect($compile, $document, $log, $parse) {
     var NAME = "ngFileSelect";
     var MULTIPLE = "multiple";
+    var DISABLED = "disabled";
     var STYLE =
       '<style type="text/css">' +
 
@@ -54,6 +58,14 @@ define(["module", "angular"], function (module, angular) {
       '  cursor: pointer;' +
       '}\n' +
       '</style>';
+
+    function boolAttr($element, attr, val) {
+      if (val) {
+        $element.attr(attr, attr);
+      } else {
+        $element.removeAttr(attr);
+      }
+    }
 
     function __toArray(o) {
       var i, l;
@@ -100,17 +112,25 @@ define(["module", "angular"], function (module, angular) {
             //Update DOM
             if (nodeName !== "INPUT") {
               //$inputScope = $scope.$new();
-              $inputElement = $compile('<input type="file" class="ng-file-select__input" ng-click="$event.stopPropagation();">')($scope);
+              $inputElement = $compile(
+                '<input ' +
+                'type="file" ' +
+                'class="ng-file-select__input" ' +
+                'ng-click="$event.stopPropagation();">'
+              )($scope);
               $inputElementChild = true;
               $element.append($inputElement);
+              //sync disabled
+              $scope.$watch(
+                disabled,
+                function (disabled) {
+                  boolAttr($inputElement, DISABLED, disabled);
+                });
+              //sync multiple
               $scope.$watch(
                 multiple,
                 function (multiple) {
-                  if (multiple) {
-                    $inputElement.attr(MULTIPLE, MULTIPLE);
-                  } else {
-                    $inputElement.removeAttr(MULTIPLE);
-                  }
+                  boolAttr($inputElement, MULTIPLE, multiple);
                 });
             } else {
               //check input type
@@ -124,6 +144,12 @@ define(["module", "angular"], function (module, angular) {
 
             //Bind Destroy event
             $scope.$on("$destroy", onDestroy);
+          }
+
+          function disabled() {
+            return (
+              (DISABLED in $attrs)
+            );
           }
 
           function multiple() {
@@ -143,6 +169,8 @@ define(["module", "angular"], function (module, angular) {
               $inputElement.prop("value", null);
             });
           }
+
+
 
           function onDestroy() {
             if ($inputElementChild) {
