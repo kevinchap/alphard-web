@@ -1,6 +1,9 @@
 define(['module', 'angular'], function (module, angular) {
   'use strict';
 
+  //Deprecation warning
+  console.warn("[" +  module.id + "] is deprecated");
+
   /**
    * Offcanvas directive
    *
