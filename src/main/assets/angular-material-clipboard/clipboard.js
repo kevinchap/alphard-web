@@ -34,8 +34,10 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     var $inject = $injector.get;
     var $mdTheming = $inject("$mdTheming");
     var $mdToast = $inject("$mdToast");
+    var $mdListInkRipple = $inject("$mdListInkRipple");
     var $exceptionHandler = $inject("$exceptionHandler");
     var mdInputContainer = $element.controller("mdInputContainer");
+    var containerElement = $element.find("div");//.md-input-clipboard__container
 
     this.placeholder = placeholder;
     this.disabled = disabled;
@@ -45,6 +47,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     this.toast = null;
 
     //initialize
+    $mdListInkRipple.attach($scope, containerElement/*, options*/);
     $mdTheming($element);
     if (!$attrs.tabindex) {
       $element.attr('tabindex', '-1');
