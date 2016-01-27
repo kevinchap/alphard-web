@@ -1,6 +1,8 @@
 define(["module", "angular", "angular-clipboard"], function (module, angular, ngClipboard) {
   "use strict";
 
+  //Deprecated because of UI Bootstrap
+
   return angular
     .module(module.id, [ngClipboard.name])
 

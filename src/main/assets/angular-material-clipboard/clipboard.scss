@@ -1,0 +1,55 @@
+md-input-clipboard {
+  // Don't let linebreaks happen between the open icon-button and the input.
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: middle;
+
+  //Display as row
+  display: flex;
+  flex-direction: row;
+}
+
+.md-input-clipboard {
+
+  &__button {
+    display: inline-block;
+    box-sizing: border-box;
+    background: none;
+
+    order: 2;//override angular-material
+
+    &.md-button.md-icon-button {
+      padding: 0;
+      margin-right: 0;
+      height: 30px;//TODO better computation
+    }
+  }
+
+  /*&__container {
+    // Position relative in order to absolutely position the down-triangle button within.
+    position: relative;
+
+    padding-bottom: $md-input-clipboard-border-bottom-gap;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+
+    display: inline-block;
+    width: auto;
+    margin-left: $md-input-clipboard-button-gap;
+
+    &.md-input-clipboard--focused {
+      border-bottom-width: 2px;
+    }
+  }*/
+
+  &__input {
+    //@include md-flat-input();
+    cursor: pointer;
+    min-width: 120px;
+
+    &.md-input {
+      order: 1;
+    }
+    //max-width: $md-calendar-width - $md-datepicker-button-gap;
+  }
+}
