@@ -8,10 +8,13 @@ define(["module", "angular"], function (module, angular) {
   /**
    * ngFileDrop directive
    *
-   * Usage:
+   *
+   * @usage
    *
    * <tag ng-file-drop="callback($event, $files)"
    *      [multiple]></tag>
+   *
+   * <!-- class="ng-file-drop--active" is toggled -->
    */
   NgFileDrop.$inject = ["$parse"];
   function NgFileDrop($parse) {
@@ -77,6 +80,14 @@ define(["module", "angular"], function (module, angular) {
               .bind(DRAGOVER, onDragOver)
               .bind(DRAGLEAVE, onDragLeave);
             $element.addClass($$block);
+            $scope.$on("$destroy", onDestroy);
+          }
+
+          function onDestroy() {
+            $element
+              .unbind(DROP, onDrop)
+              .unbind(DRAGOVER, onDragOver)
+              .unbind(DRAGLEAVE, onDragLeave);
           }
 
           function onDrop($event) {
@@ -88,7 +99,8 @@ define(["module", "angular"], function (module, angular) {
               $scope.$apply(function () {
                 ngFileDrop($scope, {
                   $event: $event,
-                  $files: $files
+                  $files: $files,
+                  $file: $files[0]//convenience in case of non multiple
                 });
               });
             }
