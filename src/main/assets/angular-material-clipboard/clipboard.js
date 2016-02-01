@@ -32,6 +32,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
 
     var self = this;
     var $inject = $injector.get;
+    var $translate = $mdInputClipboardI18n($injector);
     var $mdTheming = $inject("$mdTheming");
     var $mdToast = $inject("$mdToast");
     var $mdListInkRipple = $inject("$mdListInkRipple");
@@ -41,6 +42,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
 
     this.placeholder = placeholder;
     this.disabled = disabled;
+    this.tooltip = tooltip;
     this.onCopy = onCopy;
     this.onCopyError = onCopyError;
     this.viewValue = "";
@@ -55,6 +57,10 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
 
     function placeholder() {
       return $attrs.placeholder;
+    }
+
+    function tooltip() {
+      return $translate("md_input_clipboard_tooltip");
     }
 
     function disabled() {
@@ -101,6 +107,26 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
           mdInputContainer.setHasValue(!!self.viewValue);
         }
       });
+  }
+
+
+
+  function $mdInputClipboardI18n($injector) {
+    //Simple translation (only one key)
+    var TRANSLATIONS = {
+      "en_US": {
+        "md_input_clipboard_tooltip": "Copy"
+      },
+      "fr_FR": {
+        "md_input_clipboard_tooltip": "Copier"
+      }
+    };
+    var $locale = $injector.has("$translate") ? $injector.get("$translate").use : function (key) {
+      return "en_US";
+    };
+    return function (key) {
+      return ((TRANSLATIONS[$locale()] || TRANSLATIONS.en_US)[key]) || key;
+    };
   }
 
   return angular
