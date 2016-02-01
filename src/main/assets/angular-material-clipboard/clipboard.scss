@@ -1,0 +1,40 @@
+md-input-clipboard {
+  // Don't let linebreaks happen between the open icon-button and the input.
+  white-space: nowrap;
+  overflow: hidden;
+  vertical-align: middle;
+  position: relative;
+
+  //Display as row
+  display: flex;
+  flex-direction: row;
+}
+
+.md-input-clipboard {
+
+  &__button {
+    display: inline-block;
+    box-sizing: border-box;
+    background: none;
+
+    &.md-button.md-icon-button {
+      margin-top: -10px;
+      margin-left: 0;
+    }
+  }
+
+  &__container {
+    .md-errors-spacer {
+      display: none;//TODO this element is automatically created by ngMaterial
+    }
+  }
+
+  &__input {
+    //@include md-flat-input();
+    cursor: pointer;
+    min-width: 120px;
+
+    //max-width: $md-calendar-width - $md-datepicker-button-gap;
+  }
+
+}

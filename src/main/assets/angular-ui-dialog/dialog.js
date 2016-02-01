@@ -1,9 +1,6 @@
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
-  var __moduleId = module.id;
-
-
   /*
   var $dialogAlert = {
     title: "",
