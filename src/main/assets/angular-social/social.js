@@ -1,6 +1,8 @@
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
+  console.warn("[" + module.id + "] is deprecated use <md-icon> instead");
+
   return angular
     .module(module.id, [])
 
@@ -12,7 +14,6 @@ define(["module", "angular"], function (module, angular) {
 
       return {
         restrict: "EA",
-        scope: true,
         link: function ($scope, $element, $attrs) {
           var nosquare = {
             instagram: true
