@@ -1,39 +1,42 @@
 define(["module", "angular", "angular-translate", "angular-material"], function (module, angular, ngTranslate, ngMaterial) {
   "use strict";
 
-  var LOCALES = [
-    //"de_DE",
-    //"en_GB",
-    "en_US"//,
-    //"es_ES",
-    //"fr_FR"//,
-    //"fr_CA",
-    //"it_IT",
-    //"pt_BR"
-  ];
-  var LOCALE_LABEL = {
-    "fr_FR": "Français",
-    "en_US": "English (USA)",
-    "es_ES": "Español",
-    "it_IT": "Italiano",
-    "de_DE": "Deutsch",
-    "pt_PT": "Português",
-    "pt_BR": "Português (Brasil)"
-  };
 
   /**
-   * Module
+   * Material Design element with ngTranslate
+   *
    */
   var ngModule = angular
     .module(module.id, [ngMaterial.name, ngTranslate && ngTranslate.name || ngTranslate])
     .config(config)
-    .provider("mdTranslateSelectDialog", MdTranslateSelectDialogProvider)
+    .provider("$mdTranslateLanguage", MdTranslateLanguageProvider)
+    .provider("$mdTranslateSelectDialog", MdTranslateSelectDialogProvider)
     .directive("mdTranslateSelect", MdTranslateSelect);
 
-  config.$inject = ["$provide"];
-  function config($provide) {
+
+  //Patch on the fly $translate
+  config.$inject = ["$provide", "$injector"];
+  function config($provide, $injector) {
 
     //https://github.com/angular-translate/angular-translate/issues/566
+    var LOCALES = [
+      //"de_DE",
+      //"en_GB",
+      "en_US"//,
+      //"es_ES",
+      //"fr_FR"//,
+      //"fr_CA",
+      //"it_IT",
+      //"pt_BR"
+    ];
+    $injector.invoke(["$translateProvider", function ($translateProvider) {
+      if (!$translateProvider.registerAvailableLanguageKeys) {
+        $translateProvider.registerAvailableLanguageKeys = function (languages) {
+          LOCALES = languages.slice();
+        };
+      }
+    }]);
+
     $provide.decorator("$translate", ["$delegate", function ($translate) {
       if (!$translate.getAvailableLanguageKeys) {
         $translate.getAvailableLanguageKeys = function () {
@@ -94,7 +97,8 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
     var $mdDialog = $inject("$mdDialog");
     var $mdTheming = $inject("$mdTheming");
     var $translate = $inject("$translate");
-    var mdTranslateSelectDialog = $inject("mdTranslateSelectDialog");
+    var $mdTranslateLanguage = $inject("$mdTranslateLanguage");
+    var $mdTranslateSelectDialog = $inject("$mdTranslateSelectDialog");
 
     this.getOptions = getOptions;
     this.current = current;
@@ -122,11 +126,11 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
     }
 
     function displayName(key) {
-      return LOCALE_LABEL[key] || key;
+      return $mdTranslateLanguage(key);
     }
 
     function onButtonClick($event) {
-      $mdDialog.show(mdTranslateSelectDialog({
+      $mdDialog.show($mdTranslateSelectDialog({
         targetEvent: $event
       }));
     }
@@ -136,13 +140,33 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
     });
   }
 
+  function MdTranslateLanguageProvider() {
+    var LOCALE_LABEL = {
+      "fr_FR": "Français",
+      "en_GB": "English (UK)",
+      "en_US": "English (USA)",
+      "es_ES": "Español",
+      "it_IT": "Italiano",
+      "de_DE": "Deutsch",
+      "pt_PT": "Português",
+      "pt_BR": "Português (Brasil)"
+    };
+
+    this.$get = function () {
+      function $translateLanguage(key) {
+        return LOCALE_LABEL[key] || key;
+      }
+      return $translateLanguage;
+    };
+  }
+
   function MdTranslateSelectDialogProvider() {
     this.$get = function () {
-      function mdTranslateSelectDialog(opt_settings) {
+      function $mdTranslateSelectDialog(opt_settings) {
         var settings = {
           templateUrl: module.id + "_modal.html",
-          controller: MdTranslateSelectModalCtrl,
-          controllerAs: "mdTranslateSelectModal",
+          controller: MdTranslateSelectDialogCtrl,
+          controllerAs: "mdTranslateSelectDialog",
           clickOutsideToClose: true
         };
         if (opt_settings) {
@@ -151,16 +175,17 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
         return settings;
       }
 
-      return mdTranslateSelectDialog;
+      return $mdTranslateSelectDialog;
     };
   }
 
-  MdTranslateSelectModalCtrl.$inject = ["$scope", "$injector"];
-  function MdTranslateSelectModalCtrl($scope, $injector) {
+  MdTranslateSelectDialogCtrl.$inject = ["$scope", "$injector"];
+  function MdTranslateSelectDialogCtrl($scope, $injector) {
     var SEARCH_THRESHOLD = 1;//TODO make configurable
     var self = this;
     var $inject = $injector.get;
     var $translate = $inject("$translate");
+    var $mdTranslateLanguage = $inject("$mdTranslateLanguage");
     var $mdDialog = $inject("$mdDialog");
     this.search = {
       query: '',
@@ -176,11 +201,11 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
     this.onCancel = onCancel;
 
     function displayName(key) {
-      return LOCALE_LABEL[key] || key;
+      return $translateLanguage(key);
     }
 
     function searchKey(key) {
-      return (LOCALE_LABEL[key] || key).toUpperCase();
+      return $mdTranslateLanguage(key).toUpperCase();
     }
 
     function select(localeCode) {
