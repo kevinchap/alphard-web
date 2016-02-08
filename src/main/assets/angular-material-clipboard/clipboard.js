@@ -2,10 +2,19 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
   "use strict";
 
   /**
+   * Module
+   */
+  var ngModule = angular
+    .module(module.id, [ngMaterial.name, ngClipboard.name])
+    .directive("mdInputClipboard", MdInputClipboard);
+
+  /**
    *
    * @usage
    * <md-input-clipboard [ng-model="..."]
    *                     [ng-value="fn()"]
+   *                     [md-copy="fn($text)]
+   *                     [md-copy-error="fn($error)]
    *                     [disabled]
    *                     [md-toast="..."]>
    * </md-input-clipboard>
@@ -21,6 +30,8 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       scope: {
         ngModel: "=",
         ngValue: "&",
+        mdCopy: "&",
+        mdCopyError: "&",
         mdToast: "@"
       }
     };
@@ -68,15 +79,27 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     }
 
     function onCopy(text) {
+      //if (self.mdCopy) {
+      self.mdCopy({
+        $text: text
+      });
+      //}
+
       if (text) {
-        if ($attrs.mdToast) {
-          notify($attrs.mdToast);
+        var hasToast = "mdToast" in $attrs;
+        var textToast = $attrs.mdToast || $translate("md_input_clipboard_toast");
+        if (hasToast) {
+          notify(textToast);
         }
       }
     }
 
     function onCopyError(error) {
-      $exceptionHandler(error);
+      if (!self.mdCopyError({
+        $error: error
+      })) {
+        $exceptionHandler(error);
+      }
     }
 
     function notify(text) {
@@ -115,10 +138,12 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     //Simple translation (only one key)
     var TRANSLATIONS = {
       "en_US": {
-        "md_input_clipboard_tooltip": "Copy"
+        "md_input_clipboard_tooltip": "Copy",
+        "md_input_clipboard_toast": "Copied to clipboard!"
       },
       "fr_FR": {
-        "md_input_clipboard_tooltip": "Copier"
+        "md_input_clipboard_tooltip": "Copier",
+        "md_input_clipboard_toast": "Copié dans le presse-papier!"
       }
     };
     var $locale = $injector.has("$translate") ? $injector.get("$translate").use : function (key) {
@@ -129,8 +154,5 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     };
   }
 
-  return angular
-    .module(module.id, [ngMaterial.name, ngClipboard.name])
-
-    .directive("mdInputClipboard", MdInputClipboard);
+  return ngModule;
 });
