@@ -30,17 +30,17 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
       //"pt_BR"
     ];
     $injector.invoke(["$translateProvider", function ($translateProvider) {
-      if (!$translateProvider.registerAvailableLanguageKeys) {
-        $translateProvider.registerAvailableLanguageKeys = function (languages) {
-          LOCALES = languages.slice();
-        };
-      }
+      var registerAvailableLanguageKeys = $translateProvider.registerAvailableLanguageKeys;
+      $translateProvider.registerAvailableLanguageKeys = function (languages) {
+        registerAvailableLanguageKeys.apply(this, arguments);
+        LOCALES = languages.slice();
+      };
     }]);
 
     $provide.decorator("$translate", ["$delegate", function ($translate) {
       if (!$translate.getAvailableLanguageKeys) {
         $translate.getAvailableLanguageKeys = function () {
-          return LOCALES.slice();
+          return LOCALES;
         };
       } else {
         console.warn('$translate.getAvailableLanguageKeys is present, patch not needed');
@@ -108,11 +108,6 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
     //Init theme
     $mdTheming($element);
 
-
-    function hasOptions() {
-      return getOptions().length > 0;
-    }
-
     function getOptions() {
       return $translate.getAvailableLanguageKeys();
     }
@@ -135,8 +130,8 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
       }));
     }
 
-    $scope.$watch(hasOptions, function (val) {
-      $attrs.$set("disabled", val);
+    $scope.$watch(getOptions, function (val) {
+      $attrs.$set("disabled", !val || val.length <= 1);
     });
   }
 
@@ -154,7 +149,7 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
 
     this.$get = function () {
       function $translateLanguage(key) {
-        return LOCALE_LABEL[key] || key;
+        return LOCALE_LABEL[key];
       }
       return $translateLanguage;
     };
