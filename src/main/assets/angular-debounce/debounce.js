@@ -1,6 +1,9 @@
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
+  //Deprecated because of UI Bootstrap
+  console.warn("[" +  module.id + "] is deprecated use $mdUtil.debounce");
+
   return angular
     .module(module.id, [])
 

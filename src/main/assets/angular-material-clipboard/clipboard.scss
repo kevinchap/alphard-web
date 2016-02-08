@@ -1,3 +1,5 @@
+//TODO: stretch input underline to full width (like md-select)
+
 md-input-clipboard {
   // Don't let linebreaks happen between the open icon-button and the input.
   white-space: nowrap;
@@ -18,14 +20,13 @@ md-input-clipboard {
     background: none;
 
     &.md-button.md-icon-button {
-      margin-top: -10px;
-      margin-left: 0;
+      margin: -10px 0 0 0;
     }
   }
 
   &__container {
     .md-errors-spacer {
-      display: none;//TODO this element is automatically created by ngMaterial
+      display: none; //TODO this element is automatically created by ngMaterial
     }
   }
 
@@ -37,4 +38,9 @@ md-input-clipboard {
     //max-width: $md-calendar-width - $md-datepicker-button-gap;
   }
 
+}
+
+//Case in input container
+md-input-container > md-input-clipboard {
+  margin-bottom: 24px; //TODO variable?
 }

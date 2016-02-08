@@ -1,0 +1,83 @@
+@import "./variables.scss";
+
+@mixin social-color {
+  &blogger {
+    color: $social-blogger-color;
+  }
+
+  &dribbble {
+    color: $social-dribbble-color;
+  }
+
+  &facebook {
+    color: $social-facebook-color;
+  }
+
+  &flickr {
+    color: $social-flickr-color;
+  }
+
+  &forrst {
+    color: $social-forrst-color;
+  }
+
+  &foursquare {
+    color: $social-foursquare-color;
+  }
+
+  &googleplus {
+    color: $social-googleplus-color;
+  }
+
+  &instagram {
+    color: $social-instagram-color;
+  }
+
+  &linkedin {
+    color: $social-linkedin-color;
+  }
+
+  &pinterest {
+    color: $social-pinterest-color;
+  }
+
+  &quora {
+    color: $social-quora-color;
+  }
+
+  &soundcloud {
+    color: $social-soundcloud-color;
+  }
+
+  &stumbleupon {
+    color: $social-stumbleupon-color;
+  }
+
+  &tumblr {
+    color: $social-tumblr-color;
+  }
+
+  &twitter {
+    color: $social-twitter-color;
+  }
+
+  &vimeo {
+    color: $social-vimeo-color;
+  }
+
+  &vk {
+    color: $social-vk-color;
+  }
+
+  &wordpress {
+    color: $social-wordpress-color;
+  }
+
+  &yahoo {
+    color: $social-yahoo-color;
+  }
+
+  &youtube {
+    color: $social-youtube-color;
+  }
+}

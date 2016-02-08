@@ -1,6 +1,8 @@
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
+  console.warn("[" + module.id + "] is deprecated use <md-progress-circular> instead");
+
   //RequireJS Config
   var config = (module.config && module.config()) || {};
   var ROLE = "progressbar";
