@@ -17,6 +17,7 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
     var STYLE =
       'md-icon.fa {' +
       '  visibility: collapse;' +
+      '  text-align: center;' +
       '  font-size: 24px;' +
       '}' +
       'md-icon.fa:before {' +
