@@ -1,0 +1,43 @@
+@import "_mixins.scss";
+
+* {
+  $ratio-attr: data-ratio;
+
+  @mixin -ratio-base() {
+    &[#{$ratio-attr}] {
+      .ratio-base();
+    }
+  }
+
+  @mixin -ratio($width, $height) {
+    &[#{$ratio-attr}="#{$width}:#{$height}"] {
+      .ratio($width, $height);
+    }
+  }
+
+
+  @include -ratio-base();
+
+  @include -ratio(1, 1);
+
+  @include -ratio(2, 1);
+  @include -ratio(1, 2);
+
+  @include -ratio(3, 1);
+  @include -ratio(1, 3);
+
+  @include -ratio(4, 1);
+  @include -ratio(1, 4);
+
+  @include -ratio(4, 3);
+  @include -ratio(3, 4);
+
+  @include -ratio(16, 9);
+  @include -ratio(9, 16);
+
+  @include -ratio(16, 10);
+  @include -ratio(10, 16);
+
+  @include -ratio(239, 100);
+  @include -ratio(100, 239);
+}

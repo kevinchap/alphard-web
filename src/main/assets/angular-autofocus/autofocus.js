@@ -4,6 +4,9 @@ define(['module', 'angular'], function (module, angular) {
   var config = (module.config && module.config()) || {};
   var DEBUG = config.debug;
 
+  //Deprecation warning
+  console.warn("[" +  module.id + "] is deprecated use <tag md-autofocus></tag> instead");
+
   //Util
   function debug(var_args) {
     if (DEBUG) {

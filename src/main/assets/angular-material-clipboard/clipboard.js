@@ -63,7 +63,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     $mdListInkRipple.attach($scope, containerElement/*, options*/);
     $mdTheming($element);
     if (!$attrs.tabindex) {
-      $element.attr('tabindex', '-1');
+      $attrs.$set("tabindex", "-1");
     }
 
     function placeholder() {
