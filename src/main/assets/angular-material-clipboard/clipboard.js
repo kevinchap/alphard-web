@@ -60,11 +60,25 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     this.toast = null;
 
     //initialize
-    $mdListInkRipple.attach($scope, containerElement/*, options*/);
-    $mdTheming($element);
-    if (!$attrs.tabindex) {
-      $attrs.$set("tabindex", "-1");
+    function initialize() {
+      $mdListInkRipple.attach($scope, containerElement/*, options*/);
+      $mdTheming($element);
+      $element.addClass("md-input-clipboard");
+
+      if (!$attrs.tabindex) {
+        $attrs.$set("tabindex", "-1");
+      }
+
+      //Configure Container
+      //Create error spacer
+      if (mdInputContainer) {
+        var errorsSpacerElement = angular.element('<div class="md-errors-spacer">');
+        // element.after appending the div before the icon (if exist) which cause a problem with calculating which class to apply
+        $element.parent().append(errorsSpacerElement);
+      }
     }
+    initialize();
+
 
     function placeholder() {
       return $attrs.placeholder;
