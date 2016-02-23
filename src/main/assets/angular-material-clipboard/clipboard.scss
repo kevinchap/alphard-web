@@ -1,6 +1,8 @@
 //TODO: stretch input underline to full width (like md-select)
+$md-input-clipbard-icon-size: 16px !default;
+$md-input-clipbard-button-size: 30px !default;
 
-md-input-clipboard {
+.md-input-clipboard {
   // Don't let linebreaks happen between the open icon-button and the input.
   white-space: nowrap;
   overflow: hidden;
@@ -10,21 +12,42 @@ md-input-clipboard {
   //Display as row
   display: flex;
   flex-direction: row;
-}
-
-.md-input-clipboard {
 
   &__button {
     display: inline-block;
     box-sizing: border-box;
     background: none;
+    -webkit-align-items: flex-end;
+    -ms-flex-align: end;
+    align-items: flex-end;
+
+    -webkit-order: 3;
+    -ms-flex-order: 3;
+    order: 3;
 
     &.md-button.md-icon-button {
-      margin: -10px 0 0 0;
+      padding: 0;
+      margin: 0;
+      width: $md-input-clipbard-button-size;
+      height: $md-input-clipbard-button-size;
+    }
+
+    md-icon {
+      font-size: $md-input-clipbard-icon-size;
+      width: $md-input-clipbard-icon-size;
+      height: $md-input-clipbard-icon-size;
     }
   }
 
   &__container {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+    flex-grow: 1;
+
     .md-errors-spacer {
       display: none; //TODO this element is automatically created by ngMaterial
     }
@@ -41,6 +64,6 @@ md-input-clipboard {
 }
 
 //Case in input container
-md-input-container > md-input-clipboard {
-  margin-bottom: 24px; //TODO variable?
-}
+//md-input-container > .md-input-clipboard {
+  //margin-bottom: 24px; //TODO variable?
+//}
