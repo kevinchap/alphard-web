@@ -47,6 +47,7 @@ $md-input-clipbard-button-size: 30px !default;
     -ms-flex-align: center;
     align-items: center;
     flex-grow: 1;
+    height: $md-input-clipbard-button-size;
 
     .md-errors-spacer {
       display: none; //TODO this element is automatically created by ngMaterial
