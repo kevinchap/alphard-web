@@ -1,6 +1,6 @@
 define(['logger'], function (logger) {
   "use strict";
-  return function (self, module) {
+  return function (module) {
     var config = (module.config && module.config()) || {};
 
     var base = '';
@@ -8,7 +8,7 @@ define(['logger'], function (logger) {
     if (separatorIndex >= 0)
       base = module.id.substring(0, separatorIndex);
 
-    var _logger = logger(self, module.id, config.logger || config.debug && 'debug' || 'info');
+    var _logger = logger(module.id, config.logger || config.debug && 'debug' || 'info');
 
     _logger.debug('configuration: ', base, config);
 

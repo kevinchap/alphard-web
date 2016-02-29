@@ -22,7 +22,7 @@ define(['module'], function (module) {
     }
   }
 
-  return function (self, name, loggerLevel) {
+  return function (name, loggerLevel) {
     var logger = {};
     logger.name = name;
     logger.level = levels.hasOwnProperty(loggerLevel) && loggerLevel || defaultLevel;
