@@ -7,8 +7,6 @@ define([], function () {
   var clipboard;
   (function (clipboard) {
     var doc = document;
-    var bodyElement = doc.body;
-
 
     /**
      * Copy Node content into clipboard
@@ -16,6 +14,7 @@ define([], function () {
      * @param {Node} node
      */
     function copyNode(node) {
+      var bodyElement = _getElementBody();
       // Set inline style to override css styles
       bodyElement.style.webkitUserSelect = 'initial';
 
@@ -40,6 +39,7 @@ define([], function () {
      * @param {string} text
      */
     function copyText(text) {
+      var bodyElement = _getElementBody();
       var node = _createNode(text);
       bodyElement.appendChild(node);
       copyNode(node);
@@ -54,6 +54,10 @@ define([], function () {
       node.style.left = '-10000px';
       node.textContent = text;
       return node;
+    }
+
+    function _getElementBody() {
+      return doc.body || doc.getElementsByTagName("body")[0];
     }
 
   }(clipboard || (clipboard = {})));
