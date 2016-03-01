@@ -207,9 +207,8 @@ define(["module", "angular"], function (module, angular) {
 
     /**
      * <tag ng-click-confirm="callback($event)"
-     *      [ng-click-confirm-message="My message"]>
+     *      [ng-click-confirm-options="{ title: ..., textContent: ...}"]>
      * </tag>
-     *
      */
     .directive("ngClickConfirm", ["$parse", "$$dialog", "$q", function ($parse, $$dialog, $q) {
       var $$name = "ngClickConfirm";
@@ -219,13 +218,16 @@ define(["module", "angular"], function (module, angular) {
         compile: function($element, $attrs) {
           var fn = $parse($attrs[$$name], /* interceptorFn */ null, /* expensiveChecks */ true);
           return function ngEventHandler($scope, $element, $attrs) {
+            $element.bind($$eventName, onClick);
+            $scope.$on("$destroy", onDestroy);
 
             function isDisabled() {
               return $element.attr("disabled");
             }
 
-            function getMessage() {
-              return $attrs[$$name + "Message"];
+            function getOptions() {
+              var optionExpr = $attrs[$$name + "Options"];
+              return optionExpr ? $scope.$eval(optionExpr) : {};
             }
 
             function apply(f) {
@@ -236,27 +238,34 @@ define(["module", "angular"], function (module, angular) {
               }
             }
 
-            $element.bind($$eventName, function ($event) {
+            function onClick($event) {
               if (!isDisabled()) {
-                $$dialog.$confirm({
-                  textContent: getMessage(),
-                  targetEvent: $event
-                })
-                .then(function (confirmed) {
-                  if (confirmed) {
-                    return $q(function (resolve, reject) {
-                      apply(function () {
-                        try {
-                          resolve(fn($scope, { $event: $event }));
-                        } catch (e) {
-                          reject(e);
-                        }
+                var options = getOptions() || {};
+                options.targetEvent = $event;
+
+                $$dialog
+                  .$confirm(options)
+                  .then(function (confirmed) {
+                    if (confirmed) {
+                      return $q(function (resolve, reject) {
+                        apply(function () {
+                          try {
+                            resolve(fn($scope, { $event: $event }));
+                          } catch (e) {
+                            reject(e);
+                          }
+                        });
                       });
-                    });
-                  }
-                });
+                    }
+                  });
               }
-            });
+            }
+
+            function onDestroy() {
+              $element.unbind($$eventName, onClick);
+            }
+
+
           };
         }
       };
