@@ -1,0 +1,12 @@
+$md-badge-border-radius: 2px !default;
+$md-badge-padding: 1px 6px !default;
+
+.md-badge {
+  display: inline;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  line-height: inherit;
+  border-radius: $md-badge-border-radius;
+  padding: $md-badge-padding;
+}
+
