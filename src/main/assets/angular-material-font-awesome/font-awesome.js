@@ -16,7 +16,7 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
     var FONT_AWESOME = "fa";
     var STYLE =
       'md-icon.fa {' +
-      '  visibility: collapse;' +
+      '  visibility: hidden;' +
       '  text-align: center;' +
       '  font-size: 24px;' +
       '}' +
