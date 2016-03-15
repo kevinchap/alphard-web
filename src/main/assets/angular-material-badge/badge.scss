@@ -23,3 +23,13 @@ $md-badge-radius: 22px !default;
   }
 }
 
+.md-has-badge {
+  position: relative;
+
+  & > .md-badge {
+    position: absolute;
+    top: -($md-badge-radius / 2);
+    right: -($md-badge-radius / 2);
+  }
+}
+
