@@ -1,12 +1,35 @@
 $md-badge-border-radius: 2px !default;
 $md-badge-padding: 1px 6px !default;
+$md-badge-radius: 22px !default;
 
 .md-badge {
   display: inline;
   background: rgba(0, 0, 0, 0.4);
   color: white;
   line-height: inherit;
+  text-align: center;
+  white-space: nowrap;
   border-radius: $md-badge-border-radius;
   padding: $md-badge-padding;
+
+  &.md-rounded {
+    vertical-align: middle;
+    font-size: ($md-badge-radius / 2);
+    width: $md-badge-radius;
+    height: $md-badge-radius;
+    padding: 0;
+    border-radius: 50%;
+    line-height: $md-badge-radius;
+  }
+}
+
+.md-has-badge {
+  position: relative;
+
+  & > .md-badge {
+    position: absolute;
+    top: -($md-badge-radius / 2);
+    right: -($md-badge-radius / 2);
+  }
 }
 
