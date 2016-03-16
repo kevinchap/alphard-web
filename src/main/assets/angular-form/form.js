@@ -14,9 +14,9 @@ define([
   "use strict";
 
   return angular
-    .module(module.id, [
-      ngModelEquals.name,
-      ngModelJson.name,
-      ngModelPercent.name
-    ]);
+    .module(module.id,
+      [].slice.call(arguments, 2)
+      .map(function (arg) { return arg.name; })
+      .filter(function (name) { return !!name; })
+    );
 });
