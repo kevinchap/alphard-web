@@ -2,6 +2,7 @@ define(["module", "angular", "../keen/keen"], function (module, angular, Keen) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
+  var $$minErr = angular.$$minErr;
 
   function debug(var_args) {
     if (moduleConfig.debug) {
@@ -74,12 +75,18 @@ define(["module", "angular", "../keen/keen"], function (module, angular, Keen) {
   }
 
   function $keenFactoryProvider() {
+    var $$name = "$keenFactory";
     var DEFAULT_KEY = "";
+    var _clients = {};
 
+    //public
+    this.get = get;
+    this.set = set;
+    this.setDefault = setDefault;
     this.$get = $get;
 
     function $get() {
-      var clients = {};
+
 
       /**
        * @param {string} clientId
@@ -97,18 +104,58 @@ define(["module", "angular", "../keen/keen"], function (module, angular, Keen) {
        * } opt_settings
        */
       return function $keenFactory(clientId, opt_settings) {
-        clientId = clientId || DEFAULT_KEY;
-
-        var doCreate = !!opt_settings;
-        if (doCreate) {
-          if (clients.hasOwnProperty(clientId)) {
-            throw new Error();
-            //throw minErr('$cacheFactory')('iid', "CacheId '{0}' is already taken!", cacheId);
-          }
-          clients[clientId] = new Keen(opt_settings || {});
-        }
-        return clients[clientId];
+        return !!opt_settings ? set(clientId, opt_settings) : get(clientId);
       };
+    }
+
+    /**
+     *
+     * @param {string} clientId
+     * @returns {boolean}
+     */
+    function has(clientId) {
+      return _clients.hasOwnProperty(clientId);
+    }
+
+    /**
+     * @param {string} clientId
+     * @param {
+       * {
+       *   projectId: string,
+       *   masterKey: string,
+       *   readKey: string,
+       *   writeKey: string,
+       *   requestType: string,
+       *   host: string,
+       *   protocol: string,
+       *   globalProperties: {}
+       * }
+       * } settings
+     */
+    function set(clientId, settings) {
+      clientId = clientId || DEFAULT_KEY;
+      var returnValue;
+      if (has(clientId)) {
+        throw $$minErr($$name)('iid', "ClientId '{0}' is already taken!", clientId);
+      }
+      returnValue = _clients[clientId] = new Keen(settings || {});
+      return returnValue;
+    }
+
+    function setDefault(settings) {
+      return set(DEFAULT_KEY, settings);
+    }
+
+    /**
+     * @param {string} clientId
+     */
+    function get(clientId) {
+      clientId = clientId || DEFAULT_KEY;
+      var returnValue =_clients[clientId];
+      if (!returnValue) {
+        throw $$minErr($$name)('iid', "ClientId '{0}' is does not exist!", clientId);
+      }
+      return returnValue;
     }
   }
 });
