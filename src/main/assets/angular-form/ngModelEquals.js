@@ -28,10 +28,11 @@ define(["module", "angular"], function (module, angular) {
    *
    * @constructor
    */
+  NgModelEquals.$name = "ngModelEquals";
   NgModelEquals.$inject = ["$parse"];
   function NgModelEquals($parse) {
     function compile($element, $attrs) {
-      var ngEqualsExpr = $parse($attrs.ngModelEquals);
+      var ngEqualsExpr = $parse($attrs[NgModelEquals.$name]);
 
       return function link($scope, $element, $attrs, ngModel) {
         if (!ngModel) return;// do nothing if no ng-model
