@@ -34,13 +34,14 @@ define(["module", "angular"], function (module, angular) {
     function compile($element, $attrs) {
       var ngEqualsExpr = $parse($attrs[NgModelEquals.$name]);
 
-      return function link($scope, $element, $attrs, ngModel) {
+      return function link($scope, $element, $attrs, $ctrls) {
+        var ngModel = $ctrls[0];
         if (!ngModel) return;// do nothing if no ng-model
 
         var expected;
 
         ngModel.$validators.equal = function (modelValue, viewValue) {
-          return ngModel.$isEmpty(viewValue) || viewValue === expected;//TODO: check for dirtyness instead of empty
+          return ngModel.$isEmpty(modelValue) || modelValue === expected;//TODO: check for dirtyness instead of empty
         };
 
         $scope.$watch(
@@ -54,7 +55,7 @@ define(["module", "angular"], function (module, angular) {
 
     return {
       restrict: 'A', // only activate on element attribute
-      require: '?ngModel', // get a hold of NgModelController
+      require: ['?ngModel'], // get a hold of NgModelController
       compile: compile
     };
   }

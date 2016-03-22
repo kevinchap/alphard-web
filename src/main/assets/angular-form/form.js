@@ -3,13 +3,11 @@ define([
   "angular",
   "./ngModelEquals",
   "./ngModelJson",
+  "./ngModelJsonschema",
   "./ngModelPercent"
 ], function (
   module,
-  angular,
-  ngModelEquals,
-  ngModelJson,
-  ngModelPercent
+  angular
 ) {
   "use strict";
 

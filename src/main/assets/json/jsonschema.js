@@ -236,7 +236,7 @@ define([], function () {
           _super.call(this);
           this._data = dataOrSchema;
         } else if (dataOrSchema instanceof JSONSchema) {
-          result = dataOrSchema;
+          return dataOrSchema;
         } else {
           return new JSONSchema(dataOrSchema);
         }
