@@ -102,9 +102,7 @@ define(["module"], function (module) {
 
     function downloadURL_iframe(url, settings) {
       var bodyElement = getBodyElement();
-      var iframeElement = createElement("iframe", {
-        src: "about:blank"
-      });
+      var iframeElement = createElement("iframe");
       hideElement(iframeElement);
       bodyElement.appendChild(iframeElement);
 
