@@ -27,7 +27,8 @@ object Build
           "org.webjars" % "angularjs" % "1.4.7",
           "org.webjars" % "q" % "1.0.1",
           "org.webjars" % "bootstrap" % "3.3.5",
-          "org.webjars" % "flag-icon-css" % "0.7.1"
+          "org.webjars" % "flag-icon-css" % "0.7.1",
+          "org.webjars" % "keen-js" % "3.3.0"
         )
       ).settings(
         inConfig(Assets)(unscopedSettings) ++
