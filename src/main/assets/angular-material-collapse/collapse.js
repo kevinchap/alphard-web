@@ -16,7 +16,8 @@ define(["module", "angular"], function (module, angular) {
    *      ng-hide="...">
    * </tag>
    */
-  function MdCollapse() {
+  MdCollapse.$inject = ["$log"];
+  function MdCollapse($log) {
     var $$name = "mdCollapse";
     var NGSHOW = "ngShow";
     var NGHIDE = "ngHide";
@@ -26,7 +27,7 @@ define(["module", "angular"], function (module, angular) {
       function collapse(property, delay) {
         var transition = property + ' ' + delay;
         return (
-          '  overflow: hidden;\n' +
+          '  overflow' + (property === "width" ? '-x' : '-y') + ': hidden;\n' +
           '  -webkit-transition: ' + transition + ';\n' +
           '  -moz-transition: ' + transition + ';\n' +
           '  -ms-transition: ' + transition + ';\n' +
@@ -78,17 +79,19 @@ define(["module", "angular"], function (module, angular) {
           }
 
           function update(direction, isVisible) {
-            var property;
-            var scrollProperty;
-            switch (direction) {
+            var dir = (direction || "").toLowerCase();
+            var property = "width";
+            var scrollProperty = "scrollWidth";
+            switch (dir) {
               case HORIZONTAL:
-                property = "width";
-                scrollProperty = "scrollWidth";
+                //keep default
                 break;
               case VERTICAL:
                 property = "height";
                 scrollProperty = "scrollHeight";
                 break;
+              default:
+                $log.warn('[md-collapse]', direction + " must be " + HORIZONTAL + "|" + VERTICAL);
             }
 
             $element
