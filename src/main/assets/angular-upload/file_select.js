@@ -120,18 +120,15 @@ define(["module", "angular"], function (module, angular) {
               )($scope);
               $inputElementChild = true;
               $element.append($inputElement);
-              //sync disabled
-              $scope.$watch(
-                disabled,
-                function (disabled) {
-                  boolAttr($inputElement, DISABLED, disabled);
-                });
-              //sync multiple
-              $scope.$watch(
-                multiple,
-                function (multiple) {
-                  boolAttr($inputElement, MULTIPLE, multiple);
-                });
+
+              $scope.$watch(function () {
+                //sync disabled
+                boolAttr($inputElement, DISABLED, disabled());
+
+                //sync multiple
+                boolAttr($inputElement, MULTIPLE, multiple());
+              });
+
             } else {
               //check input type
               if ($attrs.type !== "file") {
