@@ -46,9 +46,8 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
                 return $element.text().trim();
               },
               function (content, contentOld) {
-                $element
-                  .removeClass(fa(contentOld))
-                  .addClass(fa(content));
+                $attrs.$removeClass(fa(contentOld));
+                $attrs.$addClass(fa(content));
               });
 
           }

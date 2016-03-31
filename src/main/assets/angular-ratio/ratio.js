@@ -77,11 +77,15 @@ define(["module", "angular"], function (module, angular) {
       restrict: "A",
       link: function ($scope, $element, $attrs) {
         $scope.$on("$destroy", onDestroy);
-        $scope.$watch(render);
+        $scope.$watch(ratio, render);
+
+        function ratio() {
+          return $attrs[NAME];
+        }
 
         function render() {
           var $spacerElement = getOrCreateByClassName($element, SPACER_CLASS);
-          var factor = parseRatio($attrs[NAME]);
+          var factor = parseRatio(ratio());
 
           var paddingTopOld = $spacerElement.css("padding-top");
           var paddingTop = (factor * 100) + "%";

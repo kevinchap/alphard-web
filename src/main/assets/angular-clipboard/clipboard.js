@@ -69,7 +69,7 @@ define(["module", "angular", "dom/clipboard"], function (module, angular, clipbo
               $clipboard.copyText(text);
               debug(text, "OK");
               if ($scope.$root.$$phase) {
-                $scope.$evalAsync(callback);
+                $scope.$applyAsync(callback);
               } else {
                 $scope.$apply(callback);
               }
