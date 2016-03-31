@@ -16,33 +16,36 @@ define(["module", "angular"], function (module, angular) {
    *      ng-hide="...">
    * </tag>
    */
-  MdCollapse.$inject = ["$log"];
-  function MdCollapse($log) {
+  MdCollapse.$inject = ["$animate"];
+  function MdCollapse($animate) {
     var $$name = "mdCollapse";
-    var NGSHOW = "ngShow";
-    var NGHIDE = "ngHide";
+    var START = "start";
+    var CLOSE = "close";
     var HORIZONTAL = "horizontal";
     var VERTICAL = "vertical";
     var STYLE = (function () {
-      function collapse(property, delay) {
-        var transition = property + ' ' + delay;
+      var transitionDelay = "300ms";
+
+      function transition(property, delay) {
+        var transitionStr = property + ' ' + delay;
         return (
-          '  overflow' + (property === "width" ? '-x' : '-y') + ': hidden;\n' +
-          '  -webkit-transition: ' + transition + ';\n' +
-          '  -moz-transition: ' + transition + ';\n' +
-          '  -ms-transition: ' + transition + ';\n' +
-          '  -o-transition: ' + transition + ';\n' +
-          '  transition: ' + transition + ';\n'
+          '  -webkit-transition: ' + transitionStr + ';\n' +
+          '  -moz-transition: ' + transitionStr + ';\n' +
+          '  -ms-transition: ' + transitionStr + ';\n' +
+          '  -o-transition: ' + transitionStr + ';\n' +
+          '  transition: ' + transitionStr + ';\n'
         );
       }
 
       return (
         '[md-collapse="vertical"],\n' +
         '[md-collapse]:not([md-collapse="horizontal"]) {\n' +
-        collapse("height", "300ms") +
+        '  overflow-y: hidden;\n' +
+        transition("height", transitionDelay) +
         '}\n' +
         '[md-collapse="horizontal"] {\n' +
-        collapse("width", "300ms") +
+        '  overflow-x: hidden;\n' +
+        transition("width", transitionDelay) +
         '}\n'
       );
     }());
@@ -55,48 +58,50 @@ define(["module", "angular"], function (module, angular) {
 
     return {
       restrict: "A",
+      priority: 1,
       compile: function () {
         return function link($scope, $element, $attrs) {
-          $scope.$watchGroup([
-            direction,
-            isVisible
-          ], function (newValues) {
-            update(newValues[0], newValues[1]);
-          });
+          $animate.on('addClass', $element, onHide);
+          $animate.on('removeClass', $element, onShow);
+          $scope.$on("$destroy", onDestroy);
+
+          function property() {
+            return direction() === HORIZONTAL ? "width" : "height";
+          }
+
+          function scrollProperty() {
+            return direction() === HORIZONTAL ? "scrollWidth" : "scrollHeight";
+          }
+
+          function onHide($element, phase) {
+            switch (phase) {
+              case START:
+                $element.css(property(), '0px');
+                break;
+              case CLOSE:
+                //$element.css(property(), '');
+                break;
+            }
+          }
+
+          function onShow($element, phase) {
+            switch (phase) {
+              case START:
+                $element.css(property(), $element[0][scrollProperty()] + 'px');
+                break;
+              case CLOSE:
+                //$element.css(property(), '');
+                break;
+            }
+          }
 
           function direction() {
             return $attrs[$$name] || VERTICAL;
           }
 
-          function isVisible() {
-            if (NGSHOW in $attrs) {
-              return !!$scope.$eval($attrs[NGSHOW]);
-            } else if (NGHIDE in $attrs) {
-              return !$scope.$eval($attrs[NGHIDE]);
-            } else {
-              return true;
-            }
-          }
-
-          function update(direction, isVisible) {
-            var dir = (direction || "").toLowerCase();
-            var property = "width";
-            var scrollProperty = "scrollWidth";
-            switch (dir) {
-              case HORIZONTAL:
-                //keep default
-                break;
-              case VERTICAL:
-                property = "height";
-                scrollProperty = "scrollHeight";
-                break;
-              default:
-                $log.warn('[md-collapse]', direction + " must be " + HORIZONTAL + "|" + VERTICAL);
-            }
-
-            $element
-              .addClass("ng-hide-animate")
-              .css(property, isVisible ? $element[0][scrollProperty] + 'px' : 0);
+          function onDestroy() {
+            $animate.off('addClass', $element, onHide);
+            $animate.off('removeClass', $element, onShow);
           }
 
         };
