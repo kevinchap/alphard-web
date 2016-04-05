@@ -6,7 +6,7 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
    */
   var ngModule = angular
     .module(module.id, [ ngMaterial.name ])
-    .directive("mdBadge", MdBadge)
+    .directive("mdBadge", MdBadgeDirective)
     .run(run);
 
   /**
@@ -17,7 +17,7 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
    *   <md-badge>123</md-badge>
    * </div>
    */
-  function MdBadge() {
+  function MdBadgeDirective() {
     return {
       restrict: "E",
       controller: MdBadgeCtrl,

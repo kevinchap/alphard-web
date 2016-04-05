@@ -11,7 +11,7 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
     .config(config)
     .provider("$mdTranslateLanguage", MdTranslateLanguageProvider)
     .provider("$mdTranslateSelectDialog", MdTranslateSelectDialogProvider)
-    .directive("mdTranslateSelect", MdTranslateSelect);
+    .directive("mdTranslateSelect", MdTranslateSelectDirective);
 
 
   //Patch on the fly $translate
@@ -57,8 +57,8 @@ define(["module", "angular", "angular-translate", "angular-material"], function 
    * <md-translate-select>
    * </md-translate-select>
    */
-  MdTranslateSelect.$inject = ["$translate"];
-  function MdTranslateSelect($translate) {
+  MdTranslateSelectDirective.$inject = ["$translate"];
+  function MdTranslateSelectDirective($translate) {
     var TEMPLATE_BUTTON = '<div class="md-translate-select"><md-button ng-click="mdTranslateSelect.onButtonClick($event);">{{mdTranslateSelect.displayName(mdTranslateSelect.current())}}</md-button></div>';
     var TEMPLATE_SELECT = '<md-select ' +
       'ng-model="mdTranslateSelect.current" ' +

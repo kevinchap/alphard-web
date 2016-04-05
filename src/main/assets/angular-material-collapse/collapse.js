@@ -7,7 +7,7 @@ define(["module", "angular"], function (module, angular) {
   var ngModule = angular
     .module(module.id, [])
 
-    .directive("mdCollapse", MdCollapse);
+    .directive("mdCollapse", MdCollapseDirective);
 
   /**
    * @usage
@@ -16,8 +16,8 @@ define(["module", "angular"], function (module, angular) {
    *      ng-hide="...">
    * </tag>
    */
-  MdCollapse.$inject = ["$animate"];
-  function MdCollapse($animate) {
+  MdCollapseDirective.$inject = ["$animate"];
+  function MdCollapseDirective($animate) {
     var $$name = "mdCollapse";
     var START = "start";
     var CLOSE = "close";

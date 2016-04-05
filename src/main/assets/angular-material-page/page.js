@@ -16,14 +16,14 @@ define(["module", "angular"], function (module, angular) {
 
   var ngModule = angular
     .module(module.id, [])
-    .directive("mdPages", MdPages)
-    .directive("mdPage", MdPage);
+    .directive("mdPages", MdPagesDirective)
+    .directive("mdPage", MdPageDirective);
 
   /**
    * Pages Directive
    *
    */
-  function MdPages() {
+  function MdPagesDirective() {
     var STYLE =
       'md-pages {' +
       '  display: block;' +
@@ -173,7 +173,7 @@ define(["module", "angular"], function (module, angular) {
    * Page Directive
    *
    */
-  function MdPage() {
+  function MdPageDirective() {
     return {
       require: ["^mdPages"],
       restrict: "E",

@@ -6,7 +6,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
    */
   var ngModule = angular
     .module(module.id, [ngMaterial.name, ngClipboard.name])
-    .directive("mdInputClipboard", MdInputClipboard);
+    .directive("mdInputClipboard", MdInputClipboardDirective);
 
   /**
    *
@@ -20,7 +20,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
    * </md-input-clipboard>
    */
 
-  function MdInputClipboard() {
+  function MdInputClipboardDirective() {
     return {
       restrict: "E",
       templateUrl: module.id + ".html",

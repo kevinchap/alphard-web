@@ -145,7 +145,7 @@ define(["module", "angular"], function (module, angular) {
    *
    * <flag country="fr" [squared="true|false"]></flag>
    */
-    .directive("flag", [function () {
+    .directive("flag", [function FlagDirective() {
       var $$class = "flag-icon";
       var $m = bem($$class, "-");
 

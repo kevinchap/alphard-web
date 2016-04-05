@@ -7,7 +7,7 @@ define(["module", "angular"], function (module, angular) {
   var ngModule = angular
     .module(module.id, [])
 
-    .directive("ngRatio", NgRatio);
+    .directive("ngRatio", NgRatioDirective);
 
   /**
    * Directive
@@ -16,7 +16,7 @@ define(["module", "angular"], function (module, angular) {
    *
    * <tag ng-ratio="16:9"></tag>
    */
-  function NgRatio() {
+  function NgRatioDirective() {
     var NAME = "ngRatio";
     var SPACER_CLASS = "ng-ratio-spacer";
     var STYLE =
