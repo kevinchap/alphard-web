@@ -58,21 +58,13 @@ define(["module", "angular"], function (module, angular) {
       return (
         //Vertical
         vrule("", transition("height", transitionDelay)) +
-        vrule(".ng-hide",
-          '  overflow-y: hidden;\n'
-        ) +
-        vrule(".ng-hide-remove",
-          '  overflow-y: hidden;\n'
-        ) +
+        vrule(".ng-hide", 'overflow-y: hidden;\n') +
+        vrule(".ng-hide-remove", 'overflow-y: hidden;\n') +
 
         //Horizontal
         hrule("", transition("width", transitionDelay)) +
-        hrule(".ng-hide",
-          '  overflow-x: hidden;\n'
-        ) +
-        hrule(".ng-hide-remove",
-          '  overflow-x: hidden;\n'
-        )
+        hrule(".ng-hide", 'overflow-x: hidden;\n') +
+        hrule(".ng-hide-remove", 'overflow-x: hidden;\n')
       );
     }());
 
@@ -118,7 +110,7 @@ define(["module", "angular"], function (module, angular) {
             if (_init) {
               switch (phase) {
                 case START:
-                  transitionProperty(getFullSize() + 'px', '0px');
+                  transitionProperty(getFullSize() + 'px', '0');
                   break;
                 case CLOSE:
                   $element.css(property(), '');
@@ -133,7 +125,7 @@ define(["module", "angular"], function (module, angular) {
             if (_init) {
               switch (phase) {
                 case START:
-                  transitionProperty('0px', getFullSize() + 'px');
+                  transitionProperty('0', getFullSize() + 'px');
                   break;
                 case CLOSE:
                   $element.css(property(), '');
