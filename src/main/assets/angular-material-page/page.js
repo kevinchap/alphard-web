@@ -208,15 +208,9 @@ define(["module", "angular"], function (module, angular) {
     //init
     mdPages.add(this);
     $scope.$watch(function () {
-      var selectedClass = mdPages.selectedClass;
-
       //delete cache
       _order = null;
-
-      $element
-        .toggleClass(selectedClass, selected())
-        .toggleClass(selectedClass + "--previous", isPrevious())
-        .toggleClass(selectedClass + "--next", isNext());
+      update();
     });
     $scope.$watch(disabled, function () {
       mdPages.notifyItemChange();
@@ -269,6 +263,17 @@ define(["module", "angular"], function (module, angular) {
 
     function onDestroy() {
       mdPages.remove(self);
+    }
+
+    function update() {
+      var selectedClass = mdPages.selectedClass;
+      toggleClass(selectedClass, selected());
+      toggleClass(selectedClass + "--previous", isPrevious());
+      toggleClass(selectedClass + "--next", isNext());
+    }
+
+    function toggleClass($class, value) {
+      $attrs[value ? "$addClass" : "$removeClass"]($class);
     }
   }
 

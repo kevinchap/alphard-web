@@ -138,7 +138,7 @@ define(["module", "angular"], function (module, angular) {
       return $injector.get(_settings.adapter);
     }
   }
-  
+
   return angular
     .module(module.id, [])
 
@@ -232,7 +232,7 @@ define(["module", "angular"], function (module, angular) {
 
             function apply(f) {
               if ($scope.$root.$$phase) {
-                $scope.$evalAsync(f);
+                $scope.$applyAsync(f);
               } else {
                 $scope.$apply(f);
               }
@@ -242,7 +242,6 @@ define(["module", "angular"], function (module, angular) {
               if (!isDisabled()) {
                 var options = getOptions() || {};
                 options.targetEvent = $event;
-
                 $$dialog
                   .$confirm(options)
                   .then(function (confirmed) {

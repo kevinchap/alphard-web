@@ -16,15 +16,15 @@ define(["module", "angular"], function (module, angular) {
    *      ng-hide="...">
    * </tag>
    */
-  MdCollapseDirective.$inject = ["$animate"];
-  function MdCollapseDirective($animate) {
+  MdCollapseDirective.$inject = ["$animate", "$$rAF"];
+  function MdCollapseDirective($animate, $$rAF) {
     var $$name = "mdCollapse";
     var START = "start";
     var CLOSE = "close";
     var HORIZONTAL = "horizontal";
     var VERTICAL = "vertical";
     var STYLE = (function () {
-      var transitionDelay = "300ms";
+      var transitionDelay = "200ms";
 
       function transition(property, delay) {
         var transitionStr = property + ' ' + delay;
@@ -37,18 +37,46 @@ define(["module", "angular"], function (module, angular) {
         );
       }
 
+      function vrule(selector, rule) {
+        return (
+          '[md-collapse="vertical"]' + selector + ',\n' +
+          '[md-collapse]:not([md-collapse="horizontal"])' + selector + ' {\n' +
+          rule +
+          '}\n'
+        );
+      }
+
+      function hrule(selector, rule) {
+        return (
+          '[md-collapse="horizontal"]' + selector + ' {\n' +
+          rule +
+          '}\n'
+        );
+
+      }
+
       return (
-        '[md-collapse="vertical"],\n' +
-        '[md-collapse]:not([md-collapse="horizontal"]) {\n' +
-        '  overflow-y: hidden;\n' +
-        transition("height", transitionDelay) +
-        '}\n' +
-        '[md-collapse="horizontal"] {\n' +
-        '  overflow-x: hidden;\n' +
-        transition("width", transitionDelay) +
-        '}\n'
+        //Vertical
+        vrule("", transition("height", transitionDelay)) +
+        vrule(".ng-hide",
+          '  overflow-y: hidden;\n'
+        ) +
+        vrule(".ng-hide-remove",
+          '  overflow-y: hidden;\n'
+        ) +
+
+        //Horizontal
+        hrule("", transition("width", transitionDelay)) +
+        hrule(".ng-hide",
+          '  overflow-x: hidden;\n'
+        ) +
+        hrule(".ng-hide-remove",
+          '  overflow-x: hidden;\n'
+        )
       );
     }());
+
+console.warn(STYLE);
 
     //Include
     angular
@@ -58,12 +86,15 @@ define(["module", "angular"], function (module, angular) {
 
     return {
       restrict: "A",
-      priority: 1,
+      priority: 2,
       compile: function () {
         return function link($scope, $element, $attrs) {
+          var _init = false;
           $animate.on('addClass', $element, onHide);
           $animate.on('removeClass', $element, onShow);
           $scope.$on("$destroy", onDestroy);
+
+          //Init
 
           function property() {
             return direction() === HORIZONTAL ? "width" : "height";
@@ -73,25 +104,45 @@ define(["module", "angular"], function (module, angular) {
             return direction() === HORIZONTAL ? "scrollWidth" : "scrollHeight";
           }
 
+          function getFullSize() {
+            return $element[0][scrollProperty()];
+          }
+
+          function transitionProperty(from, to) {
+            var prop = property();
+            $element.css(prop, from);
+            $$rAF(function () {
+              $element.css(prop, to);
+            });
+          }
+
           function onHide($element, phase) {
-            switch (phase) {
-              case START:
-                $element.css(property(), '0px');
-                break;
-              case CLOSE:
-                //$element.css(property(), '');
-                break;
+            if (_init) {
+              switch (phase) {
+                case START:
+                  transitionProperty(getFullSize() + 'px', '0px');
+                  break;
+                case CLOSE:
+                  $element.css(property(), '');
+                  break;
+              }
+            } else {
+              _init = true;
             }
           }
 
           function onShow($element, phase) {
-            switch (phase) {
-              case START:
-                $element.css(property(), $element[0][scrollProperty()] + 'px');
-                break;
-              case CLOSE:
-                //$element.css(property(), '');
-                break;
+            if (_init) {
+              switch (phase) {
+                case START:
+                  transitionProperty('0px', getFullSize() + 'px');
+                  break;
+                case CLOSE:
+                  $element.css(property(), '');
+                  break;
+              }
+            } else {
+              _init = true;
             }
           }
 
