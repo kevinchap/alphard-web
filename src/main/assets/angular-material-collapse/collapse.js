@@ -76,8 +76,6 @@ define(["module", "angular"], function (module, angular) {
       );
     }());
 
-console.warn(STYLE);
-
     //Include
     angular
       .element(document)
