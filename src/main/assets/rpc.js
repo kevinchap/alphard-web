@@ -894,10 +894,16 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         headers = data.headers || {}, key;
 
 
-        xhr.onload = function (response) {
-          //TODO: handle response status etc.
-          resolve(response);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4) {
+            if (xhr.status === 200) {
+              resolve(xhr.responseText);
+            } else {
+              reject(new Error("Http error code " + xhr.status));
+            }
+          }
         };
+
         xhr.onerror = function (error) {
           reject(new Error(method + ' ' + url + ' (Http Error)'));
         };

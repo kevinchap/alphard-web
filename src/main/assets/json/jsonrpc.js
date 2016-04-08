@@ -60,11 +60,11 @@ define([], function () {
       if (!jsonResponse) {
         if (__isArray(jsonData)) {
           jsonResponse = new Array(jsonData.length);
-          for (var i = 0, l = stringOrObject.length; i < l; ++i) {
-            jsonResponse[i] = _toResponse(stringOrObject[i]);
+          for (var i = 0, l = jsonData.length; i < l; ++i) {
+            jsonResponse[i] = _toResponse(jsonData[i]);
           }
         } else {
-          jsonResponse = _toResponse(stringOrObject);
+          jsonResponse = _toResponse(jsonData);
         }
       }
       return jsonResponse;
