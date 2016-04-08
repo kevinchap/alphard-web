@@ -55,6 +55,8 @@ define([], function () {
           jsonResponse = new JSONRPCResponse();
           jsonResponse.error = new JSONRPCError(null, JSONRPCError.USER_PARSE_ERROR, stringOrObject);
         }
+      } else {
+        jsonData = stringOrObject;
       }
 
       if (!jsonResponse) {
@@ -330,10 +332,9 @@ define([], function () {
           __assertIn(o, 'error');
         }
 
-        var
-          response = new JSONRPCResponse(o.id),
-          error = o.error,
-          result = o.result;
+        var response = new JSONRPCResponse(o.id);
+        var error = o.error;
+        var result = o.result;
 
         if (error) {
           response.error = JSONRPCError.fromObject(error);
