@@ -1,5 +1,4 @@
 //TODO: stretch input underline to full width (like md-select)
-$md-input-clipbard-icon-size: 16px !default;
 $md-input-clipbard-button-size: 30px !default;
 
 .md-input-clipboard {
@@ -21,12 +20,21 @@ $md-input-clipbard-button-size: 30px !default;
   -ms-flex-direction: row;
   flex-direction: row;
 
-  &__container {
+  &:not([disabled]):hover {
+    cursor: pointer;
+  }
+
+  & div.md-input-clipboard__container {
     display: -webkit-flex;
     display: -moz-flex;
     display: -ms-flexbox; // IE10 uses -ms-flexbox
     display: -ms-flex; // IE11
     display: flex;
+
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
 
     -webkit-align-items: center;
     -ms-flex-align: center;
@@ -38,9 +46,11 @@ $md-input-clipbard-button-size: 30px !default;
     flex-grow: 1;
     height: $md-input-clipbard-button-size;
 
+    /*
     .md-errors-spacer {
       display: none; //TODO this element is automatically created by ngMaterial
     }
+    */
   }
 
   &__input {
@@ -56,7 +66,8 @@ $md-input-clipbard-button-size: 30px !default;
     //max-width: $md-calendar-width - $md-datepicker-button-gap;
   }
 
-  &__button {
+  &__icon {
+    color: currentColor !important;
     display: inline-block;
     box-sizing: border-box;
     background: none;
@@ -68,18 +79,11 @@ $md-input-clipbard-button-size: 30px !default;
     -ms-flex-order: 3;
     order: 3;
 
-    &.md-button.md-icon-button {
-      padding: 0;
-      margin: 0;
-      width: $md-input-clipbard-button-size;
-      height: $md-input-clipbard-button-size;
-    }
-
-    md-icon {
-      font-size: $md-input-clipbard-icon-size;
-      width: $md-input-clipbard-icon-size;
-      height: $md-input-clipbard-icon-size;
-    }
+    -webkit-transform: scale(0.6);
+    -moz-transform: scale(0.6);
+    -ms-transform: scale(0.6);
+    -o-transform: scale(0.6);
+    transform: scale(0.6);
   }
 
 }
