@@ -4,12 +4,13 @@
      ng-copy="mdInputClipboard.onCopy($text)"
      ng-copy-error="mdInputClipboard.onCopyError($error)">
 
-  <span flex ng-bind="mdInputClipboard.viewValue">
+  <span class="md-input-clipboard__label"
+        ng-bind="mdInputClipboard.viewValue">
   </span>
 
   <!-- Copy button -->
-  <md-icon class="md-input-clipboard__icon">
-    content_copy
+  <md-icon class="md-input-clipboard__icon"
+           ng-bind="mdInputClipboard.isNotifying() ? 'done' : 'content_copy'">
   </md-icon>
 </div>
 

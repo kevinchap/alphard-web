@@ -44,12 +44,14 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     var self = this;
     var $inject = $injector.get;
     var $translate = $mdInputClipboardI18n($injector);
+    var $timeout = $inject("$timeout");
     var $mdTheming = $inject("$mdTheming");
     var $mdToast = $inject("$mdToast");
     var $mdListInkRipple = $inject("$mdListInkRipple");
     var $exceptionHandler = $inject("$exceptionHandler");
     var mdInputContainer = $element.controller("mdInputContainer");
     var containerElement = $element.find("div");//.md-input-clipboard__container
+    var _notificationCount = 0;
 
     this.placeholder = placeholder;
     this.disabled = disabled;
@@ -58,6 +60,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     this.onCopyError = onCopyError;
     this.viewValue = "";
     this.toast = null;
+    this.isNotifying = isNotifying;
 
     //initialize
     function initialize() {
@@ -116,7 +119,16 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       }
     }
 
+    function isNotifying() {
+      return _notificationCount > 0;
+    }
+
     function notify(text) {
+      _notificationCount++;
+      $timeout(function () {
+        _notificationCount--;
+      }, NOTIFICATION_DELAY);
+
       if (!self.toast) {
         self.toast = $mdToast
           .simple()

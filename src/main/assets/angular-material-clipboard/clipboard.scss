@@ -53,17 +53,14 @@ $md-input-clipbard-button-size: 30px !default;
     */
   }
 
-  &__input {
-    //@include md-flat-input();
-    cursor: pointer;
-    min-width: 120px;
+  &__label {
+    //cursor: pointer;
+    //min-width: 120px;
 
     -webkit-flex: 1;
     -moz-flex: 1;
     -ms-flex: 1;
     flex: 1;
-
-    //max-width: $md-calendar-width - $md-datepicker-button-gap;
   }
 
   &__icon {
