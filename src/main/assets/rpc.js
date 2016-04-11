@@ -887,12 +887,14 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         self    = this,
         method  = toString(data.method || 'GET').toUpperCase(),
         url     = data.url,
-        withCredentials = ('withCredentials' in global.XMLHttpRequest.prototype),
-        Request = withCredentials ? global.XMLHttpRequest :
+        hasWithCredentials = ('withCredentials' in global.XMLHttpRequest.prototype),
+        Request = hasWithCredentials ? global.XMLHttpRequest :
           global.XDomainRequest || global.XMLHttpRequest,
         xhr     = new Request(),
         headers = data.headers || {}, key;
 
+
+        xhr.withCredentials = !!data.withCredentials;
 
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4) {
@@ -961,6 +963,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         headers: {
           "Content-Type": r.contentType
         },
+        withCredentials: true,
         data: r.contentString
       });
     });
