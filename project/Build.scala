@@ -29,7 +29,7 @@ object Build
           "org.webjars" % "bootstrap" % "3.3.5",
           "org.webjars" % "flag-icon-css" % "0.7.1",
           "org.webjars" % "keen-js" % "3.3.0",
-          "org.webjars" % "video-js" % "5.2.1"
+          "org.webjars" % "video-js" % "5.8.8"
         )
       ).settings(
         inConfig(Assets)(unscopedSettings) ++
