@@ -107,16 +107,18 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       return ("disabled" in $attrs) && $attrs.disabled !== false;
     }
 
-    function onFocus($event) {
+    function focused(opt_val) {
       if (mdInputContainer) {
-        mdInputContainer.setFocused(true);
+        mdInputContainer.setFocused(opt_val);
       }
     }
 
+    function onFocus($event) {
+      focused(true);
+    }
+
     function onBlur($event) {
-      if (mdInputContainer) {
-        mdInputContainer.setFocused(false);
-      }
+      focused(false);
     }
 
     function onCopy(text) {
