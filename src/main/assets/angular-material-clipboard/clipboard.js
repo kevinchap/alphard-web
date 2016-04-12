@@ -35,8 +35,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
         ngModel: "=",
         ngValue: "&",
         mdCopy: "&",
-        mdCopyError: "&",
-        mdToast: "@"
+        mdCopyError: "&"
       }
     };
   }
