@@ -31,7 +31,6 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       controller: MdInputClipboardCtrl,
       controllerAs: "mdInputClipboard",
       scope: {
-        ngReadonly: "&",
         ngModel: "=",
         ngValue: "&",
         mdCopy: "&",
@@ -103,7 +102,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     }
 
     function readonly() {
-      return disabled() || (("readonly" in $attrs) && $attrs.readonly !== false) || self.ngReadonly();
+      return disabled() || (("readonly" in $attrs) && $attrs.readonly !== false);
     }
 
     function disabled() {
