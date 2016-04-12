@@ -74,14 +74,22 @@ define(["module", "angular"], function (module, angular) {
       .find("head")
       .prepend('<style type="text/css">' + STYLE + '</style>');
 
+    function animateHandler(f, $elementCheck) {
+      return function ($element, phase) {
+        if ($element[0] === $elementCheck[0]) {
+          f($element, phase);
+        }
+      };
+    }
+
     return {
       restrict: "A",
       priority: 2,
       compile: function () {
         return function link($scope, $element, $attrs) {
           var _init = false;
-          $animate.on('addClass', $element, onHide);
-          $animate.on('removeClass', $element, onShow);
+          $animate.on('addClass', $element, animateHandler(onHide, $element));
+          $animate.on('removeClass', $element, animateHandler(onShow, $element));
           $scope.$on("$destroy", onDestroy);
 
           //Init
