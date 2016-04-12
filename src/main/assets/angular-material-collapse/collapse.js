@@ -7,7 +7,7 @@ define(["module", "angular"], function (module, angular) {
   var ngModule = angular
     .module(module.id, [])
 
-    .directive("mdCollapse", MdCollapse);
+    .directive("mdCollapse", MdCollapseDirective);
 
   /**
    * @usage
@@ -16,33 +16,55 @@ define(["module", "angular"], function (module, angular) {
    *      ng-hide="...">
    * </tag>
    */
-  function MdCollapse() {
+  MdCollapseDirective.$inject = ["$animate", "$$rAF"];
+  function MdCollapseDirective($animate, $$rAF) {
     var $$name = "mdCollapse";
-    var NGSHOW = "ngShow";
-    var NGHIDE = "ngHide";
+    var START = "start";
+    var CLOSE = "close";
     var HORIZONTAL = "horizontal";
     var VERTICAL = "vertical";
     var STYLE = (function () {
-      function collapse(property, delay) {
-        var transition = property + ' ' + delay;
+      var transitionDelay = "200ms";
+
+      function transition(property, delay) {
+        var transitionStr = property + ' ' + delay;
         return (
-          '  overflow: hidden;\n' +
-          '  -webkit-transition: ' + transition + ';\n' +
-          '  -moz-transition: ' + transition + ';\n' +
-          '  -ms-transition: ' + transition + ';\n' +
-          '  -o-transition: ' + transition + ';\n' +
-          '  transition: ' + transition + ';\n'
+          '  -webkit-transition: ' + transitionStr + ';\n' +
+          '  -moz-transition: ' + transitionStr + ';\n' +
+          '  -ms-transition: ' + transitionStr + ';\n' +
+          '  -o-transition: ' + transitionStr + ';\n' +
+          '  transition: ' + transitionStr + ';\n'
         );
       }
 
+      function vrule(selector, rule) {
+        return (
+          '[md-collapse="vertical"]' + selector + ',\n' +
+          '[md-collapse]:not([md-collapse="horizontal"])' + selector + ' {\n' +
+          rule +
+          '}\n'
+        );
+      }
+
+      function hrule(selector, rule) {
+        return (
+          '[md-collapse="horizontal"]' + selector + ' {\n' +
+          rule +
+          '}\n'
+        );
+
+      }
+
       return (
-        '[md-collapse="vertical"],\n' +
-        '[md-collapse]:not([md-collapse="horizontal"]) {\n' +
-        collapse("height", "300ms") +
-        '}\n' +
-        '[md-collapse="horizontal"] {\n' +
-        collapse("width", "300ms") +
-        '}\n'
+        //Vertical
+        vrule("", transition("height", transitionDelay)) +
+        vrule(".ng-hide", 'overflow-y: hidden;\n') +
+        vrule(".ng-hide-remove", 'overflow-y: hidden;\n') +
+
+        //Horizontal
+        hrule("", transition("width", transitionDelay)) +
+        hrule(".ng-hide", 'overflow-x: hidden;\n') +
+        hrule(".ng-hide-remove", 'overflow-x: hidden;\n')
       );
     }());
 
@@ -52,48 +74,83 @@ define(["module", "angular"], function (module, angular) {
       .find("head")
       .prepend('<style type="text/css">' + STYLE + '</style>');
 
+    function animateHandler(f, $elementCheck) {
+      return function ($element, phase) {
+        if ($element[0] === $elementCheck[0]) {
+          f($element, phase);
+        }
+      };
+    }
+
     return {
       restrict: "A",
+      priority: 2,
       compile: function () {
         return function link($scope, $element, $attrs) {
-          $scope.$watchGroup([
-            direction,
-            isVisible
-          ], function (newValues) {
-            update(newValues[0], newValues[1]);
-          });
+          var _init = false;
+          $animate.on('addClass', $element, animateHandler(onHide, $element));
+          $animate.on('removeClass', $element, animateHandler(onShow, $element));
+          $scope.$on("$destroy", onDestroy);
+
+          //Init
+
+          function property() {
+            return direction() === HORIZONTAL ? "width" : "height";
+          }
+
+          function scrollProperty() {
+            return direction() === HORIZONTAL ? "scrollWidth" : "scrollHeight";
+          }
+
+          function getFullSize() {
+            return $element[0][scrollProperty()];
+          }
+
+          function transitionProperty(from, to) {
+            var prop = property();
+            $element.css(prop, from);
+            $$rAF(function () {
+              $element.css(prop, to);
+            });
+          }
+
+          function onHide($element, phase) {
+            if (_init) {
+              switch (phase) {
+                case START:
+                  transitionProperty(getFullSize() + 'px', '0');
+                  break;
+                case CLOSE:
+                  $element.css(property(), '');
+                  break;
+              }
+            } else {
+              _init = true;
+            }
+          }
+
+          function onShow($element, phase) {
+            if (_init) {
+              switch (phase) {
+                case START:
+                  transitionProperty('0', getFullSize() + 'px');
+                  break;
+                case CLOSE:
+                  $element.css(property(), '');
+                  break;
+              }
+            } else {
+              _init = true;
+            }
+          }
 
           function direction() {
             return $attrs[$$name] || VERTICAL;
           }
 
-          function isVisible() {
-            if (NGSHOW in $attrs) {
-              return !!$scope.$eval($attrs[NGSHOW]);
-            } else if (NGHIDE in $attrs) {
-              return !$scope.$eval($attrs[NGHIDE]);
-            } else {
-              return true;
-            }
-          }
-
-          function update(direction, isVisible) {
-            var property;
-            var scrollProperty;
-            switch (direction) {
-              case HORIZONTAL:
-                property = "width";
-                scrollProperty = "scrollWidth";
-                break;
-              case VERTICAL:
-                property = "height";
-                scrollProperty = "scrollHeight";
-                break;
-            }
-
-            $element
-              .addClass("ng-hide-animate")
-              .css(property, isVisible ? $element[0][scrollProperty] + 'px' : 0);
+          function onDestroy() {
+            $animate.off('addClass', $element, onHide);
+            $animate.off('removeClass', $element, onShow);
           }
 
         };

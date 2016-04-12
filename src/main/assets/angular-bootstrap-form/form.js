@@ -1,6 +1,8 @@
 define(["module", "angular"], function (module, angular) {
   "use strict";
 
+  console.warn("[" + module.id + " ] is deprecated");
+
   /**
    * <form name="library">
    *   <div bs-form-group="name" [nolabel]>

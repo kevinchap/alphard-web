@@ -55,16 +55,18 @@ define([], function () {
           jsonResponse = new JSONRPCResponse();
           jsonResponse.error = new JSONRPCError(null, JSONRPCError.USER_PARSE_ERROR, stringOrObject);
         }
+      } else {
+        jsonData = stringOrObject;
       }
 
       if (!jsonResponse) {
         if (__isArray(jsonData)) {
           jsonResponse = new Array(jsonData.length);
-          for (var i = 0, l = stringOrObject.length; i < l; ++i) {
-            jsonResponse[i] = _toResponse(stringOrObject[i]);
+          for (var i = 0, l = jsonData.length; i < l; ++i) {
+            jsonResponse[i] = _toResponse(jsonData[i]);
           }
         } else {
-          jsonResponse = _toResponse(stringOrObject);
+          jsonResponse = _toResponse(jsonData);
         }
       }
       return jsonResponse;
@@ -330,10 +332,9 @@ define([], function () {
           __assertIn(o, 'error');
         }
 
-        var
-          response = new JSONRPCResponse(o.id),
-          error = o.error,
-          result = o.result;
+        var response = new JSONRPCResponse(o.id);
+        var error = o.error;
+        var result = o.result;
 
         if (error) {
           response.error = JSONRPCError.fromObject(error);

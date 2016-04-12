@@ -1,11 +1,11 @@
 <md-dialog>
   <md-toolbar>
     <div class="md-toolbar-tools">
-      <h2>{{'title'|translate}}</h2>
+      <h2 translate="locale_title"></h2>
       <span flex></span>
       <md-button class="md-icon-button"
                  ng-click="mdTranslateSelectModal.onCancel($event)">
-        <md-icon aria-label="{{'locale_cancel'|translate}}">
+        <md-icon translate-attr-aria-label="locale_cancel">
           close
         </md-icon>
       </md-button>
@@ -15,7 +15,7 @@
     <md-list>
       <md-list-item>
         <md-icon>done</md-icon>
-        <p>{{mdTranslateSelectModal.displayName(mdTranslateSelectModal.selected)}}</p>
+        <p ng-bind="mdTranslateSelectModal.displayName(mdTranslateSelectModal.selected)"></p>
       </md-list-item>
       <md-divider></md-divider>
       <md-list-item ng-if="mdTranslateSelectModal.search.enabled">
@@ -27,19 +27,19 @@
         </md-input-container>
       </md-list-item>
       <md-list-item ng-repeat="langKey in mdTranslateSelectModal.searchResult"
-                    ng-click="mdTranslateSelectModal.select(langKey);">
+                    ng-click="mdTranslateSelectModal.select(langKey)">
         <md-icon></md-icon>
-        <p>{{mdTranslateSelectModal.displayName(langKey)}}</p>
+        <p ng-bind="mdTranslateSelectModal.displayName(langKey)"></p>
       </md-list-item>
     </md-list>
   </md-dialog-content>
   <md-dialog-actions>
-    <md-button ng-click="mdTranslateSelectModal.onCancel($event)">
-      {{'locale_cancel'|translate}}
+    <md-button ng-click="mdTranslateSelectModal.onCancel($event)"
+               translate="locale_cancel">
     </md-button>
     <md-button class="md-primary"
-               ng-click="mdTranslateSelectModal.onConfirm($event)">
-      {{'locale_ok'|translate}}
+               ng-click="mdTranslateSelectModal.onConfirm($event)"
+               translate="locale_ok">
     </md-button>
   </md-dialog-actions>
 </md-dialog>

@@ -6,7 +6,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
    */
   var ngModule = angular
     .module(module.id, [ngMaterial.name, ngClipboard.name])
-    .directive("mdInputClipboard", MdInputClipboard);
+    .directive("mdInputClipboard", MdInputClipboardDirective);
 
   /**
    *
@@ -15,12 +15,15 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
    *                     [ng-value="fn()"]
    *                     [md-copy="fn($text)]
    *                     [md-copy-error="fn($error)]
+   *                     [md-toast="..."]
+   *                     [ng-disabled="..."]
    *                     [disabled]
-   *                     [md-toast="..."]>
+   *                     [ng-readonly="..."]
+   *                     [readonly]>
    * </md-input-clipboard>
    */
 
-  function MdInputClipboard() {
+  function MdInputClipboardDirective() {
     return {
       restrict: "E",
       templateUrl: module.id + ".html",
@@ -31,8 +34,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
         ngModel: "=",
         ngValue: "&",
         mdCopy: "&",
-        mdCopyError: "&",
-        mdToast: "@"
+        mdCopyError: "&"
       }
     };
   }
@@ -40,16 +42,21 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
   MdInputClipboardCtrl.$inject = ["$scope", "$element", "$attrs", "$injector"];
   function MdInputClipboardCtrl($scope, $element, $attrs, $injector) {
     var NOTIFICATION_DELAY = 1500;//ms
+    var FOCUS = "focus";
+    var BLUR = "blur";
+    var CLICK = "click";
 
     var self = this;
     var $inject = $injector.get;
     var $translate = $mdInputClipboardI18n($injector);
+    var $timeout = $inject("$timeout");
     var $mdTheming = $inject("$mdTheming");
     var $mdToast = $inject("$mdToast");
     var $mdListInkRipple = $inject("$mdListInkRipple");
     var $exceptionHandler = $inject("$exceptionHandler");
     var mdInputContainer = $element.controller("mdInputContainer");
     var containerElement = $element.find("div");//.md-input-clipboard__container
+    var _notificationCount = 0;
 
     this.placeholder = placeholder;
     this.disabled = disabled;
@@ -58,15 +65,21 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     this.onCopyError = onCopyError;
     this.viewValue = "";
     this.toast = null;
+    this.isNotifying = isNotifying;
 
     //initialize
     function initialize() {
       $mdListInkRipple.attach($scope, containerElement/*, options*/);
       $mdTheming($element);
-      $element.addClass("md-input-clipboard");
+      $element
+        .addClass("md-input-clipboard")
+        .bind(FOCUS, onFocus)
+        .bind(BLUR, onBlur)
+        .bind(CLICK, onClick);
 
+      //Init focus state
       if (!$attrs.tabindex) {
-        $attrs.$set("tabindex", "-1");
+        $attrs.$set("tabindex", "0");
       }
 
       //Configure Container
@@ -88,11 +101,35 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       return $translate("md_input_clipboard_tooltip");
     }
 
+    function readonly() {
+      return disabled() || (("readonly" in $attrs) && $attrs.readonly !== false);
+    }
+
     function disabled() {
-      return "disabled" in $attrs;
+      return ("disabled" in $attrs) && $attrs.disabled !== false;
+    }
+
+    function focused(opt_val) {
+      if (mdInputContainer) {
+        mdInputContainer.setFocused(opt_val);
+      }
+    }
+
+    function onFocus($event) {
+      focused(true);
+    }
+
+    function onBlur($event) {
+      focused(false);
+    }
+
+    function onClick($event) {
+      $element[0].focus();
     }
 
     function onCopy(text) {
+      notifyIcon();
+
       //if (self.mdCopy) {
       self.mdCopy({
         $text: text
@@ -100,10 +137,10 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       //}
 
       if (text) {
-        var hasToast = "mdToast" in $attrs;
+        var hasToast = ("mdToast" in $attrs) && $attrs.mdToast !== false;
         var textToast = $attrs.mdToast || $translate("md_input_clipboard_toast");
         if (hasToast) {
-          notify(textToast);
+          notifyToast(textToast);
         }
       }
     }
@@ -116,7 +153,18 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       }
     }
 
-    function notify(text) {
+    function isNotifying() {
+      return _notificationCount > 0;
+    }
+
+    function notifyIcon() {
+      _notificationCount++;
+      $timeout(function () {
+        _notificationCount--;
+      }, NOTIFICATION_DELAY);
+    }
+
+    function notifyToast(text) {
       if (!self.toast) {
         self.toast = $mdToast
           .simple()

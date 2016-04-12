@@ -16,14 +16,14 @@ define(["module", "angular"], function (module, angular) {
 
   var ngModule = angular
     .module(module.id, [])
-    .directive("mdPages", MdPages)
-    .directive("mdPage", MdPage);
+    .directive("mdPages", MdPagesDirective)
+    .directive("mdPage", MdPageDirective);
 
   /**
    * Pages Directive
    *
    */
-  function MdPages() {
+  function MdPagesDirective() {
     var STYLE =
       'md-pages {' +
       '  display: block;' +
@@ -173,7 +173,7 @@ define(["module", "angular"], function (module, angular) {
    * Page Directive
    *
    */
-  function MdPage() {
+  function MdPageDirective() {
     return {
       require: ["^mdPages"],
       restrict: "E",
@@ -210,18 +210,10 @@ define(["module", "angular"], function (module, angular) {
     $scope.$watch(function () {
       //delete cache
       _order = null;
+      update();
     });
     $scope.$watch(disabled, function () {
       mdPages.notifyItemChange();
-    });
-    $scope.$watch(selected, function (isSelected) {
-      $element.toggleClass(mdPages.selectedClass, isSelected);
-    });
-    $scope.$watch(isPrevious, function (isPrevious) {
-      $element.toggleClass(mdPages.selectedClass + "--previous", isPrevious);
-    });
-    $scope.$watch(isNext, function (isNext) {
-      $element.toggleClass(mdPages.selectedClass + "--next", isNext);
     });
     $scope.$on('$destroy', onDestroy);
 
@@ -271,6 +263,17 @@ define(["module", "angular"], function (module, angular) {
 
     function onDestroy() {
       mdPages.remove(self);
+    }
+
+    function update() {
+      var selectedClass = mdPages.selectedClass;
+      toggleClass(selectedClass, selected());
+      toggleClass(selectedClass + "--previous", isPrevious());
+      toggleClass(selectedClass + "--next", isNext());
+    }
+
+    function toggleClass($class, value) {
+      $attrs[value ? "$addClass" : "$removeClass"]($class);
     }
   }
 

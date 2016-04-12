@@ -7,7 +7,7 @@ define(["module", "angular"], function (module, angular) {
   var ngModule = angular
     .module(module.id, [])
 
-    .directive("ngRatio", NgRatio);
+    .directive("ngRatio", NgRatioDirective);
 
   /**
    * Directive
@@ -16,7 +16,7 @@ define(["module", "angular"], function (module, angular) {
    *
    * <tag ng-ratio="16:9"></tag>
    */
-  function NgRatio() {
+  function NgRatioDirective() {
     var NAME = "ngRatio";
     var SPACER_CLASS = "ng-ratio-spacer";
     var STYLE =
@@ -77,11 +77,15 @@ define(["module", "angular"], function (module, angular) {
       restrict: "A",
       link: function ($scope, $element, $attrs) {
         $scope.$on("$destroy", onDestroy);
-        $scope.$watch(render);
+        $scope.$watch(ratio, render);
+
+        function ratio() {
+          return $attrs[NAME];
+        }
 
         function render() {
           var $spacerElement = getOrCreateByClassName($element, SPACER_CLASS);
-          var factor = parseRatio($attrs[NAME]);
+          var factor = parseRatio(ratio());
 
           var paddingTopOld = $spacerElement.css("padding-top");
           var paddingTop = (factor * 100) + "%";

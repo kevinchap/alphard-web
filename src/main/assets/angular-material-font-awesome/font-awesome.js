@@ -10,6 +10,10 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
 
   /**
    * Directive
+   *
+   * @usage
+   *
+   * <md-icon md-font-set="fa"><md-icon>
    */
   MdFontSet.$name = "mdFontSet";
   function MdFontSet() {
@@ -31,7 +35,7 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
       .prepend('<style type="text/css">' + STYLE + '</style>');
 
     function fa(icon) {
-      return icon ? FONT_AWESOME + "-" + icon : null;
+      return icon ? "fa-" + icon.trim() : null;
     }
 
     return {
@@ -43,12 +47,11 @@ define(["module", "angular", "angular-material"], function (module, angular, ngM
 
             $scope.$watch(
               function () {
-                return $element.text().trim();
+                return $element.text();
               },
               function (content, contentOld) {
-                $element
-                  .removeClass(fa(contentOld))
-                  .addClass(fa(content));
+                $attrs.$removeClass(fa(contentOld));
+                $attrs.$addClass(fa(content));
               });
 
           }

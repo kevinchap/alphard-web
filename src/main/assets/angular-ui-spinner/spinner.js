@@ -71,10 +71,6 @@ define(["module", "angular"], function (module, angular) {
       return {
         restrict: "EA",
         scope: {
-          name: "@",
-          variant: "@",
-          active: "@",
-          alt: "@"
         },
         templateUrl: function ($element, $attrs) {
           return _templateUrl($attrs.variant || VARIANT_DEFAULT);
@@ -92,16 +88,34 @@ define(["module", "angular"], function (module, angular) {
               require([ CSS ]);
             }
 
-            //default values
-            $scope.variant = prop($scope, 'variant', VARIANT_DEFAULT);
-            $scope.active = prop($scope, 'active', ACTIVE_DEFAULT);
-            $scope.alt = prop($scope, 'alt', ALT_DEFAULT);
+            function variant() {
+              return $attrs.variant || VARIANT_DEFAULT;
+            }
+
+            function active() {
+              return _readBoolean($attrs.active);//ACTIVE_DEFAULT ?
+            }
+
+            function alt() {
+              return $attrs.alt || ALT_DEFAULT;
+            }
+
 
             //watchers
             $scope.$watch(function () {
               $element.addClass($$class);
+
+              //Alt
+              var altNew = alt();
+              debug("alt=", altNew);
+              $attrs[ARIA_LABEL] = isDefined(altNew) ? altNew : null;
+
+              //active
+              var activeNew = alt();
+              debug("active=", activeNew);
+              $element.toggleClass($$classActive, activeNew);
             });
-            $scope.$watch("variant", function (variant, variantOld) {
+            $scope.$watch(variant, function (variant, variantOld) {
               debug("variant=", variant);
 
               if (variantOld) {
@@ -112,15 +126,6 @@ define(["module", "angular"], function (module, angular) {
                 $element.addClass($m(variant));
               }
             });
-            $scope.$watch("alt", function (altNew) {
-              debug("alt=", altNew);
-              $attrs[ARIA_LABEL] = isDefined(altNew) ? altNew : null;
-            });
-            $scope.$watch("active", function (activeNew) {
-              debug("active=", activeNew);
-              $element.toggleClass($$classActive, _readBoolean(activeNew));
-            });
-
           };
         }
       };

@@ -1,6 +1,9 @@
+@import "./clipboard-theme";
+
 //TODO: stretch input underline to full width (like md-select)
-$md-input-clipbard-icon-size: 16px !default;
-$md-input-clipbard-button-size: 30px !default;
+$md-input-clipboard-button-size: 30px !default;
+$md-input-clipboard-padding: 2px !default;
+$md-input-clipboard-border-width: 1px !default;
 
 .md-input-clipboard {
   // Don't let linebreaks happen between the open icon-button and the input.
@@ -8,6 +11,7 @@ $md-input-clipbard-button-size: 30px !default;
   overflow: hidden;
   vertical-align: middle;
   position: relative;
+  outline: none;
 
   //Display as row
   display: -webkit-flex;
@@ -21,12 +25,34 @@ $md-input-clipbard-button-size: 30px !default;
   -ms-flex-direction: row;
   flex-direction: row;
 
+  /**
+   * Hover state
+   */
+  &:not([disabled]):hover {
+    cursor: pointer;
+  }
+
+  /**
+   * Focus state
+   */
+  &:not([disabled]):focus .md-input-clipboard__container {
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    padding-bottom: 0;
+  }
+
+
   &__container {
     display: -webkit-flex;
     display: -moz-flex;
     display: -ms-flexbox; // IE10 uses -ms-flexbox
     display: -ms-flex; // IE11
     display: flex;
+
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
 
     -webkit-align-items: center;
     -ms-flex-align: center;
@@ -36,27 +62,39 @@ $md-input-clipbard-button-size: 30px !default;
     -moz-flex-grow: 1;
     -ms-flex-grow: 1;
     flex-grow: 1;
-    height: $md-input-clipbard-button-size;
 
-    .md-errors-spacer {
-      display: none; //TODO this element is automatically created by ngMaterial
-    }
+    -webkit-order: 2;
+    -ms-flex-order: 2;
+    order: 2;
+
+    //display: block;
+    margin-top: 0;
+    background: none;
+    padding: $md-input-clipboard-padding $md-input-clipboard-padding ($md-input-clipboard-padding - $md-input-clipboard-border-width) $md-input-clipboard-padding;
+    border-width: 0 0 $md-input-clipboard-border-width 0;
+    line-height: $md-input-clipboard-button-size - ($md-input-clipboard-padding * 2);
+    -ms-flex-preferred-size: $md-input-clipboard-button-size - ($md-input-clipboard-padding * 2);
+    border-radius: 0;
+    border-style: solid;
+    width: 100%;
+    height: $md-input-clipboard-button-size;
+    box-sizing: border-box;
+    //float: left;
   }
 
-  &__input {
-    //@include md-flat-input();
-    cursor: pointer;
-    min-width: 120px;
-
+  &__label {
+    //cursor: pointer;
+    //min-width: 120px;
+    text-overflow: ellipsis;
+    overflow: hidden;
     -webkit-flex: 1;
     -moz-flex: 1;
     -ms-flex: 1;
     flex: 1;
-
-    //max-width: $md-calendar-width - $md-datepicker-button-gap;
   }
 
-  &__button {
+  &__icon {
+    color: currentColor !important;
     display: inline-block;
     box-sizing: border-box;
     background: none;
@@ -68,18 +106,11 @@ $md-input-clipbard-button-size: 30px !default;
     -ms-flex-order: 3;
     order: 3;
 
-    &.md-button.md-icon-button {
-      padding: 0;
-      margin: 0;
-      width: $md-input-clipbard-button-size;
-      height: $md-input-clipbard-button-size;
-    }
-
-    md-icon {
-      font-size: $md-input-clipbard-icon-size;
-      width: $md-input-clipbard-icon-size;
-      height: $md-input-clipbard-icon-size;
-    }
+    -webkit-transform: scale(0.6);
+    -moz-transform: scale(0.6);
+    -ms-transform: scale(0.6);
+    -o-transform: scale(0.6);
+    transform: scale(0.6);
   }
 
 }
@@ -88,3 +119,8 @@ $md-input-clipbard-button-size: 30px !default;
 //md-input-container > .md-input-clipboard {
   //margin-bottom: 24px; //TODO variable?
 //}
+
+
+
+
+

@@ -887,17 +887,25 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         self    = this,
         method  = toString(data.method || 'GET').toUpperCase(),
         url     = data.url,
-        withCredentials = ('withCredentials' in global.XMLHttpRequest.prototype),
-        Request = withCredentials ? global.XMLHttpRequest :
+        hasWithCredentials = ('withCredentials' in global.XMLHttpRequest.prototype),
+        Request = hasWithCredentials ? global.XMLHttpRequest :
           global.XDomainRequest || global.XMLHttpRequest,
         xhr     = new Request(),
         headers = data.headers || {}, key;
 
 
-        xhr.onload = function (response) {
-          //TODO: handle response status etc.
-          resolve(response);
+        xhr.withCredentials = !!data.withCredentials;
+
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4) {
+            if (xhr.status === 200) {
+              resolve(xhr.responseText);
+            } else {
+              reject(new Error("Http error code " + xhr.status));
+            }
+          }
         };
+
         xhr.onerror = function (error) {
           reject(new Error(method + ' ' + url + ' (Http Error)'));
         };
@@ -955,6 +963,7 @@ define(['require', 'json/jsonschema', 'q'], function (require, jsonschema, Q) {
         headers: {
           "Content-Type": r.contentType
         },
+        withCredentials: true,
         data: r.contentString
       });
     });

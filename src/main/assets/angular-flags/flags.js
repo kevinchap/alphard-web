@@ -145,36 +145,44 @@ define(["module", "angular"], function (module, angular) {
    *
    * <flag country="fr" [squared="true|false"]></flag>
    */
-    .directive("flag", [function () {
+    .directive("flag", [function FlagDirective() {
       var $$class = "flag-icon";
       var $m = bem($$class, "-");
 
       return {
         restrict: "EA",
-        scope: {
-          squared: "@",
-          country: "@"
-        },
+        scope: {},
         compile: function ($element, $attrs) {
           //lazy load CSS
           if (CSS) {
             require([CSS]);
           }
           return function link($scope, $element) {
+            var countryCodeOld;
+
+            function country() {
+              return $attrs.country;
+            }
+
+            function countryCode() {
+              return isoAlpha2(country());
+            }
+
+            function squared() {
+              return ("squared" in $attrs) && ($attrs.squared !== false);
+            }
 
             $scope.$watch(function () {
               $element.addClass($$class);
-            });
-            $scope.$watch("country", function (country, countryOld) {
-              debug($element[0], "country=", country);
-              $element
-                .removeClass($m(isoAlpha2(countryOld)))
-                .addClass($m(isoAlpha2(country)));
-            });
-            $scope.$watch("squared", function (squared) {
-              debug($element[0], "squared=", squared);
-              var isSquared = (squared !== false) && (squared !== "false");
-              $element.toggleClass($m("squared"), isSquared);
+              $element.toggleClass($m("squared"), squared());
+
+              var countryCodeNew = countryCode();
+              if (countryCodeNew !== countryCodeOld) {
+                $element
+                  .removeClass($m(countryCodeOld))
+                  .addClass($m(countryCodeNew));
+                countryCodeOld = countryCodeNew;
+              }
             });
           };
         }
