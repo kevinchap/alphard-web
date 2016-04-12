@@ -35,7 +35,7 @@ $md-input-clipboard-border-width: 1px !default;
   /**
    * Focus state
    */
-  &:not([disabled]):focus .md-input {
+  &:not([disabled]):focus .md-input-clipboard__container {
     border-bottom-width: 2px;
     border-bottom-style: solid;
     padding-bottom: 0;

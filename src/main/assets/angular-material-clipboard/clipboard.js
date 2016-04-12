@@ -43,6 +43,9 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
   MdInputClipboardCtrl.$inject = ["$scope", "$element", "$attrs", "$injector"];
   function MdInputClipboardCtrl($scope, $element, $attrs, $injector) {
     var NOTIFICATION_DELAY = 1500;//ms
+    var FOCUS = "focus";
+    var BLUR = "blur";
+    var CLICK = "click";
 
     var self = this;
     var $inject = $injector.get;
@@ -71,8 +74,9 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       $mdTheming($element);
       $element
         .addClass("md-input-clipboard")
-        .bind("focus", onFocus)
-        .bind("blur", onBlur);
+        .bind(FOCUS, onFocus)
+        .bind(BLUR, onBlur)
+        .bind(CLICK, onClick);
 
       //Init focus state
       if (!$attrs.tabindex) {
@@ -118,6 +122,10 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
 
     function onBlur($event) {
       focused(false);
+    }
+
+    function onClick($event) {
+      $element[0].focus();
     }
 
     function onCopy(text) {
