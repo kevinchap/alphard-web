@@ -1,25 +1,16 @@
-$sp-primary-color: #f44336 !default;
-$sp-accent-color: black !default;
-$sp-accent-contrast-color: #ffffff !default;
-$sp-warn-color: #FF5722 !default;
-$sp-warn-contrast-color: white !default;
-$sp-warn-A700: #E64A19 !default;
-$sp-foreground-1: rgba(0, 0, 0, 0.87) !default;
-$sp-foreground-2: rgba(0, 0, 0, 0.54) !default;
-$sp-foreground-3: rgba(0, 0, 0, 0.26) !default;
-$sp-foreground-4: rgba(0, 0, 0, 0.12) !default;
+@import "../angular-material-style/_variables";
 
 //Theme
 .md-badge.md-sportagraph-theme {
-  background-color: $sp-foreground-2;
+  background-color: $md-foreground-2;
   color: white;
 
   &.md-accent {
-    background-color: $sp-accent-color;
-    color: $sp-accent-contrast-color;
+    background-color: $md-accent-color;
+    color: $md-accent-contrast-color;
   }
   &.md-warn {
-    background-color: $sp-warn-color;
-    color: $sp-warn-contrast-color;
+    background-color: $md-warn-color;
+    color: $md-warn-contrast-color;
   }
 }

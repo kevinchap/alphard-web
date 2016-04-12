@@ -1,11 +1,12 @@
 <!-- Input locked (must not be changed) -->
-<div class="md-input-clipboard__container md-input"
+<div class="md-input-clipboard__container"
      ng-click-copy="mdInputClipboard.viewValue"
      ng-copy="mdInputClipboard.onCopy($text)"
      ng-copy-error="mdInputClipboard.onCopyError($error)">
 
+  <!-- Label -->
   <span class="md-input-clipboard__label"
-        ng-bind="mdInputClipboard.viewValue">
+        ng-bind="mdInputClipboard.viewValue || '&nbsp;'">
   </span>
 
   <!-- Copy button -->

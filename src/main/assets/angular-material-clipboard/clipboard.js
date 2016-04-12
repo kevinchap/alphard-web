@@ -131,7 +131,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       //}
 
       if (text) {
-        var hasToast = "mdToast" in $attrs;
+        var hasToast = ("mdToast" in $attrs) && $attrs.mdToast !== false;
         var textToast = $attrs.mdToast || $translate("md_input_clipboard_toast");
         if (hasToast) {
           notifyToast(textToast);

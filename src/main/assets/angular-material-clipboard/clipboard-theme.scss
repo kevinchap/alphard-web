@@ -1,14 +1,20 @@
+@import "../angular-material-style/_variables";
+
 /**
  * Theme
  */
-
 .md-input-clipboard.md-sportagraph-theme {
+
+  .md-input-clipboard__container {
+    color: $md-foreground-1;
+    border-color: $md-foreground-4;
+  }
 
   /**
    * Focus state
    */
-  &:not([disabled]):focus .md-input {
-    border-bottom-color: rgb(244, 67, 54);//TODO use variable
-    color: rgba(0, 0, 0, 0.87);
+  &:not([disabled]):focus .md-input-clipboard__container {
+    border-bottom-color: $md-primary-color;
+    color: $md-foreground-1;
   }
 }
