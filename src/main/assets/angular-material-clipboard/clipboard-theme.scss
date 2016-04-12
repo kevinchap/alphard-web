@@ -1,0 +1,14 @@
+/**
+ * Theme
+ */
+
+.md-input-clipboard.md-sportagraph-theme {
+
+  /**
+   * Focus state
+   */
+  &:not([disabled]):focus .md-input {
+    border-bottom-color: rgb(244, 67, 54);//TODO use variable
+    color: rgba(0, 0, 0, 0.87);
+  }
+}

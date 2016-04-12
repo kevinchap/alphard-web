@@ -1,3 +1,5 @@
+@import "./clipboard-theme";
+
 //TODO: stretch input underline to full width (like md-select)
 $md-input-clipbard-button-size: 30px !default;
 
@@ -7,6 +9,7 @@ $md-input-clipbard-button-size: 30px !default;
   overflow: hidden;
   vertical-align: middle;
   position: relative;
+  outline: none;
 
   //Display as row
   display: -webkit-flex;
@@ -20,9 +23,22 @@ $md-input-clipbard-button-size: 30px !default;
   -ms-flex-direction: row;
   flex-direction: row;
 
+  /**
+   * Hover state
+   */
   &:not([disabled]):hover {
     cursor: pointer;
   }
+
+  /**
+   * Focus state
+   */
+  &:not([disabled]):focus .md-input {
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    padding-bottom: 0;
+  }
+
 
   & div.md-input-clipboard__container {
     display: -webkit-flex;
@@ -89,3 +105,8 @@ $md-input-clipbard-button-size: 30px !default;
 //md-input-container > .md-input-clipboard {
   //margin-bottom: 24px; //TODO variable?
 //}
+
+
+
+
+

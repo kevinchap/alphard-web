@@ -15,8 +15,11 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
    *                     [ng-value="fn()"]
    *                     [md-copy="fn($text)]
    *                     [md-copy-error="fn($error)]
+   *                     [md-toast="..."]
+   *                     [ng-disabled="..."]
    *                     [disabled]
-   *                     [md-toast="..."]>
+   *                     [ng-readonly="..."]
+   *                     [readonly]>
    * </md-input-clipboard>
    */
 
@@ -28,6 +31,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       controller: MdInputClipboardCtrl,
       controllerAs: "mdInputClipboard",
       scope: {
+        ngReadonly: "&",
         ngModel: "=",
         ngValue: "&",
         mdCopy: "&",
@@ -66,10 +70,14 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     function initialize() {
       $mdListInkRipple.attach($scope, containerElement/*, options*/);
       $mdTheming($element);
-      $element.addClass("md-input-clipboard");
+      $element
+        .addClass("md-input-clipboard")
+        .bind("focus", onFocus)
+        .bind("blur", onBlur);
 
+      //Init focus state
       if (!$attrs.tabindex) {
-        $attrs.$set("tabindex", "-1");
+        $attrs.$set("tabindex", "0");
       }
 
       //Configure Container
@@ -91,11 +99,29 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       return $translate("md_input_clipboard_tooltip");
     }
 
+    function readonly() {
+      return disabled() || (("readonly" in $attrs) && $attrs.readonly !== false) || self.ngReadonly();
+    }
+
     function disabled() {
-      return "disabled" in $attrs;
+      return ("disabled" in $attrs) && $attrs.disabled !== false;
+    }
+
+    function onFocus($event) {
+      if (mdInputContainer) {
+        mdInputContainer.setFocused(true);
+      }
+    }
+
+    function onBlur($event) {
+      if (mdInputContainer) {
+        mdInputContainer.setFocused(false);
+      }
     }
 
     function onCopy(text) {
+      notifyIcon();
+
       //if (self.mdCopy) {
       self.mdCopy({
         $text: text
@@ -106,7 +132,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
         var hasToast = "mdToast" in $attrs;
         var textToast = $attrs.mdToast || $translate("md_input_clipboard_toast");
         if (hasToast) {
-          notify(textToast);
+          notifyToast(textToast);
         }
       }
     }
@@ -123,12 +149,14 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
       return _notificationCount > 0;
     }
 
-    function notify(text) {
+    function notifyIcon() {
       _notificationCount++;
       $timeout(function () {
         _notificationCount--;
       }, NOTIFICATION_DELAY);
+    }
 
+    function notifyToast(text) {
       if (!self.toast) {
         self.toast = $mdToast
           .simple()
