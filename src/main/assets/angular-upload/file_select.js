@@ -9,32 +9,35 @@ define(["module", "angular"], function (module, angular) {
     .directive("ngFileSelect", NgFileSelect);
 
 
-
   /**
    * ngFileSelect directive
    *
    * Usage:
    *
    *  <input type="file"
-   *         ng-file-select="callback($event, $files)"
+   *         ng-file-select="callback($event, $files, $file)"
+   *         [accept="..."]
    *         [multiple]
-   *         [disabled]
    *         [ng-multiple="fn()"]
+   *         [disabled]
    *         [ng-disabled="..."]>
    *   - OR -
-   *  <button ng-file-select="callback($event, $files)">
+   *  <button ng-file-select="callback($event, $files, $file)"
+   *          [ng-file-select-accept="..."]
+   *          [ng-file-select-multiple]
+   *          [ng-file-select-disabled]>
    *
    *  </button>
    */
   NgFileSelect.$inject = ["$compile", "$document", "$log", "$parse"];
   function NgFileSelect($compile, $document, $log, $parse) {
     var NAME = "ngFileSelect";
+    var CLICK = "click";
     var MULTIPLE = "multiple";
     var DISABLED = "disabled";
+    var INPUT_TEMPLATE = '<input type="file" class="ng-file-select__input">';
     var STYLE =
-      '<style type="text/css">' +
-
-        //Styling the parent element
+      //Styling the parent element
       '.ng-file-select, [ng-file-select] {' +
       '  position: relative; ' +
       '  overflow: hidden; ' +
@@ -56,8 +59,7 @@ define(["module", "angular"], function (module, angular) {
       '}\n' +
       '.ng-file-select__input::-webkit-file-upload-button {' +
       '  cursor: pointer;' +
-      '}\n' +
-      '</style>';
+      '}\n';
 
     function boolAttr($element, attr, val) {
       if (val) {
@@ -93,7 +95,7 @@ define(["module", "angular"], function (module, angular) {
       return angular
         .element($document)
         .find("head")
-        .prepend(style);
+        .prepend('<style type="text/css">' + style + '</style>');
     }
 
     includeStyle($document, STYLE);
@@ -111,19 +113,26 @@ define(["module", "angular"], function (module, angular) {
           function initialize() {
             //Update DOM
             if (nodeName !== "INPUT") {
-              //$inputScope = $scope.$new();
-              $inputElement = $compile(
-                '<input ' +
-                'type="file" ' +
-                'class="ng-file-select__input" ' +
-                'ng-click="$event.stopPropagation();">'
-              )($scope);
+              $inputElement =
+                ($compile(INPUT_TEMPLATE)($scope))
+                .bind(CLICK, function ($event) {
+                  $event.stopPropagation();
+                });
               $inputElementChild = true;
-              $element.append($inputElement);
+
+              $element
+                .append($inputElement)
+                .bind(CLICK, function onClick($event) {
+                  $inputElement[0].focus();
+                  $inputElement[0].click();
+                });
 
               $scope.$watch(function () {
                 //sync disabled
                 boolAttr($inputElement, DISABLED, disabled());
+
+                //sync multiple
+                $inputElement.attr("accept", accept());
 
                 //sync multiple
                 boolAttr($inputElement, MULTIPLE, multiple());
@@ -137,21 +146,28 @@ define(["module", "angular"], function (module, angular) {
             }
 
             //Bind Change event
-            $inputElement.bind("change", onChange);
+            $inputElement
+              .bind("change", onChange);
 
             //Bind Destroy event
             $scope.$on("$destroy", onDestroy);
           }
 
+          function accept() {
+            return $attrs.ngFileSelectAccept || $attrs.accept;
+          }
+
           function disabled() {
             return (
-              (DISABLED in $attrs)
+              ((DISABLED in $attrs) && $attrs.disabled !== false) ||
+              ("ngFileSelectDisabled" in $attrs)
             );
           }
 
           function multiple() {
             return (
               (MULTIPLE in $attrs) ||
+              ("ngFileSelectMultiple" in $attrs) ||
               (("ngMultiple" in $attrs) && $scope.$eval($attrs.ngMultiple))
             );
           }
