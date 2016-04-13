@@ -56,7 +56,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     var $exceptionHandler = $inject("$exceptionHandler");
     var mdInputContainer = $element.controller("mdInputContainer");
     var containerElement = $element.find("div");//.md-input-clipboard__container
-    var _notificationCount = 0;
+    var _notificationTimer = 0;
 
     this.placeholder = placeholder;
     this.disabled = disabled;
@@ -154,13 +154,15 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     }
 
     function isNotifying() {
-      return _notificationCount > 0;
+      return !!_notificationTimer;
     }
 
     function notifyIcon() {
-      _notificationCount++;
-      $timeout(function () {
-        _notificationCount--;
+      if (_notificationTimer) {
+        $timeout.cancel(_notificationTimer);
+      }
+      _notificationTimer = $timeout(function () {
+        _notificationTimer = null;
       }, NOTIFICATION_DELAY);
     }
 
