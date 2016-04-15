@@ -2,7 +2,7 @@ define(["module"], function (module) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
-
+  moduleConfig.debug = true;
   //util
   function debug(var_args) {
     if (moduleConfig.debug) {
@@ -12,6 +12,12 @@ define(["module"], function (module) {
       }
       console.debug.apply(console, args);
     }
+  }
+
+  function fbind(f, thisp) {
+    return function () {
+      return f.apply(thisp, arguments);
+    };
   }
 
   function symbol(name) {
@@ -84,8 +90,14 @@ define(["module"], function (module) {
         this.readyState = TLoader.prototype.readyState;
         this.lastError = TLoader.prototype.lastError;
         //this.load = TLoader.prototype.load;
+        this.initLoader = TLoader.prototype.initLoader;
         this.addListener = TLoader.prototype.addListener;
         this.removeListener = TLoader.prototype.removeListener;
+        this.$$setReadyState = TLoader.prototype.$$setReadyState;
+
+        if (!this.$$readyStateTransition) {
+          //throw new Error('$$readyStateTransition is required');
+        }
       }
       TLoader.$$signalLoad = $$sigLoad;
       TLoader.$$signalError = $$sigError;
@@ -99,11 +111,22 @@ define(["module"], function (module) {
           __getImg(this).src = url;
         }
       };*/
+      TLoader.prototype.initLoader = function (executor) {
+        //Init properties
+        this.readyState = ReadyState.INIT;
+        this.lastError = null;
+        __getSignal(this, $$sigLoad);
+        __getSignal(this, $$sigError);
+
+        //Call builder
+        executor.call(this, __createResolver(this), __createRejecter(this));
+      };
+
       TLoader.prototype.addListener = function (eventName, f) {
         var isLoad = eventName === LOAD;
         var isError = eventName === ERROR;
-        var sig = isLoad ? __getSignal(this, $$sigLoad) :
-          isError ? __getSignal(this, $$sigError) :
+        var sig = isLoad ? this[$$sigLoad] :
+          isError ? this[$$sigError] :
             null;
 
         switch (this.readyState) {
@@ -128,22 +151,22 @@ define(["module"], function (module) {
       };
 
       TLoader.prototype.removeListener = function (eventName, f) {
-        var sig = eventName === LOAD ? __getSignal(this, $$sigLoad) :
-          eventName === ERROR ? __getSignal(this, $$sigError) :
+        var sig = eventName === LOAD ? this[$$sigLoad] :
+          eventName === ERROR ? this[$$sigError] :
             null;
         if (sig) {
           sig.remove(f);
         }
       };
 
-      TLoader.prototype.setReadyState = function (newState) {
+      TLoader.prototype.$$setReadyState = function (newState) {
         var self = this;
         var oldState = self.readyState;
         var returnValue = false;
         if (oldState !== newState) {
           self.readyState = newState;
-          if (self.readyStateTransition) {
-            returnValue = self.readyStateTransition(newState, oldState);
+          if (self.$$readyStateTransition) {
+            returnValue = self.$$readyStateTransition(newState, oldState);
           }
           if (returnValue === undefined) {
             returnValue = true;
@@ -151,6 +174,31 @@ define(["module"], function (module) {
         }
         return !!returnValue;
       };
+
+      function __createResolver(self) {
+        return function resolve(value) {
+          debug("GET", String(self), "OK");
+          __setReadyState(self, ReadyState.LOADED);
+          self[$$sigLoad].emit(value);
+          self[$$sigLoad] = null;
+          self[$$sigError] = null;
+        };
+      }
+
+      function __createRejecter(self) {
+        return function reject(error) {
+          debug("GET", String(self), "ERROR", error);
+          self.lastError = error;
+          __setReadyState(self, ReadyState.ERROR);
+          self[$$sigError].emit(event);
+          self[$$sigLoad] = null;
+          self[$$sigError] = null;
+        };
+      }
+
+      function __setReadyState(self, readyState) {
+        return self.$$setReadyState(readyState);
+      }
 
       function __getSignal(self, name) {
         return self[name] || (self[name] = new Signal());
@@ -163,22 +211,28 @@ define(["module"], function (module) {
      * ImageLoader class
      */
     var ImageLoader = (function (_super) {
-      var $$sigLoad = TLoader.$$signalLoad;
-      var $$sigError = TLoader.$$signalError;
       var $$imgElement = symbol("img");
 
       function ImageLoader(url) {
         _super.call(this);
         this.url = url;
-        this.readyState = ReadyState.INIT;
-        this.lastError = null;
+        this.initLoader(function (resolve, reject) {
+          var img = this[$$imgElement] = new Image();
+          img.onload = resolve;
+          img.onreadystatechange = function (event) {
+            if (img.readyState === 'complete') {
+              resolve(event);
+            }
+          };
+          img.onerror = reject;
+        });
       }
       TLoader.call(ImageLoader.prototype);
       ImageLoader.prototype.url = "";
       ImageLoader.prototype.load = function () {
         var url = this.url;
         if (this.readyState === ReadyState.INIT) {
-          debug("GET", url, "...");
+          debug("GET", url, "...", this);
           __setReadyState(this, ReadyState.LOADING);
           __getImg(this).src = url;
         }
@@ -189,7 +243,7 @@ define(["module"], function (module) {
           if (__getImg(this).src !== "") {
             __getImg(this).src = "";
           }
-          this.readyState = ReadyState.INIT;
+          __setReadyState(this, ReadyState.INIT);
         }
       };
 
@@ -201,45 +255,16 @@ define(["module"], function (module) {
         return __getImg(this).naturalHeight;
       };
 
-      function __getImg(self) {
-        var returnValue = self[$$imgElement];
-        if (!returnValue) {
-          returnValue = self[$$imgElement] = new Image();
-          returnValue.onload = function (event) {
-            __trigger(self, true, event);
-          };
-          returnValue.onreadystatechange = function (event) {
-            if (returnValue.readyState === 'complete') {
-              __trigger(self, true, event);
-            }
-          };
-          returnValue.onerror = function (event) {
-            __trigger(self, false, event);
-          };
-        }
-        return returnValue;
-      }
+      ImageLoader.prototype.toString = function () {
+        return 'ImageLoader { ' + this.url + ' }';
+      };
 
-      function __trigger(self, isSuccess, event) {
-        var url = self.url;
-        if (isSuccess) {
-          debug("GET", url, "OK");
-          __setReadyState(self, ReadyState.LOADED);
-          self[$$sigLoad].emit(event);
-          self[$$sigLoad] = null;
-          self[$$sigError] = null;
-        } else {
-          debug("GET", url, "ERROR", event);
-          self.lastError = event;
-          __setReadyState(self, ReadyState.ERROR);
-          self[$$sigError].emit(event);
-          self[$$sigLoad] = null;
-          self[$$sigError] = null;
-        }
+      function __getImg(self) {
+        return self[$$imgElement];
       }
 
       function __setReadyState(self, readyState) {
-        return self.setReadyState(readyState);
+        return self.$$setReadyState(readyState);
       }
 
       return ImageLoader;
@@ -253,8 +278,16 @@ define(["module"], function (module) {
       var $$videoElement = symbol("video");
 
 
-      function VideoLoader() {
+      function VideoLoader(url) {
         _super.call(this);
+        this.url = url;
+
+        this.initLoader(function (resolve, reject) {
+          var videoElement = this[$$videoElement] = new Video();
+          videoElement.onload = resolve;
+          videoElement.oncanplaythrough = resolve;
+          videoElement.onerror = reject;
+        });
       }
       TLoader.call(VideoLoader.prototype);
 
@@ -262,22 +295,9 @@ define(["module"], function (module) {
 
       };
 
-      function __getVideo(self) {
-        var returnValue = self[$$videoElement];
-        if (!returnValue) {
-          returnValue = self[$$videoElement] = new Video();
-          returnValue.onload = function (event) {
-            __trigger(self, true, event);
-          };
-          returnValue.oncanplaythrough = function (event) {
-            __trigger(self, true, event);
-          };
-          returnValue.onerror = function (event) {
-            __trigger(self, false, event);
-          };
-        }
-        return returnValue;
-      }
+      VideoLoader.prototype.toString = function () {
+        return 'VideoLoader { ' + this.url + ' }';
+      };
 
       return VideoLoader;
     }(Object));
