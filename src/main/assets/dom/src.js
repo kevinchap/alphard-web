@@ -1,4 +1,4 @@
-define(["module"], function (module) {
+define(["module", "./loader"], function (module, loader) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
@@ -19,147 +19,7 @@ define(["module"], function (module) {
    */
   var src;
   (function (src) {
-
-    /**
-     * Signal (internal) class
-     */
-    var Signal = (function (_super) {
-
-      function Signal() {
-        _super.call(this);
-        this.$$fns = [];
-      }
-
-      Signal.prototype.add = function add(f) {
-        var fns = this.$$fns;
-        if (fns.indexOf(f) < 0) {
-          fns.push(f);
-        }
-      };
-
-      Signal.prototype.remove = function remove(f) {
-        var fns = this.$$fns;
-        var i = fns.indexOf(f);
-        if (i >= 0) {
-          fns.splice(i, 1);
-        }
-      };
-
-      Signal.prototype.emit = function (v) {
-        var fns = this.$$fns;
-        for (var i = 0, l = fns.length; i < l; i++) {
-          fns[i](v);
-        }
-      };
-
-      return Signal;
-    }(Object));
-
-    /**
-     * ReadyState (internal) enum
-     */
-    var ReadyState;
-    (function (ReadyState) {
-      ReadyState[ReadyState.INIT = 1] = "INIT";
-      ReadyState[ReadyState.LOADING = 2] = "LOADING";
-      ReadyState[ReadyState.LOADED = 3] = "LOADED";
-      ReadyState[ReadyState.ERROR = 4] = "ERROR";
-    }(ReadyState || (ReadyState = {})));
-
-    /**
-     * LoaderEntry class
-     */
-    var LoaderEntry = (function (_super) {
-
-      function LoaderEntry(url) {
-        _super.call(this);
-        var self = this;
-
-        self.url = url;
-        self.readyState = ReadyState.INIT;
-        self.lastError = null;
-        self.$$sigLoad = new Signal();
-        self.$$sigError = new Signal();
-
-        var imgElement = self.$$imgElement = new Image();
-        imgElement.onload = function () {
-          debug("GET", url, "OK");
-          self.readyState = ReadyState.LOADED;
-          self.$$sigLoad.emit();
-          self.$$sigLoad = null;
-          self.$$sigError = null;
-        };
-        imgElement.onerror = function (event) {
-          debug("GET", url, "ERROR", event);
-          self.readyState = ReadyState.ERROR;
-          self.lastError = event;
-          self.$$sigError.emit(event);
-          self.$$sigLoad = null;
-          self.$$sigError = null;
-        };
-      }
-
-      LoaderEntry.prototype.lastError = null;
-      LoaderEntry.prototype.readyState = NaN;
-      LoaderEntry.prototype.url = "";
-      LoaderEntry.prototype.load = function () {
-        var self = this;
-        if (self.readyState === ReadyState.INIT) {
-          debug("GET", self.url, "...");
-          self.readyState = ReadyState.LOADING;
-          self.$$imgElement.setAttribute("src", self.url);
-        }
-      };
-
-      LoaderEntry.prototype.getWidth = function () {
-        return this.$$imgElement.naturalWidth;
-      };
-
-      LoaderEntry.prototype.getHeight = function () {
-        return this.$$imgElement.naturalHeight;
-      };
-
-      LoaderEntry.prototype.addListener = function (eventName, f) {
-        var self = this;
-        var isLoad = eventName === "load";
-        var isError = eventName === "error";
-        var sig = isLoad ? self.$$sigLoad :
-          isError ? self.$$sigError :
-            null;
-
-        switch (self.readyState) {
-          case ReadyState.INIT:
-          case ReadyState.LOADING:
-            sig.add(f);
-            break;
-          case ReadyState.LOADED:
-            if (isLoad) {
-              f();
-            }
-            break;
-          case ReadyState.ERROR:
-            if (isError) {
-              f(self.lastError);
-            }
-            break;
-          default:
-            //Do nothing
-            break;
-        }
-      };
-
-      LoaderEntry.prototype.removeListener = function (eventName, f) {
-        var self = this;
-        var sig = eventName === "load" ? self.$$sigLoad :
-          eventName === "error" ? self.$$sigError :
-            null;
-        if (sig) {
-          sig.remove(f);
-        }
-      };
-
-      return LoaderEntry;
-    }(Object));
+    var ReadyState = loader.ReadyState;
 
     /**
      * Loader class
@@ -168,7 +28,7 @@ define(["module"], function (module) {
 
       function Loader() {
         _super.call(this);
-        this.$$registry = {}; // { [url:string]: LoaderEntry }
+        this.$$registry = {}; // { [url:string]: loader.ImageLoader }
         this.$$keys = [];
         this.$$length = 0;
       }
@@ -187,11 +47,19 @@ define(["module"], function (module) {
         return this.$$length;
       };
 
+      Loader.prototype.forEach = function (f, opt_this) {
+        var size = this.size();
+        for (var i = 0, url; i < size; i++) {
+          url = this.key(i);
+          f.call(opt_this, this.item(url), url);
+        }
+      };
+
       function getItem(self, url) {
         var registry = self.$$registry;
         var img = registry[url];
         if (!img) {
-          img = registry[url] = new LoaderEntry(url);
+          img = registry[url] = new loader.ImageLoader(url);
           self.$$keys = Object.keys(registry);
           self.$$length += 1;
         }
@@ -200,6 +68,7 @@ define(["module"], function (module) {
 
       return Loader;
     }(Object));
+    src.Loader = Loader;
 
     /**
      * Src class
@@ -240,7 +109,7 @@ define(["module"], function (module) {
 
       Src.prototype.height = NaN;
 
-      Src.prototype.readyState = 1;
+      Src.prototype.readyState = ReadyState.INIT;
 
       Src.prototype.equals = function equals(o) {
         return (o instanceof Src) && this.url() === o.url();
@@ -255,6 +124,7 @@ define(["module"], function (module) {
 
             //unregister
             if (entry) {
+              entry.cancel();
               entry.removeListener("load", $$update);
               entry.removeListener("error", $$update);
             }
@@ -280,6 +150,16 @@ define(["module"], function (module) {
         var entry = __entry(self);
         if (entry) {
           entry.load();
+          __update(self);
+        }
+        return self;
+      };
+
+      Src.prototype.cancel = function cancel() {
+        var self = this;
+        var entry = __entry(self);
+        if (entry) {
+          entry.cancel();
           __update(self);
         }
         return self;
