@@ -249,9 +249,10 @@ define(["module"], function (module) {
           var element = this[$$element];
           if (element.src !== "") {
             var onerror = element.onerror;
-            element.onerror = null;//ignore cancel error
+            element.onerror = function () {
+              element.onerror = onerror;//when canceled restore handler
+            };
             element.src = "";
-            element.onerror = onerror;
           }
           __setReadyState(this, ReadyState.INIT);
         }
