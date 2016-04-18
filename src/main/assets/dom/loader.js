@@ -14,12 +14,6 @@ define(["module"], function (module) {
     }
   }
 
-  function fbind(f, thisp) {
-    return function () {
-      return f.apply(thisp, arguments);
-    };
-  }
-
   function symbol(name) {
     /*jslint newcap:true*/
     return typeof Symbol !== "undefined" ? Symbol(name) : "@@" + name;
@@ -91,8 +85,11 @@ define(["module"], function (module) {
         this.lastError = TLoader.prototype.lastError;
         //this.load = TLoader.prototype.load;
         this.initLoader = TLoader.prototype.initLoader;
+        this.getURL = TLoader.prototype.getURL;
         this.addListener = TLoader.prototype.addListener;
         this.removeListener = TLoader.prototype.removeListener;
+        this.inspect = TLoader.prototype.inspect;
+        this.toString = TLoader.prototype.toString;
         this.$$setReadyState = TLoader.prototype.$$setReadyState;
 
         if (!this.$$readyStateTransition) {
@@ -103,14 +100,6 @@ define(["module"], function (module) {
       TLoader.$$signalError = $$sigError;
       TLoader.prototype.readyState = ReadyState.INIT;
       TLoader.prototype.lastError = null;
-      /*TLoader.prototype.load = function load() {
-        var url = this.url;
-        if (this.readyState === ReadyState.INIT) {
-          debug("GET", url, "...");
-          __setReadyState(this, ReadyState.LOADING);
-          __getImg(this).src = url;
-        }
-      };*/
       TLoader.prototype.initLoader = function initLoader(executor) {
         //Init properties
         this.readyState = ReadyState.INIT;
@@ -159,6 +148,18 @@ define(["module"], function (module) {
         }
       };
 
+      TLoader.prototype.getURL = function getURL() {
+        return null;
+      };
+
+      TLoader.prototype.inspect = function inspect() {
+        return this.constructor.name + ' { ' + this.getURL() + ' }';
+      };
+
+      TLoader.prototype.toString = function toString() {
+        return this.inspect();
+      };
+
       TLoader.prototype.$$setReadyState = function (newState) {
         var self = this;
         var oldState = self.readyState;
@@ -167,8 +168,10 @@ define(["module"], function (module) {
           self.readyState = newState;
           if (self.$$readyStateTransition) {
             returnValue = self.$$readyStateTransition(newState, oldState);
-          }
-          if (returnValue === undefined) {
+            if (returnValue === undefined) {
+              returnValue = true;
+            }
+          } else {
             returnValue = true;
           }
         }
@@ -177,22 +180,24 @@ define(["module"], function (module) {
 
       function __createResolver(self) {
         return function resolve(value) {
-          debug("GET", String(self), "OK");
-          __setReadyState(self, ReadyState.LOADED);
-          self[$$sigLoad].emit(value);
-          self[$$sigLoad] = null;
-          self[$$sigError] = null;
+          if (__setReadyState(self, ReadyState.LOADED)) {
+            debug("GET", self.getURL() || String(self), "OK");
+            self[$$sigLoad].emit(value);
+            self[$$sigLoad] = null;
+            self[$$sigError] = null;
+          }
         };
       }
 
       function __createRejecter(self) {
         return function reject(error) {
-          debug("GET", String(self), "ERROR", error);
-          self.lastError = error;
-          __setReadyState(self, ReadyState.ERROR);
-          self[$$sigError].emit(event);
-          self[$$sigLoad] = null;
-          self[$$sigError] = null;
+          if (__setReadyState(self, ReadyState.ERROR)) {
+            debug("GET", self.getURL() || String(self), "ERROR", error);
+            self.lastError = error;
+            self[$$sigError].emit(event);
+            self[$$sigLoad] = null;
+            self[$$sigError] = null;
+          }
         };
       }
 
@@ -207,20 +212,21 @@ define(["module"], function (module) {
       var $$element = symbol("element");
 
       function TMediaLoader() {
+        TLoader.call(this);
         this.url = TMediaLoader.prototype.url;
         this.initMediaLoader = TMediaLoader.prototype.initMediaLoader;
         this.load = TMediaLoader.prototype.load;
         this.cancel = TMediaLoader.prototype.cancel;
+        this.getURL = TMediaLoader.prototype.getURL;
         this.getWidth = TMediaLoader.prototype.getWidth;
         this.getHeight = TMediaLoader.prototype.getHeight;
-        this.toString = TMediaLoader.prototype.toString;
-        TLoader.call(this);
       }
       TMediaLoader.prototype.url = "";
       TMediaLoader.prototype.initMediaLoader = function initMediaLoader(url, element) {
         this.url = url;
         this[$$element] = element;
         this.initLoader(function (resolve, reject) {
+          var loader = this;
           var element = this[$$element];
           element.onload = resolve;
           element.onreadystatechange = function (event) {
@@ -233,29 +239,32 @@ define(["module"], function (module) {
               resolve(event);
             }
           };
-          element.onerror = reject;
+          element.onerror = function (event) {
+            if (loader.readyState === ReadyState.LOADING) {
+              reject(event);
+            } else {
+              //ignore cancelation errors
+            }
+          };
         });
       };
       TMediaLoader.prototype.load = function load() {
         if (this.readyState === ReadyState.INIT) {
-          debug("GET", this.url, "...");
+          //debug("GET", this.getURL() || String(this), "...");
           __setReadyState(this, ReadyState.LOADING);
           this[$$element].src = this.url;
         }
       };
       TMediaLoader.prototype.cancel = function cancel() {
         if (this.readyState === ReadyState.LOADING) {
-          debug("GET", this.url, "Canceled");
+          debug("GET", this.getURL() || String(this), "Canceled");
           var element = this[$$element];
-          if (element.src !== "") {
-            var onerror = element.onerror;
-            element.onerror = function () {
-              element.onerror = onerror;//when canceled restore handler
-            };
-            element.src = "";
-          }
+          element.src = "";
           __setReadyState(this, ReadyState.INIT);
         }
+      };
+      TMediaLoader.prototype.getURL = function () {
+        return this.url;
       };
       TMediaLoader.prototype.getWidth = function () {
         var element = this[$$element];
@@ -272,10 +281,6 @@ define(["module"], function (module) {
           ("videoHeight" in element) ? element.videoHeight :
           0
         );
-      };
-
-      TMediaLoader.prototype.toString = function toString() {
-        return this.constructor.name + ' { ' + this.url + ' }';
       };
 
       function __setReadyState(self, readyState) {
