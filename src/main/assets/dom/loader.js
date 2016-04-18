@@ -14,6 +14,18 @@ define(["module"], function (module) {
     }
   }
 
+  function assertType(o, type) {
+    if (typeof o !== type) {
+      throw new TypeError(o + " is not a valid " + type);
+    }
+  }
+
+  function requireProperty(o, name) {
+    if (!(name in o)) {
+      throw new TypeError(name + " is a required property");
+    }
+  }
+
   function symbol(name) {
     /*jslint newcap:true*/
     return typeof Symbol !== "undefined" ? Symbol(name) : "@@" + name;
@@ -77,12 +89,11 @@ define(["module"], function (module) {
     var TLoader = (function () {
       var LOAD = "load";
       var ERROR = "error";
-      var $$sigLoad = symbol("load");
-      var $$sigError = symbol("error");
+      var READYSTATECHANGE = "readystatechange";
+      var $$signal = symbol("signal");
 
       function TLoader() {
         this.readyState = TLoader.prototype.readyState;
-        this.lastError = TLoader.prototype.lastError;
         //this.load = TLoader.prototype.load;
         this.initLoader = TLoader.prototype.initLoader;
         this.getURL = TLoader.prototype.getURL;
@@ -91,32 +102,26 @@ define(["module"], function (module) {
         this.inspect = TLoader.prototype.inspect;
         this.toString = TLoader.prototype.toString;
         this.$$setReadyState = TLoader.prototype.$$setReadyState;
-
-        if (!this.$$readyStateTransition) {
-          //throw new Error('$$readyStateTransition is required');
-        }
       }
-      TLoader.$$signalLoad = $$sigLoad;
-      TLoader.$$signalError = $$sigError;
       TLoader.prototype.readyState = ReadyState.INIT;
-      TLoader.prototype.lastError = null;
       TLoader.prototype.initLoader = function initLoader(executor) {
+        assertType(executor, "function");
+
         //Init properties
         this.readyState = ReadyState.INIT;
-        this.lastError = null;
-        this[$$sigLoad] = new Signal();
-        this[$$sigError] = new Signal();
+        this[$$signal] = {
+          readystatechange: new Signal(),
+          load: new Signal(),
+          error: new Signal()
+        };
 
         //Call builder
         executor.call(this, __createResolver(this), __createRejecter(this));
       };
 
       TLoader.prototype.addListener = function addListener(eventName, f) {
-        var isLoad = eventName === LOAD;
-        var isError = eventName === ERROR;
-        var sig = isLoad ? this[$$sigLoad] :
-          isError ? this[$$sigError] :
-            null;
+        assertType(f, "function");
+        var sig = this[$$signal][eventName] || null;
 
         switch (this.readyState) {
           case ReadyState.INIT:
@@ -124,13 +129,13 @@ define(["module"], function (module) {
             sig.add(f);
             break;
           case ReadyState.LOADED:
-            if (isLoad) {
+            if (eventName === LOAD) {
               f();
             }
             break;
           case ReadyState.ERROR:
-            if (isError) {
-              f(this.lastError);
+            if (eventName === ERROR) {
+              f();
             }
             break;
           default:
@@ -140,9 +145,8 @@ define(["module"], function (module) {
       };
 
       TLoader.prototype.removeListener = function removeListener(eventName, f) {
-        var sig = eventName === LOAD ? this[$$sigLoad] :
-          eventName === ERROR ? this[$$sigError] :
-            null;
+        assertType(f, "function");
+        var sig = this[$$signal][eventName] || null;
         if (sig) {
           sig.remove(f);
         }
@@ -174,6 +178,10 @@ define(["module"], function (module) {
           } else {
             returnValue = true;
           }
+
+          if (returnValue) {
+            __emit(self, READYSTATECHANGE, newState);
+          }
         }
         return !!returnValue;
       };
@@ -182,9 +190,7 @@ define(["module"], function (module) {
         return function resolve(value) {
           if (__setReadyState(self, ReadyState.LOADED)) {
             debug("GET", self.getURL() || String(self), "OK");
-            self[$$sigLoad].emit(value);
-            self[$$sigLoad] = null;
-            self[$$sigError] = null;
+            __emit(self, LOAD, value);
           }
         };
       }
@@ -193,10 +199,7 @@ define(["module"], function (module) {
         return function reject(error) {
           if (__setReadyState(self, ReadyState.ERROR)) {
             debug("GET", self.getURL() || String(self), "ERROR", error);
-            self.lastError = error;
-            self[$$sigError].emit(event);
-            self[$$sigLoad] = null;
-            self[$$sigError] = null;
+            __emit(self, ERROR, error);
           }
         };
       }
@@ -205,11 +208,20 @@ define(["module"], function (module) {
         return self.$$setReadyState(readyState);
       }
 
+      function __emit(self, eventName, value) {
+        self[$$signal][eventName].emit(value);
+        if (self["on" + eventName]) {
+          self["on" + eventName](value);
+        }
+        if (eventName === LOAD || eventName === ERROR) {//once
+          self[$$signal] = {};
+        }
+      }
+
       return TLoader;
     }());
 
     var TMediaLoader = (function () {
-      var $$element = symbol("element");
 
       function TMediaLoader() {
         TLoader.call(this);
@@ -220,46 +232,30 @@ define(["module"], function (module) {
         this.getURL = TMediaLoader.prototype.getURL;
         this.getWidth = TMediaLoader.prototype.getWidth;
         this.getHeight = TMediaLoader.prototype.getHeight;
+        requireProperty(this, "$$createElement");
+        requireProperty(this, "$$load");
+        requireProperty(this, "$$cancel");
+        requireProperty(this, "$$getWidth");
+        requireProperty(this, "$$getHeight");
       }
       TMediaLoader.prototype.url = "";
-      TMediaLoader.prototype.initMediaLoader = function initMediaLoader(url, element) {
+      TMediaLoader.prototype.initMediaLoader = function initMediaLoader(url, opt_settings) {
         this.url = url;
-        this[$$element] = element;
         this.initLoader(function (resolve, reject) {
-          var loader = this;
-          var element = this[$$element];
-          element.onload = resolve;
-          element.onreadystatechange = function (event) {
-            if (element.readyState === "complete") {
-              resolve(event);
-            }
-          };
-          element.oncanplaythrough = function (event) {
-            if (element.readyState === 4) {
-              resolve(event);
-            }
-          };
-          element.onerror = function (event) {
-            if (loader.readyState === ReadyState.LOADING) {
-              reject(event);
-            } else {
-              //ignore cancelation errors
-            }
-          };
+          this.$$createElement(resolve, reject, opt_settings || {});
         });
       };
       TMediaLoader.prototype.load = function load() {
         if (this.readyState === ReadyState.INIT) {
           //debug("GET", this.getURL() || String(this), "...");
           __setReadyState(this, ReadyState.LOADING);
-          this[$$element].src = this.url;
+          this.$$load();
         }
       };
       TMediaLoader.prototype.cancel = function cancel() {
         if (this.readyState === ReadyState.LOADING) {
           debug("GET", this.getURL() || String(this), "Canceled");
-          var element = this[$$element];
-          element.src = "";
+          this.$$cancel();
           __setReadyState(this, ReadyState.INIT);
         }
       };
@@ -267,20 +263,10 @@ define(["module"], function (module) {
         return this.url;
       };
       TMediaLoader.prototype.getWidth = function () {
-        var element = this[$$element];
-        return (
-          ("naturalWidth" in element) ? element.naturalWidth :
-          ("videoWidth" in element) ? element.videoWidth :
-          0
-        );
+        return this.$$getWidth();
       };
       TMediaLoader.prototype.getHeight = function () {
-        var element = this[$$element];
-        return (
-          ("naturalHeight" in element) ? element.naturalHeight :
-          ("videoHeight" in element) ? element.videoHeight :
-          0
-        );
+        return this.$$getHeight();
       };
 
       function __setReadyState(self, readyState) {
@@ -293,11 +279,46 @@ define(["module"], function (module) {
      * ImageLoader class
      */
     var ImageLoader = (function (_super) {
+      var $$imgElement = symbol("imgElement");
 
-      function ImageLoader(url) {
+      function ImageLoader(url, opt_settings) {
         _super.call(this);
-        this.initMediaLoader(url, new Image());
+        this.initMediaLoader(url, opt_settings);
       }
+      ImageLoader.prototype.$$createElement = function (resolve, reject, settings) {
+        var $this = this;
+        var element = this[$$imgElement] = document.createElement("img");
+        if (settings.crossOrigin) {
+          element.crossOrigin = settings.crossOrigin;
+        }
+
+        element.onload = resolve;
+        element.onreadystatechange = function (event) {
+          if (element.readyState === "complete") {
+            resolve(event);
+          }
+        };
+        element.onerror = function (event) {
+          if ($this.readyState === ReadyState.LOADING) {
+            reject(event);
+          } else {
+            //ignore cancelation errors
+          }
+        };
+        return element;
+      };
+      ImageLoader.prototype.$$load = function () {
+        this[$$imgElement].src = this.getURL();
+      };
+      ImageLoader.prototype.$$cancel = function () {
+        this[$$imgElement].src = "";
+      };
+      ImageLoader.prototype.$$getWidth = function () {
+        return this[$$imgElement].naturalWidth;
+      };
+      ImageLoader.prototype.$$getHeight = function () {
+        return this[$$imgElement].naturalHeight;
+      };
       TMediaLoader.call(ImageLoader.prototype);//mixin
 
       return ImageLoader;
@@ -308,13 +329,49 @@ define(["module"], function (module) {
      * VideoLoader class
      */
     var VideoLoader = (function (_super) {
+      var $$videoElement = symbol("videoElement");
 
-      function VideoLoader(url) {
+      function VideoLoader(url, opt_settings) {
         _super.call(this);
-        this.initMediaLoader(url, new Video());
+        this.initMediaLoader(url, opt_settings);
       }
-      TMediaLoader.call(VideoLoader.prototype);//mixin
+      VideoLoader.prototype.$$createElement = function (resolve, reject, settings) {
+        var $this = this;
+        var element = this[$$videoElement] = document.createElement("video");
+        if (settings.crossOrigin) {
+          element.crossOrigin = settings.crossOrigin;
+        }
 
+        element.onload = resolve;
+        element.oncanplaythrough = function (event) {
+          if (element.readyState === 4) {
+            resolve(event);
+          }
+        };
+        element.onerror = function (event) {
+          if ($this.readyState === ReadyState.LOADING) {
+            reject(event);
+          } else {
+            //ignore cancelation errors
+          }
+        };
+        return element;
+      };
+
+      VideoLoader.prototype.$$load = function () {
+        this[$$videoElement].src = this.getURL();
+        this[$$videoElement].load();
+      };
+      VideoLoader.prototype.$$cancel = function () {
+        this[$$videoElement].src = "";
+      };
+      VideoLoader.prototype.$$getWidth = function () {
+        return this[$$videoElement].videoWidth;
+      };
+      VideoLoader.prototype.$$getHeight = function () {
+        return this[$$videoElement].videoHeight;
+      };
+      TMediaLoader.call(VideoLoader.prototype);//mixin
       return VideoLoader;
     }(Object));
     loader.VideoLoader = VideoLoader;
