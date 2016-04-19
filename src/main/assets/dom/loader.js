@@ -2,7 +2,7 @@ define(["module"], function (module) {
   "use strict";
 
   var moduleConfig = (module.config && module.config()) || {};
-  moduleConfig.debug = true;
+
   //util
   function debug(var_args) {
     if (moduleConfig.debug) {
