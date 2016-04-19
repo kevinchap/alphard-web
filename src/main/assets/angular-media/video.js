@@ -32,6 +32,7 @@ define(["module", "angular"], function (module, angular) {
     var LOADEDDATA = "loadeddata";
     var _loading = false;
 
+    //Initialization
     $element
       .bind(PLAY, onPlay)
       .bind(PAUSE, onPause)
@@ -71,10 +72,21 @@ define(["module", "angular"], function (module, angular) {
         .unbind(LOADEDDATA, onLoadedData);
     }
 
+    /**
+     * Return true if video is loading
+     *
+     * @returns {boolean}
+     */
     function loading() {
       return _loading;
     }
 
+    /**
+     * Getter / Setter for play|pause status
+     *
+     * @param {boolean=} opt_val
+     * @returns {boolean}
+     */
     function playing(opt_val) {
       var element = $element[0];
       if (arguments.length) {
@@ -105,8 +117,8 @@ define(["module", "angular"], function (module, angular) {
                 $element: $element,
                 $attrs: $attrs,
                 videoAttr: {
-                  get: function () {
-                    return ngVideoAttr($scope);
+                  get: function (opt_locals) {
+                    return ngVideoAttr($scope, opt_locals);
                   },
                   set: function (value) {
                     ngVideoAttr.assign($scope, value);
@@ -122,7 +134,6 @@ define(["module", "angular"], function (module, angular) {
 
     return videoAttribute;
   }
-
 
   function NgPlayingCtrl($scope, $element, $attrs, videoAttr, video) {
     var _value;//undefined for initialization
