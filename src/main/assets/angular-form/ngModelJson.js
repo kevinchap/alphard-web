@@ -17,7 +17,7 @@ define(["module", "angular"], function (module, angular) {
      *           ng-model="...">
      * </textarea>
      */
-    .directive("ngModelJson", NgModelJson);
+    .directive("ngModelJson", NgModelJsonDirective);
 
 
   /**
@@ -25,7 +25,7 @@ define(["module", "angular"], function (module, angular) {
    *
    * @constructor
    */
-  function NgModelJson() {
+  function NgModelJsonDirective() {
     return {
       require: ["ngModel"],
       restrict: "A",
@@ -34,9 +34,11 @@ define(["module", "angular"], function (module, angular) {
         var lastValid = null;
         var INVALID_JSON = "json";
 
-        //Configure ngModel
-        ngModel.$formatters.push(ngModelFormat);
-        ngModel.$parsers.push(ngModelParse);
+        if (ngModel) {
+          //Configure ngModel
+          ngModel.$formatters.push(ngModelFormat);
+          ngModel.$parsers.push(ngModelParse);
+        }
 
 
         function ngModelFormat(val) {

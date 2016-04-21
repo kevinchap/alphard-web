@@ -9,7 +9,7 @@ define(["module", "angular", "../json/jsonschema"], function (module, angular, j
    */
   var ngModule = angular
     .module(module.id, [])
-    .directive("ngModelJsonschema", NgModelJsonschema);
+    .directive("ngModelJsonschema", NgModelJsonschemaDirective);
 
 
   /**
@@ -18,12 +18,12 @@ define(["module", "angular", "../json/jsonschema"], function (module, angular, j
    * <input ng-model-jsonschema="..."
    *        ng-model="...">
    */
-  NgModelJsonschema.$inject = ["$parse"];
-  function NgModelJsonschema($parse) {
-    var $$name = "ngModelJsonschema";
+  NgModelJsonschemaDirective.$name = "ngModelJsonschema";
+  NgModelJsonschemaDirective.$inject = ["$parse"];
+  function NgModelJsonschemaDirective($parse) {
 
     function compile($element, $attrs) {
-      var ngJsonSchemaExpr = $parse($attrs[$$name]);
+      var ngJsonSchemaExpr = $parse($attrs[NgModelJsonschemaDirective.$name]);
 
       return function link($scope, $element, $attrs, $ctrls) {
         var ngModel = $ctrls[0];
@@ -47,7 +47,7 @@ define(["module", "angular", "../json/jsonschema"], function (module, angular, j
 
     return {
       restrict: "A",
-      require: ['?ngModel'],
+      require: ['ngModel'],
       compile: compile
     };
   }
