@@ -1,0 +1,73 @@
+/**
+ * Usage:
+ *
+ * .icon-lib {
+ *   @include font-icon("my-icon", 14px, 1)
+ * }
+ * .icon-lib-foo {
+ *   @include font-icon-char("b");
+ * }
+ */
+@import "./_variables";
+
+// Font icon mixins
+// --------------------------------------------------
+
+@mixin font-icon($font-family, $font-size: $font-icon-size, $line-height: $font-icon-line-height) {
+  $font-style: normal;
+  $font-variant: normal;
+  $font-weight: normal;
+
+  display: inline-block;
+  font: $font-style $font-variant $font-weight $font-size/$line-height $font-family;
+  font-size: inherit;
+  text-transform: none;
+  //text-rendering: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@mixin font-icon-char($char) {
+  &:before {
+    content: $char;
+  }
+}
+
+@mixin font-icon-rotate($deg: 5deg) {
+  -webkit-transform: rotate($deg);
+  -moz-transform: rotate($deg);
+  -ms-transform: rotate($deg);
+  -o-transform: rotate($deg);
+  transform: rotate($deg);
+}
+
+@mixin font-icon-scale($ratio-x, $ratio-y) {
+  -webkit-transform: scale($ratio-x, $ratio-y);
+  -moz-transform: scale($ratio-x, $ratio-y);
+  -ms-transform: scale($ratio-x, $ratio-y);
+  -o-transform: scale($ratio-x, $ratio-y);
+  transform: scale($ratio-x, $ratio-y);
+}
+
+@mixin font-icon-fixed-width() {
+  width: (18em / 14);
+  text-align: center;
+}
+
+@mixin font-icon-flip-horizontal() {
+  @include font-icon-scale(-1, 1);
+}
+
+@mixin font-icon-flip-vertical() {
+  @include font-icon-scale(1, -1);
+}
+
+@mixin font-icon-stack($size) {
+  position: relative;
+  display: inline-block;
+  width: $size;
+  height: $size;
+  line-height: $size;
+  vertical-align: middle;
+}

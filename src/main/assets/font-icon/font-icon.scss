@@ -1,0 +1,6 @@
+@import "./_mixins.less";
+@import "./_variables.less";
+
+.fa {
+  @include font-icon($font-awesome);
+}
