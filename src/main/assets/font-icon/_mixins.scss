@@ -1,13 +1,13 @@
-/**
- * Usage:
- *
- * .icon-lib {
- *   @include font-icon("my-icon", 14px, 1)
- * }
- * .icon-lib-foo {
- *   @include font-icon-char("b");
- * }
- */
+// Usage:
+//
+// .icon-lib {
+//   @include font-icon("my-icon", 14px, 1)
+// }
+// .icon-lib-foo {
+//   @include font-icon-char("b");
+// }
+//
+// --------------------------------------------------
 @import "./_variables";
 
 // Font icon mixins
