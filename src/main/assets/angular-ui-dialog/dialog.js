@@ -242,21 +242,33 @@ define(["module", "angular"], function (module, angular) {
               if (!isDisabled()) {
                 var options = getOptions() || {};
                 options.targetEvent = $event;
-                $$dialog
-                  .$confirm(options)
-                  .then(function (confirmed) {
-                    if (confirmed) {
-                      return $q(function (resolve, reject) {
-                        apply(function () {
-                          try {
-                            resolve(fn($scope, { $event: $event }));
-                          } catch (e) {
-                            reject(e);
-                          }
-                        });
-                      });
-                    }
+                if (options.bypassConfirmation === true) {
+                  return $q(function (resolve, reject) {
+                    apply(function () {
+                      try {
+                        resolve(fn($scope, { $event: $event }));
+                      } catch (e) {
+                        reject(e);
+                      }
+                    });
                   });
+                } else {
+                  $$dialog
+                    .$confirm(options)
+                    .then(function (confirmed) {
+                      if (confirmed) {
+                        return $q(function (resolve, reject) {
+                          apply(function () {
+                            try {
+                              resolve(fn($scope, {$event: $event}));
+                            } catch (e) {
+                              reject(e);
+                            }
+                          });
+                        });
+                      }
+                    });
+                }
               }
             }
 
