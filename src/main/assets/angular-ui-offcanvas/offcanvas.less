@@ -1,0 +1,149 @@
+// Offcanvas variable
+// --------------------------------------------------
+@offcanvas-bg-color: #fff;
+@offcanvas-translation-duration: 0.3s;
+@offcanvas-left-width: 200px;
+@offcanvas-right-width: 200px;
+@offcanvas-panel-z-index: 250;
+
+// Offcanvas mixins
+// --------------------------------------------------
+
+.offcanvas-transition(@transition) {
+  -webkit-transition: @transition;
+  -moz-transition: @transition;
+  -o-transition: @transition;
+  transition: @transition;
+}
+
+.offcanvas-transform(@transform) {
+  -webkit-transform: @transform;
+  -moz-transform: @transform;
+  -ms-transform: @transform;
+  -o-transform: @transform;
+  transform: @transform;
+}
+
+.offcanvas-transition-property(...) {
+  @props: ~`"@{arguments}".replace(/[\[\]]/g, '')`;
+  -webkit-transition-property: @props;
+  -moz-transition-property: @props;
+  -o-transition-property: @props;
+  transition-property: @props;
+}
+
+.offcanvas-overlay() {
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: -1;
+    opacity: 0;
+    .offcanvas-transition(opacity 0.3s ease-out);
+  }
+
+  &[disabled] {
+    //overflow: hidden;
+  }
+
+  &[disabled]:after {
+    z-index: @offcanvas-panel-z-index - 1;
+    opacity: 1;
+  }
+
+}
+
+// Offcanvas style
+// --------------------------------------------------
+
+.offcanvas {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  //overflow: hidden;
+
+
+  &,
+  &__content,
+  &__left,
+  &__right {
+    //height: 100%;
+    box-sizing: border-box;
+  }
+
+  &__content {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    //z-index: 1;
+    //overflow: auto;
+    //-webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  &__left,
+  &__right {
+    overflow: hidden;
+    background: @offcanvas-bg-color;
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    .offcanvas-transition(all @offcanvas-translation-duration ease);
+    .offcanvas-transition-property(left, right);
+    .offcanvas-transform(translate3d(0, 0, 0));
+    top: 0;
+    position: fixed;
+    z-index: @offcanvas-panel-z-index;
+
+    &[pushed] {
+      display: block;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+
+  &__left {
+    left: -@offcanvas-left-width;
+    width: @offcanvas-left-width;
+    height: 100%;
+  }
+
+  &__right {
+    right: -@offcanvas-right-width;
+    width: @offcanvas-right-width;
+    height: 100%;
+  }
+}
+
+// Offcanvas states
+// --------------------------------------------------
+.offcanvas--push-left > .offcanvas__left {
+  left: 0;
+}
+.offcanvas--push-right > .offcanvas__right {
+  right: 0;
+}
+
+// Offcanvas variants
+// --------------------------------------------------
+.offcanvas--default {
+  .offcanvas-overlay();
+
+  .offcanvas__content {
+    .offcanvas-overlay();
+    &:after {
+      position: fixed;
+    }
+  }
+
+  .offcanvas__left[pushed],
+  .offcanvas__right[pushed] {
+    box-shadow: 2px 0 2px rgba(0, 0, 0, 0.6), -2px 0 2px rgba(0, 0, 0, 0.6);
+  }
+}

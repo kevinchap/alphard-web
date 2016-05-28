@@ -1,0 +1,54 @@
+/**
+ * <div class="bootloader">
+ *   <div class="bootloader-panel">
+ *   </div>
+ * </div>
+ */
+
+// Core variables and mixins
+@import (reference) "lib/bootstrap/less/variables.less";
+@import (reference) "lib/bootstrap/less/mixins.less";
+
+// Reset
+@import "lib/bootstrap/less/normalize.less";
+@import "lib/bootstrap/less/scaffolding.less";
+
+@import "lib/bootstrap/less/progress-bars.less";
+
+/*Variables*/
+@bootloader-bg: #FFF;
+
+.bootloader {
+  font-size: 100%;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: @bootloader-bg;
+  z-index: 9999;
+  opacity: 1;
+  .transition(all 0.8s ease);
+  .transition-property(~"opacity,z-index");
+
+  &[disabled] {
+    z-index: -1;
+    opacity: 0;
+  }
+}
+
+.bootloader__panel {
+  width: 100%;
+  position: absolute;
+  top: 25%;
+  left: 0;
+  text-align: center;
+
+  h1 {
+    /*line-height: 1.1;*/
+    font-size: 36px;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin: 5px auto;
+  }
+}

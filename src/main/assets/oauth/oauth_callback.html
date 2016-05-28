@@ -1,0 +1,37 @@
+<html>
+<body>
+<script type="text/javascript">
+  (function (window) {
+    function parseQuery(qstr) {
+      var query = {};
+      var a = qstr.substr(1).split('&');
+      for (var i = 0; i < a.length; i++) {
+        var b = a[i].split('=');
+        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
+      }
+      return query;
+    }
+
+    var query = parseQuery(location.search);
+    var callbackName = query.js_callback;
+    var console = window.opener.console;
+    if (!callbackName) {
+      console.error("no 'js_callback=...' parameter in " + location.href);
+    } else {
+      var callback = window.opener[callbackName];
+
+      if (!callback) {
+        console.error("no property '" + callbackName + "' found in parent window", window.opener);
+      } else {
+        try {
+          callback(null, query);
+        } catch (e) {
+          callback(e, null);
+        }
+      }
+    }
+    window.close();
+  }(this));
+</script>
+</body>
+</html>
