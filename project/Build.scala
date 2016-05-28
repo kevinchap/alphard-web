@@ -3,6 +3,7 @@ import com.typesafe.sbt.less._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import com.typesafe.sbt.web._
 import io.alphard.sbt.SbtCommunitySettings.autoImport._
+import io.alphard.sbt.SbtNpm
 import sbt.Keys._
 import sbt._
 
@@ -11,9 +12,9 @@ object Build
   lazy val root =
     alphardProject("web", isRoot = true)
       .enablePlugins(
-        //SbtNpm,
-        SbtLess,
-        SbtWeb
+        SbtNpm,
+        SbtWeb,
+        SbtLess
       ).settings(
       scalaVersion := "2.10.5",
       crossPaths := false,
