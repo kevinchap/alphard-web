@@ -1,11 +1,7 @@
-resolvers += Resolver.typesafeRepo("releases")
+resolvers += Resolver.url("Alphard Ivy Public Releases Repository", url("http://repository.alphard.io/ivy/public/releases"))(Resolver.ivyStylePatterns)
 
-resolvers += "scm-manager releases repository" at "http://maven.scm-manager.org/nexus/content/groups/public"
+addSbtPlugin("io.alphard" %% "alphard-sbt-community-settings" % "3.33.0")
 
-resolvers += "ByTeGround Maven Public Releases Repository" at "http://repository.byteground.com/maven/public/releases"
-
-resolvers += Resolver.url("ByTeGround Ivy Public Releases Repository", url("http://repository.byteground.com/ivy/public/releases"))(Resolver.ivyStylePatterns)
-
-addSbtPlugin("com.byteground" %% "byteground-sbt-community-settings" % "3.33.0")
+//addSbtPlugin("io.alphard" %% "alphard-sbt-web" % "3.33.0")
 
 addSbtPlugin("com.typesafe.sbt" %% "sbt-less" % "1.0.4")
