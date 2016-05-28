@@ -1,0 +1,16 @@
+@import "../angular-material-style/_variables";
+
+//Theme
+.md-badge.md-sportagraph-theme {
+  background-color: $md-foreground-2;
+  color: white;
+
+  &.md-accent {
+    background-color: $md-accent-color;
+    color: $md-accent-contrast-color;
+  }
+  &.md-warn {
+    background-color: $md-warn-color;
+    color: $md-warn-contrast-color;
+  }
+}

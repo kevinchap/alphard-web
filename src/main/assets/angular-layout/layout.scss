@@ -1,0 +1,19 @@
+@import "./_mixins.scss";
+
+.layout, .layout-column, .layout-row {
+  @include flex-display(flex);
+  box-sizing: border-box;
+}
+
+.layout-row {
+  @include flex-direction(row);
+}
+
+.layout-column {
+  @include flex-direction(column);
+}
+
+.flex {
+  @include flex(1);
+  box-sizing: border-box;
+}
