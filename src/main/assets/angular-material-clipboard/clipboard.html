@@ -9,8 +9,15 @@
         ng-bind="mdInputClipboard.viewValue || '&nbsp;'">
   </span>
 
+  <md-button
+    ng-if="mdInputClipboard.buttonLabel() !== undefined"
+    class="md-raised md-primary">
+    {{mdInputClipboard.buttonLabel()|translate}}
+  </md-button>
+
   <!-- Copy button -->
   <md-icon class="md-input-clipboard__icon"
+           ng-if="mdInputClipboard.buttonLabel() === undefined"
            ng-bind="mdInputClipboard.isNotifying() ? 'done' : 'content_copy'">
   </md-icon>
 </div>
