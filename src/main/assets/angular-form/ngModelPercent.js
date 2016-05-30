@@ -7,22 +7,24 @@ define(["module", "angular"], function (module, angular) {
    */
   var ngModule = angular
     .module(module.id, [])
-    .directive('ngModelPercent', NgModelPercent);
+    .directive('ngModelPercent', NgModelPercentDirective);
 
   /**
    * @usage
    *
    * <input ng-model-percent ng-model="...">
    */
-  function NgModelPercent() {
+  function NgModelPercentDirective() {
     return {
       restrict: 'A',
       require: ['ngModel'],
       link: function ($scope, $element, $attrs, $ctrls) {
         var ngModel = $ctrls[0];
 
-        ngModel.$formatters.push(ngModelFormat);
-        ngModel.$parsers.push(ngModelParse);
+        if (ngModel) {
+          ngModel.$formatters.push(ngModelFormat);
+          ngModel.$parsers.push(ngModelParse);
+        }
 
         function ngModelFormat(val) {
           return Math.round(val * 100.0);
