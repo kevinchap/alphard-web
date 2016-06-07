@@ -15,6 +15,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
    *                     [ng-value="fn()"]
    *                     [md-copy="fn($text)]
    *                     [md-copy-error="fn($error)]
+   *                     [md-button-label="..."
    *                     [md-toast="..."]
    *                     [ng-disabled="..."]
    *                     [disabled]
@@ -34,7 +35,8 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
         ngModel: "=",
         ngValue: "&",
         mdCopy: "&",
-        mdCopyError: "&"
+        mdCopyError: "&",
+        mdButtonLabel: "="
       }
     };
   }
@@ -66,6 +68,7 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
     this.viewValue = "";
     this.toast = null;
     this.isNotifying = isNotifying;
+    this.buttonLabel = buttonLabel;
 
     //initialize
     function initialize() {
@@ -155,6 +158,10 @@ define(["module", "angular", "angular-material", "angular-clipboard"], function 
 
     function isNotifying() {
       return !!_notificationTimer;
+    }
+
+    function buttonLabel() {
+      return self.mdButtonLabel;
     }
 
     function notifyIcon() {
