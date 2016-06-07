@@ -16,7 +16,7 @@ object Build
         SbtWeb,
         SbtLess
       ).settings(
-      scalaVersion := "2.10.5",
+      scalaVersion := "2.11.7",
       crossPaths := false,
       libraryDependencies ++= Seq(
         "org.webjars" % "requirejs" % "2.1.20",
