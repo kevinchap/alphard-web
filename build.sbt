@@ -1,3 +1,4 @@
+
 def alphardWebProject(name: String) =
   alphardProject("web-" + name)
     .enablePlugins(SbtWeb)
@@ -9,45 +10,67 @@ def alphardWebProject(name: String) =
 // Common //
 ////////////
 
-val webLogger =
-  alphardWebProject("logger")
+val log =
+  alphardWebProject("log")
+
+val uuid =
+  alphardWebProject("uuid")
+
+val xhr =
+  alphardWebProject("xhr")
+
+val http =
+  alphardWebProject("http")
+
+val jsonrpc =
+  alphardWebProject("jsonrpc")
+
+val smd =
+  alphardWebProject("smd")
 
 /////////////
 // Require //
 /////////////
 
-val webRequireCss =
-  alphardWebProject("require-css")
+val css =
+  alphardWebProject("css")
 
-val webRequireJson =
-  alphardWebProject("require-json")
+val json =
+  alphardWebProject("json")
 
-val webRequireI18n =
-  alphardWebProject("require-i18n")
+val i18n =
+  alphardWebProject("i18n")
 
-val webRequireNg =
-  alphardWebProject("require-ng")
+val ng =
+  alphardWebProject("ng")
 
-val webRequireNjk =
-  alphardWebProject("require-njk")
+val njk =
+  alphardWebProject("njk")
 
 /////////////
 // Angular //
 /////////////
 
-val webAngularRequire =
+val angularRequire =
   alphardWebProject("angular-require")
 
 val root =
   alphardProject("web", isRoot = true)
     .aggregate(
-      webLogger,
 
-      webRequireCss,
-      webRequireJson,
-      webRequireI18n,
-      webRequireNg,
-      webRequireNjk,
+      log,
+      uuid,
+      xhr,
+      http,
+      jsonrpc,
+      smd,
 
-      webAngularRequire
+      css,
+      json,
+      i18n,
+      ng,
+      njk,
+
+      angularRequire
+
     )
