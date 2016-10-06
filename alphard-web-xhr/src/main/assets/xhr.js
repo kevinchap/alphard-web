@@ -1,4 +1,4 @@
-define(['module', 'log'], function (module, log) {
+define(['module', 'alphard/log'], function (module, log) {
 	'use strict';
 
 	var logger = log(module);

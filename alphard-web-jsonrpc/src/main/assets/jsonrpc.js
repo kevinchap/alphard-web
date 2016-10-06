@@ -1,15 +1,20 @@
-define(['module', 'http', 'uuid'], function (module, http, uuid) {
+define(['module', 'alphard/http', 'alphard/uuid'], function (module, http, uuid) {
 	'use strict';
 
-	return function (endpoint, method, params, id, version) {
+	return function (endpoint, method, params, opts) {
+
+		var options = opts;
+		if (!options.headers) {
+			options.headers = {};
+		}
+		options.headers['Content-Type'] = 'application/json';
+
 		return http.post(endpoint, JSON.stringify({
-			id: id || uuid(),
-			jsonrpc: version || '2.0',
+			id: options.id || uuid(),
+			jsonrpc: options.version || '2.0',
 			method: method,
 			params: params
-		}), {
-			'Content-Type': 'application/json'
-		}).then(function (rawResponse) {
+		}), options).then(function (rawResponse) {
 			var response = JSON.parse(rawResponse);
 			if (response.error) {
 				throw new Error(response.error.message + ': ' + response.error.data);

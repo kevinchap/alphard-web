@@ -11,8 +11,6 @@
 define(['module'], function (module) {
 	'use strict';
 
-	console.log("NEW CSS");
-
 	//RequireJS module config
 	var moduleConfig = (module.config && module.config()) || {};
 	var DEBUG = !!moduleConfig.debug;

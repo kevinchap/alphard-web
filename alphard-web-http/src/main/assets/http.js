@@ -1,20 +1,21 @@
-define(['q', 'xhr'], function (Q, XHR) {
+define(['q', 'alphard/xhr'], function (Q, XHR) {
 	'use strict';
 
-	var get = function (endpoint, parameters, headers) {
+	var get = function (endpoint, parameters, options) {
 		var url = endpoint;
 		if (parameters)
 			url += '?' + toQueryString(parameters);
-		return request('GET', url, headers);
+		return request('GET', url, options);
 	};
 
-	var post = function (endpoint, parameters, headers) {
-		return request('POST', endpoint, parameters, headers);
+	var post = function (endpoint, parameters, options) {
+		return request('POST', endpoint, parameters, options);
 	};
 
-	var request = function (method, endpoint, parameters, headers) {
+	var request = function (method, endpoint, parameters, options) {
 		var deferred = Q.defer();
 		var req = new XHR();
+		req.withCredentials = !!options.withCredentials;
 
 		req.onreadystatechange = function () {
 			if (req.readyState !== 4) {
@@ -38,9 +39,9 @@ define(['q', 'xhr'], function (Q, XHR) {
 
 		req.open(method, endpoint, true);
 
-		for (var header in headers) {
-			if (headers.hasOwnProperty(header))
-				req.setRequestHeader(header, headers[header]);
+		for (var header in options.headers) {
+			if (options.headers.hasOwnProperty(header))
+				req.setRequestHeader(header, options.headers[header]);
 		}
 
 		req.send(parameters || null);
