@@ -3,7 +3,7 @@ define(['module', 'alphard/http', 'alphard/uuid'], function (module, http, uuid)
 
 	return function (endpoint, method, params, opts) {
 
-		var options = opts;
+		var options = opts || {};
 		if (!options.headers) {
 			options.headers = {};
 		}

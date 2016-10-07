@@ -16,6 +16,9 @@ val log =
 val uuid =
   alphardWebProject("uuid")
 
+val suid =
+  alphardWebProject("suid")
+
 val xhr =
   alphardWebProject("xhr")
 
@@ -25,8 +28,11 @@ val http =
 val jsonrpc =
   alphardWebProject("jsonrpc")
 
-val smd =
-  alphardWebProject("smd")
+val dom =
+  alphardWebProject("dom")
+
+val params =
+  alphardWebProject("params")
 
 /////////////
 // Require //
@@ -60,10 +66,12 @@ val root =
 
       log,
       uuid,
+      suid,
       xhr,
       http,
       jsonrpc,
-      smd,
+      dom,
+      params,
 
       css,
       json,
