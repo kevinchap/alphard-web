@@ -43,7 +43,7 @@ define(['module'], function (module) {
 			if (levels.hasOwnProperty(level)) {
 
 				if (con && con[level] && levels[level] <= logger.priority)
-					logger[level] = con[level].bind(con, prefix);
+					logger[level] = Function.prototype.bind.call( con[level], con, prefix ); // logger[level] = con[level].bind(con, prefix);
 				else
 					logger[level] = noop;
 
