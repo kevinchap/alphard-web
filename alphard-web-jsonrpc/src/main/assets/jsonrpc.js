@@ -17,7 +17,7 @@ define(['module', 'alphard/http', 'alphard/uuid'], function (module, http, uuid)
 		}), options).then(function (rawResponse) {
 			var response = JSON.parse(rawResponse);
 			if (response.error) {
-				throw new Error(response.error.message + ': ' + response.error.data);
+				throw response.error;
 			} else {
 				return response.result;
 			}
