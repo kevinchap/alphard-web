@@ -15,33 +15,57 @@ define(['q', 'alphard/xhr'], function (Q, XHR) {
 	var request = function (method, endpoint, parameters, options) {
 		var deferred = Q.defer();
 		var req = new XHR();
-		req.withCredentials = !!options.withCredentials;
 
-		req.onreadystatechange = function () {
-			if (req.readyState !== 4) {
-				return;
+		if ( 'withCredentials' in req ) {
+
+			req.withCredentials = !!options.withCredentials;
+
+			req.onreadystatechange = function() {
+
+				if ( req.readyState !== 4 ) {
+					return;
+				}
+
+				if ( [ 200, 304 ].indexOf( req.status ) === -1 ) {
+					deferred.reject( new Error( req.statusText ) );
+				} else {
+					deferred.resolve( req.responseText );
+				}
+
+			};
+
+			if ( req.ontimeout ) {
+				req.ontimeout = function() {
+					deferred.reject( new Error( event.target.statusText ) );
+				};
 			}
 
-			if ([200, 304].indexOf(req.status) === -1) {
-				deferred.reject(new Error(req.statusText));
-			} else {
-				deferred.resolve(req.responseText);
+			if ( req.onerror ) {
+				req.onerror = function( error ) {
+					deferred.reject( error );
+				};
 			}
-		};
 
-		req.ontimeout = function () {
-			deferred.reject(new Error(event.target.statusText));
-		};
+			req.open( method, endpoint, true );
 
-		req.onerror = function (error) {
-			deferred.reject(error);
-		};
+			for (var header in options.headers) {
+				if (options.headers.hasOwnProperty(header))
+					req.setRequestHeader(header, options.headers[header]);
+			}
 
-		req.open(method, endpoint, true);
 
-		for (var header in options.headers) {
-			if (options.headers.hasOwnProperty(header))
-				req.setRequestHeader(header, options.headers[header]);
+		} else if ( typeof XDomainRequest != 'undefined' ) {
+
+			req = new XDomainRequest();
+
+			req.onload = function() {
+
+				deferred.resolve( req.responseText );
+
+			};
+
+			req.open( method, endpoint );
+
 		}
 
 		req.send(parameters || null);
