@@ -3,12 +3,6 @@ define(['module'], function (module) {
 
 	var noop = function () {};
 
-	// IE 9 Quick Hack
-
-	// var noop = function (p1, p2, p3, p4) {
-	// 	console.log(p1, p2, p3, p4);
-	// };
-
 	var config = (module.config && module.config()) || {};
 	var levels = {
 		'log': 5,
@@ -43,13 +37,11 @@ define(['module'], function (module) {
 			if (levels.hasOwnProperty(level)) {
 
 				if (con && con[level] && levels[level] <= logger.priority)
-					logger[level] = Function.prototype.bind.call( con[level], con, prefix ); // logger[level] = con[level].bind(con, prefix);
+          // originally: logger[level] = con[level].bind(con, prefix);
+          // ie9: http://stackoverflow.com/questions/5472938/does-ie9-support-console-log-and-is-it-a-real-function/5473193#5473193
+					logger[level] = Function.prototype.bind.call( con[level], con, prefix );
 				else
 					logger[level] = noop;
-
-				// IE 9 Quick Hack
-				//logger[ level ] = noop;
-
 			}
 		}
 
